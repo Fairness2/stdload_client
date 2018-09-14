@@ -1,19 +1,24 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import auMain from '@/components/auMain'
+import Vue from 'vue';
+import Router from 'vue-router';
+import appMain from '../components/appMain';
 
-Vue.use(Router)
+Vue.use(Router);
+
+const routes = [
+    {
+    path: '/',
+    component: appMain,
+    meta: {
+        forAuth: true
+    },
+
+    children: [    
+      {path: ':page'}
+    ]
+  },
+]
 
 export default new Router({
-    mode: 'history',
-    routes: [
-        {
-            path: '/report/',
-            name: 'auMain',
-            component: auMain,
-            meta: {
-                forAuth: true
-            }
-        }
-    ]
+  mode: 'history',
+  routes
 })

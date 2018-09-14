@@ -5,12 +5,9 @@
 </template>
 
 <script>
-
 export default {
-  name: 'app'
+  name: 'App'
 }
 </script>
+<style src="@/assets/sass/base/main.scss" lang="scss"/>
 
-<style>
-
-</style>

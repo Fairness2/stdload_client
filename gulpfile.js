@@ -13,15 +13,15 @@ var path = {
 
     build: {
         font: {
-            action: './src/assets/icons/build/action',
-            categories: './src/assets/icons/build/categories',
+            action: './src/assets/icons/build/icon-action',
+            categories: './src/assets/icons/build/icon-categories',
         }
     },
 
     src: {
         svg: {
-            action: './src/assets/icons/original/action/*.svg',
-            categories: './src/assets/icons/original/categories/*.svg',
+            action: './src/assets/icons/original/icon-action/*.svg',
+            categories: './src/assets/icons/original/icon-categories/*.svg',
         }
     }
 };
@@ -65,36 +65,37 @@ gulp.task('iconCat', function(){
 
     gulp.src([path.src.svg.categories])
         .pipe(iconfontCss({
-            fontName: 'categories_'+version+'',
+            fontName: 'icon-categories_'+version+'',
             cssClass: 'icon-categories',
-            targetPath: '../../../sass/base/icons-categories.scss',
-            fontPath: '../../icons/build/categories/'
+            targetPath: '../../../sass/base/icon-categories.scss',
+            fontPath: '../../icons/build/icon-categories/'
         }))
-        .pipe(iconfont(configIcon('categories_'+version+'')))
+        .pipe(iconfont(configIcon('icon-categories_'+version+'')))
         .pipe(gulp.dest(path.build.font.categories))
         .on('end', function() {
-            gulp.src(path.build.font.categories+'/*');
+            gulp.src(path.build.font.categories + '/*');
         });
 });
 
-
-/**
- * Generation icons action
- */
 gulp.task('iconAction', function(){
 
     removesOldFont(path.build.font.action);
 
     gulp.src([path.src.svg.action])
         .pipe(iconfontCss({
-            fontName: 'action_'+version+'',
+            fontName: 'icon-action_'+version+'',
             cssClass: 'icon-action',
-            targetPath: '../../../sass/base/icons-action.scss',
-            fontPath: '../../icons/build/action/'
+            targetPath: '../../../sass/base/icon-action.scss',
+            fontPath: '../../icons/build/icon-action/'
         }))
-        .pipe(iconfont(configIcon('action_'+version+'')))
+        .pipe(iconfont(configIcon('icon-action_'+version+'')))
         .pipe(gulp.dest(path.build.font.action))
         .on('end', function() {
-            gulp.src(path.build.font.action+'/*');
+            gulp.src(path.build.font.action + '/*');
         });
 });
+
+
+
+
+
