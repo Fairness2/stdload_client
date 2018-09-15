@@ -5,7 +5,13 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   state: {
-
+      currentUser: {
+        login: 'test@test.test',
+        name: 'Константин К'
+      },
+      isPageLoaderShow: false, //TODO true
+      currentPage: null,
+      isCurrentAllotment: null
   },
 
   getters: {

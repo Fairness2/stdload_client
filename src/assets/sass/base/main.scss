@@ -1,2 +1,23 @@
+html{
+  overflow: auto;
+  min-height: 100%;
+}
+
+
+.page{
+  height: 100%;
+  &_header {
+    width: 100%;
+
+    &__content {
+      padding: 10px 0 10px 10px;
+      height: 40px;
+    }
+  }
+
+  &_body{
+    margin-top: 5px;
+  }
+}
 
 
