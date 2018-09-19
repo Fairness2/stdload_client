@@ -32,7 +32,6 @@
         },
         computed:{
             getCurrentComponent(){
-                debugger
                 let page = this.currentPage,
                     component = '',
                     componentsList = this.$options.components;
