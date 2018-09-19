@@ -34,7 +34,7 @@
 
         <v-flex xs12 sm5>
             <v-layout row wrap>
-                <v-flex xs 12>
+                <v-flex xs12>
                     <v-card class="allotment">
                         <v-toolbar class="header white--text">
                             <div class="subheading">Параметры распределения</div>
@@ -47,7 +47,7 @@
                         <v-card-text v-show="!isNotChoice">
                             <v-layout row wrap>
                                 <v-flex xs12>
-                                    <v-btn class="success">Открыть</v-btn>
+                                    <v-btn class="success" @click="openAllotment()">Открыть</v-btn>
                                     <v-btn class="success">Загрузить из файла</v-btn>
                                     <v-btn class="primary" @click="clickUpdateAllotment()">Изменить</v-btn>
                                     <v-btn class="error">Удалить</v-btn>
@@ -102,7 +102,7 @@
                     </v-card>
                 </v-flex>
 
-                <v-flex>
+                <v-flex xs12>
                     <v-card class="new_allotment">
                         <v-toolbar class="header white--text">
                             <div class="subheading">Новое распределение</div>
@@ -145,14 +145,16 @@
 </template>
 
 <script>
+    import {mapState, mapMutations} from 'vuex';
+
     export default {
         name: "appPageAllotments",
         components: {},
         data() {
             return {
                 allotments: {
-                    121 :{id: '121', name: 'Распределение 1', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    122 : {id: '122', name: 'Распределение 2', year:'2017-2018', all_hours: 64, dis_hours: 64},
+                    121: {id: '121', name: 'Распределение 1', year:'2017-2018', all_hours: 64, dis_hours: 32},
+                    122: {id: '122', name: 'Распределение 2', year:'2017-2018', all_hours: 64, dis_hours: 64},
                     123: {id: '123', name: 'Распределение 3', year:'2017-2018', all_hours: 64, dis_hours: 72},
                     124: {id: '124', name: 'Распределение 4', year:'2017-2018', all_hours: 64, dis_hours: 32},
                     125: {id: '125', name: 'Распределение 5', year:'2017-2018', all_hours: 64, dis_hours: 32},
@@ -217,7 +219,18 @@
                 setTimeout(() => (this[l] = false), 3000);
 
                 this.updateAllotment = null;
-            }
+            },
+
+            'currentPage': function() {
+                this.setPageLoader()
+            },
+
+        },
+        computed:{
+            ...mapState([
+                'isPageLoaderShow',
+                'currentPage'
+            ])
         },
         methods:{
             isDistributed(dis_hours, all_hours){
@@ -245,7 +258,25 @@
                 this.isUpdFlag = true;
                 this.upadteName = this.allotments[this.selectedAllotment].name;
                 this.updateYear = this.allotments[this.selectedAllotment].year;
-            }
+            },
+
+            openAllotment(){
+                this.setData({
+                    path: 'сurrentAllotment',
+                    data: this.allotments[this.selectedAllotment]
+                });
+                this.setData({
+                    path: 'currentPage',
+                    data: 'HiDiscipline'
+                });
+            },
+
+            ...mapMutations([
+                'setPageLoader',
+                'removePageLoader',
+                'setData'
+            ]),
+
         }
     }
 </script>

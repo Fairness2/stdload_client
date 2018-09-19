@@ -18,18 +18,21 @@
 <script>
     import appHeader from './appHeader';
     import {mapState, mapActions} from 'vuex';
-    import AppPageLoader from "./appPageLoader";
+    import appPageLoader from "./appPageLoader";
     import appPageAllotments from './appPageAllotments';
+    import appPageHiDiscipline from './appPageHiDiscipline';
 
     export default {
         name: "appMain",
         components:{
-            AppPageLoader,
+            appPageLoader,
             appHeader,
-            appPageAllotments
+            appPageAllotments,
+            appPageHiDiscipline
         },
         computed:{
             getCurrentComponent(){
+                debugger
                 let page = this.currentPage,
                     component = '',
                     componentsList = this.$options.components;
@@ -45,6 +48,10 @@
             ])
         },
         methods:{
+            ...mapActions([
+                'selectPage'
+            ]),
+
             logOut(){
                 debugger
             }

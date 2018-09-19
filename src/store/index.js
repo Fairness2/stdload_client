@@ -11,7 +11,7 @@ const store = new Vuex.Store({
       },
       isPageLoaderShow: false, //TODO true
       currentPage: null,
-      isCurrentAllotment: null
+      сurrentAllotment: null
   },
 
   getters: {
@@ -19,6 +19,22 @@ const store = new Vuex.Store({
   },
 
   mutations: {
+      setData(state, {path, data}) {
+          let parts = path.split('.'),
+              last = parts.pop(),
+              target = state;
+          parts.forEach((part) => target = target[part]);
+
+          return target[last] = data;
+      },
+
+      setPageLoader(state) {
+          state.isPageLoaderShow = true;
+      },
+
+      removePageLoader(state) {
+          state.isPageLoaderShow = false;
+      },
 
   },
 
