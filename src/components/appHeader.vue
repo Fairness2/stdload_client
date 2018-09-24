@@ -5,6 +5,9 @@
                 Система распределения учебной нагрузки
             </v-flex>
             <v-flex sm6 xs12 class="text-sm-right">
+                <v-btn flat small title="Сообщения"><v-badge color="red"><span slot="badge">5</span><v-icon color="white">mail_outline</v-icon></v-badge></v-btn>
+                <v-btn flat small title="Справочники"><v-icon color="white">library_books</v-icon></v-btn>
+                <v-btn flat small title="Распределения"><v-icon color="white">import_export</v-icon></v-btn>
                 <v-menu offset-y>
                     <div slot="activator">
                         {{currentUser.name}}

@@ -1,5 +1,5 @@
 <template>
-    <v-layout row justify-space-around>
+    <v-layout row justify-space-around fill-height>
 
         <v-flex xs12 sm6>
             <v-card class="allotment">
@@ -16,7 +16,7 @@
                                 v-bind:class="isDistributed(item.dis_hours, item.all_hours)"
                         >
                             <v-list-tile-content>
-                                <v-list-tile-title>{{item.name}}</v-list-tile-title>
+                                <v-list-tile-title>{{item.name}}<v-icon title="Основное распределение" v-show="item.primary">done_outline</v-icon></v-list-tile-title>
                                 <v-list-tile-sub-title class="text--primary">Учебный год: {{ item.year }}</v-list-tile-sub-title>
                                 <v-list-tile-sub-title>Часов распределено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
                             </v-list-tile-content>
@@ -35,7 +35,7 @@
         <v-flex xs12 sm5>
             <v-layout row wrap>
                 <v-flex xs12>
-                    <v-card class="allotment">
+                    <v-card class="">
                         <v-toolbar class="header white--text">
                             <div class="subheading">Параметры распределения</div>
                         </v-toolbar>
@@ -48,7 +48,6 @@
                             <v-layout row wrap>
                                 <v-flex xs12>
                                     <v-btn class="success" @click="openAllotment()">Открыть</v-btn>
-                                    <v-btn class="success">Загрузить из файла</v-btn>
                                     <v-btn class="primary" @click="clickUpdateAllotment()">Изменить</v-btn>
                                     <v-btn class="error">Удалить</v-btn>
                                 </v-flex>
@@ -96,6 +95,9 @@
                                 </v-flex>
                                 <v-flex xs12 class="body-1" v-bind:class="allotments[selectedAllotment] ? isDistributed(allotments[selectedAllotment].dis_hours, allotments[selectedAllotment].all_hours) : ''">
                                     Осталось распределить: {{allotments[selectedAllotment] ? allotments[selectedAllotment].all_hours - allotments[selectedAllotment].dis_hours : 0}}
+                                </v-flex>
+                                <v-flex v-show="allotments[selectedAllotment] ? allotments[selectedAllotment].primary : false" xs12 class="body-1">
+                                    Основное распределение
                                 </v-flex>
                             </v-layout>
                         </v-card-text>
@@ -153,24 +155,24 @@
         data() {
             return {
                 allotments: {
-                    121: {id: '121', name: 'Распределение 1', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    122: {id: '122', name: 'Распределение 2', year:'2017-2018', all_hours: 64, dis_hours: 64},
-                    123: {id: '123', name: 'Распределение 3', year:'2017-2018', all_hours: 64, dis_hours: 72},
-                    124: {id: '124', name: 'Распределение 4', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    125: {id: '125', name: 'Распределение 5', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    126: {id: '126', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    127: {id: '127', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    128: {id: '128', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    129: {id: '129', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    130: {id: '130', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    131: {id: '131', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    132: {id: '132', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    133: {id: '133', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    134: {id: '134', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    135: {id: '135', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    136: {id: '136', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    137: {id: '137', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
-                    138: {id: '138', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32},
+                    121: {id: '121', name: 'Распределение 1', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: true},
+                    122: {id: '122', name: 'Распределение 2', year:'2017-2018', all_hours: 64, dis_hours: 64, primary: false},
+                    123: {id: '123', name: 'Распределение 3', year:'2017-2018', all_hours: 64, dis_hours: 72, primary: true},
+                    124: {id: '124', name: 'Распределение 4', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    125: {id: '125', name: 'Распределение 5', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    126: {id: '126', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: true},
+                    127: {id: '127', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: true},
+                    128: {id: '128', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    129: {id: '129', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    130: {id: '130', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    131: {id: '131', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    132: {id: '132', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    133: {id: '133', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    134: {id: '134', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    135: {id: '135', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    136: {id: '136', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    137: {id: '137', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
+                    138: {id: '138', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
 
                 },
 
