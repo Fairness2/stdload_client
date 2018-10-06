@@ -15,7 +15,22 @@
                     single-line
             ></v-select>
         </div>
+        <div class="dimensions allotment_toolbox__element">
+            <v-select
+                    color="primary"
+                    :items="semesters"
+                    label="Семестр"
+                    v-model="selectedSemester"
+                    outline
+                    single-line
+            ></v-select>
+        </div>
         <v-spacer/>
+        <div class="allotment_toolbox__element">
+            <v-btn outline color="primary" title="Поставить на автоматическое распределение">
+                <v-icon>play_circle_outline</v-icon>
+            </v-btn>
+        </div>
         <div class="allotment_toolbox__element">
             <v-btn outline color="primary" title="Выгрузить в файл">
                 <v-icon>cloud_download</v-icon>
@@ -42,8 +57,36 @@
     export default {
         name: "appAllotmentToolbar",
         data: () => ({
-            dimensions: ['По дсициплине', 'По преподавателю', 'По наприведению'],
-            dimension: 'По дсициплине'
+            dimensions: [
+                {
+                    text: 'По дсициплине',
+                    value: 1
+                },
+                {
+                    text: 'По преподавателю',
+                    value: 2
+                },
+                {
+                    text: 'По наприведению',
+                    value: 3
+                },
+            ],
+            semesters: [
+                {
+                    text: 'Осенний',
+                    value: 1
+                },
+                {
+                    text: 'Весенний',
+                    value: 2
+                },
+                {
+                    text: 'Все',
+                    value: 3
+                },
+            ],
+            dimension: 1,
+            selectedSemester: 3
         }),
         computed:{
             ...mapState([

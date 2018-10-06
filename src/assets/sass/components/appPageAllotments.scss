@@ -2,7 +2,7 @@
 
   &_list{
 
-    height: 800px; //TODO
+    height: calc(100vh - 140px);
     overflow: auto; //TODO Скрол
   }
 }

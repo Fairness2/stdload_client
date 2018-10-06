@@ -22,10 +22,7 @@
                             </v-list-tile-content>
 
                         </v-list-tile>
-                        <v-divider
-                                v-if="index + 1 < allotments.length"
-                                :key="index"
-                        ></v-divider>
+                        <v-divider />
                     </template>
                 </v-list>
 
