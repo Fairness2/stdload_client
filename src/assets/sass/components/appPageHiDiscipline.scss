@@ -12,6 +12,13 @@
 
 .settings{
   margin-left: 10px;
-  height: calc(100vh - 200px);
-  overflow: auto; //TODO Скрол
+
+  &__highest{
+    height: calc(100vh - 260px);
+    overflow: auto; //TODO Скрол
+  }
+
+  &__form{
+    margin: 10px;
+  }
 }
