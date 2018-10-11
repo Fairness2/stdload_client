@@ -1,7 +1,7 @@
 <template>
     <v-layout row fill-height  class="allotment_toolbox">
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" title="К распределениям">
+            <v-btn outline color="primary" @click="goPageAllotments()" title="К распределениям">
                 <v-icon>arrow_back</v-icon>
             </v-btn>
         </div>
@@ -10,7 +10,7 @@
                     color="primary"
                     :items="dimensions"
                     label="Представление"
-                    v-model="dimension"
+                    v-model="selectedDimension"
                     outline
                     single-line
             ></v-select>
@@ -56,19 +56,19 @@
     import {mapState, mapMutations} from 'vuex';
     export default {
         name: "appAllotmentToolbar",
+        props:[
+            'dimension'
+        ],
         data: () => ({
             dimensions: [
                 {
                     text: 'По дсициплине',
-                    value: 1
                 },
                 {
                     text: 'По преподавателю',
-                    value: 2
                 },
                 {
                     text: 'По наприведению',
-                    value: 3
                 },
             ],
             semesters: [
@@ -85,14 +85,79 @@
                     value: 3
                 },
             ],
-            dimension: 1,
-            selectedSemester: 3
+            selectedSemester: null,
+            selectedDimension: null,
         }),
         computed:{
             ...mapState([
                 'сurrentAllotment',
-                'currentPage'
+                'currentPage',
+                'currentSemester'
             ])
+        },
+
+        watch:{
+            selectedDimension: function (val) {
+                let page = 'PageAllotments';
+                switch (val) {
+                    case 'По дсициплине':
+                        page = 'HiDiscipline';
+                        break;
+                    case 'По преподавателю':
+                        page = 'HiEmployee';
+                        break;
+                    case 'По наприведению':
+                        page = 'HiGroup';
+                        break;
+                }
+                debugger
+                this.setData({
+                    path: 'currentPage',
+                    data: page
+                });
+            },
+            selectedSemester: function (val) {
+                let page = 'PageAllotments';
+                switch (this.selectedDimension) {
+                    case 'По дсициплине':
+                        page = 'HiDiscipline';
+                        break;
+                    case 'По преподавателю':
+                        page = 'HiEmployee';
+                        break;
+                    case 'По наприведению':
+                        page = 'HiGroup';
+                        break;
+                }
+                this.setData({
+                    path: 'currentSemester',
+                    data: val
+                });
+                this.setData({
+                    path: 'currentPage',
+                    data: page
+                });
+            },
+        },
+
+        methods:{
+            ...mapMutations([
+                'setPageLoader',
+                'removePageLoader',
+                'setData'
+            ]),
+
+            goPageAllotments(){
+                this.setData({
+                    path: 'currentPage',
+                    data: 'PageAllotments'
+                });
+            },
+        },
+
+        beforeMount (){
+            this.selectedSemester = this.currentSemester;
+            this.selectedDimension = this.dimension;
         }
     }
 </script>

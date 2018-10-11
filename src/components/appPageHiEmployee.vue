@@ -1,6 +1,6 @@
 <template>
     <div class="page_greed">
-        <app-allotment-toolbar dimension="По дсициплине"></app-allotment-toolbar>
+        <app-allotment-toolbar dimension="По преподавателю"></app-allotment-toolbar>
         <div>
             <v-breadcrumbs>
                 <v-icon slot="divider">chevron_right</v-icon>
@@ -17,7 +17,31 @@
         <v-layout row fill-height >
 
             <v-flex xs12 sm4>
-                <v-card class="disciplines" v-show="isNotSetings">
+                <v-card class="" v-show="isNotSetings">
+                    <v-toolbar class="header white--text">
+                        <div class="subheading">Преподаватель</div>
+                    </v-toolbar>
+
+                    <v-list two-line class="employees_list highest">
+                        <template v-for="item in employees">
+                            <v-list-tile
+                                    :key="item.id"
+                                    @click="selectEmployee(item.id)"
+                                    ripple
+                                    v-bind:class="isDistributed(item.dis_hours, item.all_hours)"
+                            >
+                                <v-list-tile-content>
+                                    <v-list-tile-title>{{item.name}}</v-list-tile-title>
+                                    <v-list-tile-sub-title>Часов назначено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
+                                </v-list-tile-content>
+
+                            </v-list-tile>
+                            <v-divider/>
+                        </template>
+                    </v-list>
+                </v-card>
+
+                <v-card class="disciplines" v-show="isEmployeeSetings">
                     <v-toolbar class="header white--text">
                         <div class="subheading">Дисциплина</div>
                     </v-toolbar>
@@ -32,7 +56,7 @@
                             >
                                 <v-list-tile-content>
                                     <v-list-tile-title>{{item.name}}</v-list-tile-title>
-                                    <v-list-tile-sub-title>Часов распределено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>Часов назначено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
                                 </v-list-tile-content>
 
                             </v-list-tile>
@@ -56,7 +80,7 @@
                             >
                                 <v-list-tile-content>
                                     <v-list-tile-title>{{item.name}}</v-list-tile-title>
-                                    <v-list-tile-sub-title>Часов распределено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>Часов назначено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
                                 </v-list-tile-content>
 
                             </v-list-tile>
@@ -80,8 +104,7 @@
                             >
                                 <v-list-tile-content>
                                     <v-list-tile-title>{{item.name}}</v-list-tile-title>
-                                    <v-list-tile-sub-title>Часов распределено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
-                                    <v-list-tile-sub-title v-show="item.employee ? true : false">Преподаватель: {{item.employee ? item.employee.text : ''}}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title>Часов назначено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
                                 </v-list-tile-content>
 
                             </v-list-tile>
@@ -110,24 +133,39 @@
                             </v-card-title>
                         </div>
 
+                        <div v-show="isEmployeeSetings">
+                            <v-card-title primary-title>
+                                <div>
+                                    <h3 class="headline mb-0">{{employees[selectedEmployee] ? employees[selectedEmployee].name : ''}}</h3>
+                                    <div><b>Ставка:</b> {{employees[selectedEmployee] ? employees[selectedEmployee].all_hours : ''}}</div>
+                                    <div v-bind:class="employees[selectedEmployee] ? isDistributed(employees[selectedEmployee].dis_hours, employees[selectedEmployee].all_hours) : ''">
+                                        <b>Часов назначено:</b> {{employees[selectedEmployee] ? employees[selectedEmployee].dis_hours : ''}}
+                                    </div>
+
+                                </div>
+                            </v-card-title>
+                            <v-divider/>
+                        </div>
+
                         <div v-show="isDisciplineSetings">
                             <v-card-title primary-title>
                                 <div>
                                     <h3 class="headline mb-0">{{disciplines[selectedDiscipline] ? disciplines[selectedDiscipline].name : ''}}</h3>
-                                    <div><b>Часов всего:</b> {{disciplines[selectedDiscipline] ? disciplines[selectedDiscipline].all_hours : ''}}</div>
+                                    <div><b>Часов в дисциплине:</b> {{disciplines[selectedDiscipline] ? disciplines[selectedDiscipline].all_hours : ''}}</div>
                                     <div v-bind:class="disciplines[selectedDiscipline] ? isDistributed(disciplines[selectedDiscipline].dis_hours, disciplines[selectedDiscipline].all_hours) : ''">
-                                        <b>Часов распределено:</b> {{disciplines[selectedDiscipline] ? disciplines[selectedDiscipline].dis_hours : ''}}
+                                        <b>Часов назначено:</b> {{disciplines[selectedDiscipline] ? disciplines[selectedDiscipline].dis_hours : ''}}
                                     </div>
 
                                     <v-divider/>
 
                                     <div>
                                         <v-select
-                                                v-model="selectedEmployeeDiscipline"
-                                                :items="employees"
-                                                label="Преподаватель"
+                                            v-model="selectedEmployeeDiscipline"
+                                            :items="employees"
+                                            label="Преподаватель"
                                         ></v-select>
-                                        <v-btn color="primary">Назначить</v-btn>
+                                        <v-btn color="primary">Переназначить</v-btn>
+                                        <v-btn color="primary">Снять</v-btn>
                                     </div>
 
                                 </div>
@@ -139,9 +177,9 @@
                             <v-card-title primary-title>
                                 <div>
                                     <h3 class="headline mb-0">{{groups[selectedGroup] ? groups[selectedGroup].name : ''}}</h3>
-                                    <div><b>Часов всего:</b> {{groups[selectedGroup] ? groups[selectedGroup].all_hours : ''}}</div>
+                                    <div><b>Часов у группы:</b> {{groups[selectedGroup] ? groups[selectedGroup].all_hours : ''}}</div>
                                     <div v-bind:class="groups[selectedGroup] ? isDistributed(groups[selectedGroup].dis_hours, groups[selectedGroup].all_hours) : ''">
-                                        <b>Часов распределено:</b> {{groups[selectedGroup] ? groups[selectedGroup].dis_hours : ''}}
+                                        <b>Часов назначено:</b> {{groups[selectedGroup] ? groups[selectedGroup].dis_hours : ''}}
                                     </div>
 
                                     <v-divider/>
@@ -152,7 +190,8 @@
                                                 :items="employees"
                                                 label="Преподаватель"
                                         ></v-select>
-                                        <v-btn color="primary">Назначить</v-btn>
+                                        <v-btn color="primary">Переназначить</v-btn>
+                                        <v-btn color="primary">Снять</v-btn>
                                     </div>
                                 </div>
                             </v-card-title>
@@ -163,9 +202,9 @@
                             <v-card-title primary-title>
                                 <div>
                                     <h3 class="headline mb-0">{{jobs[selectedJob] ? jobs[selectedJob].name : ''}}</h3>
-                                    <div><b>Часов всего:</b> {{jobs[selectedJob] ? jobs[selectedJob].all_hours : ''}}</div>
+                                    <div><b>Часов по занятию:</b> {{jobs[selectedJob] ? jobs[selectedJob].all_hours : ''}}</div>
                                     <div v-bind:class="jobs[selectedJob] ? isDistributed(jobs[selectedJob].dis_hours, jobs[selectedJob].all_hours) : ''">
-                                        <b>Часов распределено:</b> {{jobs[selectedJob] ? jobs[selectedJob].dis_hours : ''}}
+                                        <b>Часов назначено:</b> {{jobs[selectedJob] ? jobs[selectedJob].dis_hours : ''}}
                                     </div>
                                     <div v-show="jobs[selectedJob] && jobs[selectedJob].subgroup">
                                         <b>Подгруппа:</b> {{jobs[selectedJob] ? jobs[selectedJob].subgroup : ''}}
@@ -179,7 +218,8 @@
                                                 :items="employees"
                                                 label="Преподаватель"
                                         ></v-select>
-                                        <v-btn color="primary">Назначить</v-btn>
+                                        <v-btn color="primary">Переназначить</v-btn>
+                                        <v-btn color="primary">Снять</v-btn>
                                     </div>
                                 </div>
                             </v-card-title>
@@ -273,12 +313,12 @@
     import appAllotmentToolbar from "./appAllotmentToolbar";
     import {mapState, mapMutations} from 'vuex';
     export default {
-        name: "appHiDiscipline",
+        name: "appHiEmployee",
         components: {appAllotmentToolbar},
         data: () => ({
             pages:[
                 {
-                    text:'Дисциплины',
+                    text:'Преподаватели',
                     disabled: true,
                     page: 0
                 },
@@ -483,20 +523,26 @@
                 { text: 'Доля', value: 'part' }
             ],
 
-            employees:[
-                {
-                    text:'Иван Иванов 1',
-                    value: 1
-                },
-                {
-                    text:'Иван Иванов 2',
-                    value: 2
-                },
-                {
-                    text:'Иван Иванов 3',
-                    value: 3
-                },
-            ],
+            employees:{
+                121: {id: '121', name: 'Иванов Иван 1', all_hours: 800, dis_hours: 800},
+                122: {id: '122', name: 'Иванов Иван 2', all_hours: 800, dis_hours: 800},
+                123: {id: '123', name: 'Иванов Иван 3', all_hours: 800, dis_hours: 800},
+                124: {id: '124', name: 'Иванов Иван 4', all_hours: 800, dis_hours: 800},
+                125: {id: '125', name: 'Иванов Иван 5', all_hours: 800, dis_hours: 800},
+                126: {id: '126', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                127: {id: '127', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                128: {id: '128', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                129: {id: '129', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                130: {id: '130', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                131: {id: '131', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                132: {id: '132', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                133: {id: '133', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                134: {id: '134', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                135: {id: '135', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                136: {id: '136', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                137: {id: '137', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+                138: {id: '138', name: 'Иванов Иван 6', all_hours: 800, dis_hours: 800},
+            },
 
             peopleData:[
                 {
@@ -529,11 +575,13 @@
                 },
             ],
 
+            selectedEmployee: null,
             selectedDiscipline: null,
             selectedGroup: null,
             selectedJob: null,
 
             isNotSetings: true,
+            isEmployeeSetings: true,
             isDisciplineSetings: false,
             isGroupSetings: false,
             isJobSetings: false,
@@ -583,10 +631,32 @@
                 }
                 return '';
             },
+            selectEmployee(id){
+                this.selectedEmployee = id;
+
+                this.isNotSetings = false;
+                this.isEmployeeSetings = true;
+                this.isDisciplineSetings = false;
+                this.isGroupSetings = false;
+                this.isJobSetings = false;
+
+                this.pages[this.pages.length - 1].disabled = false;
+                this.pages.push({
+                    text:this.employees[id].name,
+                    disabled: true,
+                    page: 1
+                });
+
+                this.selectedEmployeeDiscipline = null;
+                this.selectedEmployeeGroup = null;
+                this.selectedEmployeeJob = null;
+
+            },
             selectDiscipline(id){
                 this.selectedDiscipline = id;
 
                 this.isNotSetings = false;
+                this.isEmployeeSetings = false;
                 this.isDisciplineSetings = true;
                 this.isGroupSetings = false;
                 this.isJobSetings = false;
@@ -595,7 +665,7 @@
                 this.pages.push({
                     text:this.disciplines[id].name,
                     disabled: true,
-                    page: 1
+                    page: 2
                 });
 
                 this.selectedEmployeeDiscipline = null;
@@ -607,6 +677,7 @@
                 this.selectedGroup = id;
 
                 this.isNotSetings = false;
+                this.isEmployeeSetings = false;
                 this.isDisciplineSetings = false;
                 this.isGroupSetings = true;
                 this.isJobSetings = false;
@@ -615,7 +686,7 @@
                 this.pages.push({
                     text:this.groups[id].name,
                     disabled: true,
-                    page: 2
+                    page: 3
                 });
 
                 this.selectedEmployeeDiscipline = null;
@@ -626,16 +697,17 @@
                 this.selectedJob = id;
 
                 this.isNotSetings = false;
+                this.isEmployeeSetings = false;
                 this.isDisciplineSetings = false;
                 this.isGroupSetings = false;
                 this.isJobSetings = true;
 
-                if (this.pages.length != 4) {
+                if (this.pages.length != 5) {
                     this.pages[this.pages.length - 1].disabled = false;
                     this.pages.push({
                         text: this.jobs[id].name,
                         disabled: true,
-                        page: 3
+                        page: 4
                     });
                 }
                 else {
@@ -654,18 +726,28 @@
                 switch (page) {
                     case 0:
                         this.isNotSetings = true;
+                        this.isEmployeeSetings = false;
                         this.isDisciplineSetings = false;
                         this.isGroupSetings = false;
                         this.isJobSetings = false;
                         break;
                     case 1:
                         this.isNotSetings = false;
-                        this.isDisciplineSetings = true;
+                        this.isEmployeeSetings = true;
+                        this.isDisciplineSetings = false;
                         this.isGroupSetings = false;
                         this.isJobSetings = false;
                         break;
                     case 2:
                         this.isNotSetings = false;
+                        this.isEmployeeSetings = false;
+                        this.isDisciplineSetings = true;
+                        this.isGroupSetings = false;
+                        this.isJobSetings = false;
+                        break;
+                    case 3:
+                        this.isNotSetings = false;
+                        this.isEmployeeSetings = false;
                         this.isDisciplineSetings = false;
                         this.isGroupSetings = true;
                         this.isJobSetings = false;
