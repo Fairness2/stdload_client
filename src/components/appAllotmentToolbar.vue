@@ -68,7 +68,7 @@
                     text: 'По преподавателю',
                 },
                 {
-                    text: 'По наприведению',
+                    text: 'По направлению',
                 },
             ],
             semesters: [
@@ -106,11 +106,10 @@
                     case 'По преподавателю':
                         page = 'HiEmployee';
                         break;
-                    case 'По наприведению':
+                    case 'По направлению':
                         page = 'HiGroup';
                         break;
                 }
-                debugger
                 this.setData({
                     path: 'currentPage',
                     data: page
@@ -125,7 +124,7 @@
                     case 'По преподавателю':
                         page = 'HiEmployee';
                         break;
-                    case 'По наприведению':
+                    case 'По направлению':
                         page = 'HiGroup';
                         break;
                 }

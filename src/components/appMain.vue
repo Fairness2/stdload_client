@@ -21,7 +21,8 @@
     import appPageLoader from "./appPageLoader";
     import appPageAllotments from './appPageAllotments';
     import appPageHiDiscipline from './appPageHiDiscipline';
-    import appPageHiEmployee from './appPageHiEmployee';
+    import appPageHiEmployee from './appPageHiEmployee'
+    import appPageHiGroup from './appPageHiGroup';
 
     export default {
         name: "appMain",
@@ -30,7 +31,8 @@
             appHeader,
             appPageAllotments,
             appPageHiDiscipline,
-            appPageHiEmployee
+            appPageHiEmployee,
+            appPageHiGroup
         },
         computed:{
             getCurrentComponent(){
