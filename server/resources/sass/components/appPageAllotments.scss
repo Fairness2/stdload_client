@@ -1,0 +1,25 @@
+.allotment{
+
+  &_list{
+
+    height: calc(100vh - 140px);
+    overflow: auto; //TODO Скрол
+  }
+}
+
+.dis_complite{
+  background-color: #8eff52;
+
+  &_not{
+    background-color: #feff78;
+  }
+
+  &_error{
+    background-color: #ff433f;
+    color: #ffff;
+  }
+}
+
+.new_allotment{
+  margin-top: 10px;
+}

@@ -1,0 +1,15 @@
+.allotment_toolbox{
+  white-space:nowrap;
+
+
+
+  &__element{
+    display: inline-block;
+    height: 65px;
+    vertical-align: middle;
+  }
+}
+
+.dimensions{
+  width: 250px;
+}
