@@ -18,3 +18,5 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
+
+Route::get('/page/allotments', 'PageController@index')->name('page_allotments')->middleware('auth');

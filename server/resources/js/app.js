@@ -35,13 +35,13 @@ Vue.use(Vuetify,{
     }
 });
 
-import StlLoader from './components/stlLoader';
+import stlLoader from './components/stlLoader';
 import stlPageHome from  './components/stlPageHome';
 
 Vue.config.productionTip = false;
 const app = new Vue({
     el: '#app',
-    components: { StlLoader, stlPageHome },
+    components: { stlLoader, stlPageHome },
     store,
     router,
 });

@@ -1,32 +1,27 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-//import appMain from '../components/appMain';
-//import appLogin from '../components/appLogin';
+import StlPageAllotments from '../components/stlPageAllotments';
 
 Vue.use(Router);
 
 const routes = [
     {
-        path: '/login',
-        //component: appLogin,
-        meta: {
-            forAuth: true
-        },
+        name: 'pageAllotments',
+        path: '/page/allotments',
+        component: StlPageAllotments,
     },
     {
-        path: '/',
-        //component: appMain,
-        meta: {
-            forAuth: true
-        },
-
-        children: [
-            {path: ':page'}
-        ]
-    },
+        name: 'homePage',
+        path: '/home',
+        redirect: {name: 'pageAllotments'},
+        components: StlPageAllotments
+    }
 ];
 
 export default new Router({
   mode: 'history',
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+      return {x: 0, y: 0} //сброс позиции прокрутки при переходе по ссылкам
+  },
 })

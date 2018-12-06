@@ -15,41 +15,41 @@ const store = new Vuex.Store({
 
       currentSemester: 3,
 
-      allotments: {
-          121: {id: '121', name: 'Распределение 1', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: true},
-          122: {id: '122', name: 'Распределение 2', year:'2017-2018', all_hours: 64, dis_hours: 64, primary: false},
-          123: {id: '123', name: 'Распределение 3', year:'2017-2018', all_hours: 64, dis_hours: 72, primary: true},
-          124: {id: '124', name: 'Распределение 4', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          125: {id: '125', name: 'Распределение 5', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          126: {id: '126', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: true},
-          127: {id: '127', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: true},
-          128: {id: '128', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          129: {id: '129', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          130: {id: '130', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          131: {id: '131', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          132: {id: '132', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          133: {id: '133', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          134: {id: '134', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          135: {id: '135', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          136: {id: '136', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          137: {id: '137', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-          138: {id: '138', name: 'Распределение 6', year:'2017-2018', all_hours: 64, dis_hours: 32, primary: false},
-      },
-      сurrentAllotment: null,
+      allotments: [
+          {id: '121', name: 'Распределение 1', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: true},
+          {id: '122', name: 'Распределение 2', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 64, is_main: false},
+          {id: '123', name: 'Распределение 3', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 72, is_main: true},
+          {id: '124', name: 'Распределение 4', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '125', name: 'Распределение 5', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '126', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: true},
+          {id: '127', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: true},
+          {id: '128', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '129', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '130', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '131', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '132', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '133', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '134', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '135', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '136', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '137', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+          {id: '138', name: 'Распределение 6', year_begin:'2017', year_end:'2018', all_hours: 64, dis_hours: 32, is_main: false},
+      ],
+      сurrentAllotment: {},
   },
 
   getters: {
-      csrf: () => document.getElementById('csrf').content,
+      csrf: () => document.getElementById('csrf-token').content,
   },
 
   mutations: {
-      setData(state, {path, data}) {
+      setData(state, {path, value}) {
           let parts = path.split('.'),
               last = parts.pop(),
               target = state;
           parts.forEach((part) => target = target[part]);
 
-          return target[last] = data;
+          return target[last] = value;
       },
 
       setLoader(state, value) {
@@ -69,7 +69,7 @@ const store = new Vuex.Store({
       },
       async updateAllotments({commit, dispatch}){
           commit('setLoader', true);
-          await dispatch('fetchRoles');
+          //await dispatch('fetchRoles');
           commit('setLoader', false);
       }
   }

@@ -3,7 +3,7 @@
         <div class="stl-page__content">
 
             <div class="stl-page__main">
-                <router-view name="pageSections"/>
+                <router-view/>
             </div>
 
         </div>
@@ -16,6 +16,5 @@
     }
 </script>
 
-<style scoped>
-
+<style >
 </style>
