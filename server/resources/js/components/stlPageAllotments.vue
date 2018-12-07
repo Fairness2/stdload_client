@@ -173,7 +173,6 @@
                     v => !!v || 'Введите учебный год',
                     v => /^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг-гггг'
                 ],
-                year: '',
 
                 new_allotment_loading: false,
 
@@ -270,14 +269,19 @@
             },
 
             updateAllotment(){
-                //this.$store.dispatch('editAllotment');
+                this.$store.dispatch('editAllotment');
             },
 
             createAllotment(){
-                //this.$store.dispatch('createAllotment');
+                let params = {
+                    'name': this.name,
+                    'year_begin': this.yearBegin,
+                    'year_end': this.yearEnd,
+                };
+                this.$store.dispatch('createAllotment', params);
             },
             deleteAllotment(){
-                //this.$store.dispatch('deleteAllotment');
+                this.$store.dispatch('removeAllotment');
             },
 
             openAllotment(){

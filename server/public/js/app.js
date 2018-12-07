@@ -16021,7 +16021,6 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
                 return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг-гггг'
                 );
             }],
-            year: '',
 
             new_allotment_loading: false,
 
@@ -16097,22 +16096,27 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
         },
         isDistributed: function isDistributed(dis_hours, all_hours) {
             if (dis_hours < all_hours) {
-                return 'dis_complite_not';
+                return 'stl-allotments__dis-complite-not';
             } else if (dis_hours == all_hours) {
-                return 'dis_complite';
+                return 'stl-allotments__dis-complite';
             } else if (dis_hours > all_hours) {
-                return 'dis_complite_error';
+                return 'stl-allotments__dis-complite-error';
             }
             return '';
         },
         updateAllotment: function updateAllotment() {
-            //this.$store.dispatch('editAllotment');
+            this.$store.dispatch('editAllotment');
         },
         createAllotment: function createAllotment() {
-            //this.$store.dispatch('createAllotment');
+            var params = {
+                'name': this.name,
+                'year_begin': this.yearBegin,
+                'year_end': this.yearEnd
+            };
+            this.$store.dispatch('createAllotment', params);
         },
         deleteAllotment: function deleteAllotment() {
-            //this.$store.dispatch('deleteAllotment');
+            this.$store.dispatch('removeAllotment');
         },
         openAllotment: function openAllotment() {}
     },
@@ -16150,7 +16154,10 @@ var render = function() {
               _vm._v(" "),
               _c(
                 "v-list",
-                { staticClass: "allotment_list", attrs: { "two-line": "" } },
+                {
+                  staticClass: "stl-allotments__list",
+                  attrs: { "two-line": "" }
+                },
                 [
                   _vm._l(_vm.$store.state.allotments, function(item, index) {
                     return [
@@ -16160,7 +16167,7 @@ var render = function() {
                           key: item.id,
                           class: [
                             {
-                              "stl-allotments":
+                              "stl-allotments__current":
                                 _vm.$store.state.currentAllotment == item
                             },
                             _vm.isDistributed(item.dis_hours, item.all_hours)
@@ -16661,8 +16668,10 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
 
         currentSemester: 3,
 
-        allotments: [{ id: '121', name: 'Распределение 1', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: true }, { id: '122', name: 'Распределение 2', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 64, is_main: false }, { id: '123', name: 'Распределение 3', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 72, is_main: true }, { id: '124', name: 'Распределение 4', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '125', name: 'Распределение 5', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '126', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: true }, { id: '127', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: true }, { id: '128', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '129', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '130', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '131', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '132', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '133', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '134', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '135', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '136', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '137', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }, { id: '138', name: 'Распределение 6', year_begin: '2017', year_end: '2018', all_hours: 64, dis_hours: 32, is_main: false }],
-        сurrentAllotment: {}
+        allotments: [],
+        сurrentAllotment: {},
+        allotmentsCreateError: false
+
     },
 
     getters: {
@@ -16686,7 +16695,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             return target[last] = value;
         },
         setLoader: function setLoader(state, value) {
-            state.isLoading = value;
+            state.isLoad = value;
         }
     },
 
@@ -16707,7 +16716,6 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                                 response = _context.sent;
                                 list = response.data.data;
 
-                                //current = list[0] || {};
 
                                 commit('setData', { path: 'allotments', value: list });
                                 commit('setData', { path: 'сurrentAllotment', value: {} });
@@ -16735,10 +16743,13 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                         switch (_context2.prev = _context2.next) {
                             case 0:
                                 commit('setLoader', true);
-                                //await dispatch('fetchRoles');
+                                _context2.next = 3;
+                                return dispatch('fetchAllotments');
+
+                            case 3:
                                 commit('setLoader', false);
 
-                            case 2:
+                            case 4:
                             case 'end':
                                 return _context2.stop();
                         }
@@ -16751,6 +16762,133 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             }
 
             return updateAllotments;
+        }(),
+        createAllotment: function () {
+            var _ref7 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee3(_ref6, params) {
+                var commit = _ref6.commit,
+                    dispatch = _ref6.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context3.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/allotments', params);
+
+                            case 3:
+                                response = _context3.sent;
+
+                                if (!response.data.status) {
+                                    _context3.next = 7;
+                                    break;
+                                }
+
+                                _context3.next = 7;
+                                return dispatch('fetchAllotments');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context3.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function createAllotment(_x3, _x4) {
+                return _ref7.apply(this, arguments);
+            }
+
+            return createAllotment;
+        }(),
+        editAllotment: function () {
+            var _ref9 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee4(_ref8) {
+                var commit = _ref8.commit,
+                    dispatch = _ref8.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee4$(_context4) {
+                    while (1) {
+                        switch (_context4.prev = _context4.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context4.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/allotments/edit', this.state.сurrentAllotment);
+
+                            case 3:
+                                response = _context4.sent;
+
+                                if (!response.data.status) {
+                                    _context4.next = 7;
+                                    break;
+                                }
+
+                                _context4.next = 7;
+                                return dispatch('fetchAllotments');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context4.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context4.stop();
+                        }
+                    }
+                }, _callee4, this);
+            }));
+
+            function editAllotment(_x5) {
+                return _ref9.apply(this, arguments);
+            }
+
+            return editAllotment;
+        }(),
+        removeAllotment: function () {
+            var _ref11 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee5(_ref10) {
+                var commit = _ref10.commit,
+                    dispatch = _ref10.dispatch;
+                var params, response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee5$(_context5) {
+                    while (1) {
+                        switch (_context5.prev = _context5.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = { 'id': this.state.сurrentAllotment.id };
+                                _context5.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/allotments/remove', params);
+
+                            case 4:
+                                response = _context5.sent;
+
+                                if (!response.data.status) {
+                                    _context5.next = 8;
+                                    break;
+                                }
+
+                                _context5.next = 8;
+                                return dispatch('fetchAllotments');
+
+                            case 8:
+                                commit('setLoader', false);
+                                return _context5.abrupt('return', response.data.status);
+
+                            case 10:
+                            case 'end':
+                                return _context5.stop();
+                        }
+                    }
+                }, _callee5, this);
+            }));
+
+            function removeAllotment(_x6) {
+                return _ref11.apply(this, arguments);
+            }
+
+            return removeAllotment;
         }()
     }
 

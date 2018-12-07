@@ -20,3 +20,8 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('/page/allotments', 'PageController@index')->name('page_allotments')->middleware('auth');
+
+Route::get('/allotments', 'AllotmentController@getAllotments')->name('allotments')->middleware('auth');
+Route::post('/allotments', 'AllotmentController@addAllotment')->name('create_allotment')->middleware('auth');
+Route::post('/allotments/edit', 'AllotmentController@editAllotment')->name('edit_allotment')->middleware('auth');
+Route::post('/allotments/remove', 'AllotmentController@removeAllotment')->name('remove_allotment')->middleware('auth');
