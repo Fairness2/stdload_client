@@ -23,6 +23,7 @@ const store = new Vuex.Store({
       currentPage: null,
 
       currentSemester: 3,
+      currentDimension: 1,
 
       allotments: [],
       сurrentAllotment: {},
@@ -32,7 +33,30 @@ const store = new Vuex.Store({
       currentDicipline: {},
       groups: [],
       currentGroup: {},
+      loadElements: [],
+      currentLoadElement: {},
+      workers: [],
+      currentWorker: {},
 
+      threads:[],
+      auditorys:[],
+
+      headers: [
+          {
+              text: 'Преподаватель',
+              align: 'left',
+              sortable: false,
+              value: 'name'
+          },
+          { text: 'Должность', value: 'position' },
+          { text: 'Часов', value: 'hours' },
+          { text: 'Доля', value: 'part' }
+      ],
+
+      peopleData:[],
+
+      selectedThread:{},
+      selectedAuditory:{}
   },
 
   getters: {
@@ -106,7 +130,7 @@ const store = new Vuex.Store({
               list = response.data.status ? response.data.data : [];
 
           commit('setData', {path: 'loadElements', value: list});
-          commit('setData', {path: 'currentLoadElements', value: {}});
+          commit('setData', {path: 'currentLoadElement', value: {}});
       },
 
       async updateAllotments({commit, dispatch}){

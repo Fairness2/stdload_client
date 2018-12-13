@@ -10,7 +10,7 @@
                     color="primary"
                     :items="$store.state.dimensions"
                     label="Представление"
-                    v-model="selectedDimension"
+                    v-model="currentDimensionModel"
                     outline
                     single-line
             ></v-select>
@@ -20,7 +20,7 @@
                     color="primary"
                     :items="$store.state.semesters"
                     label="Семестр"
-                    v-model="selectedSemester"
+                    v-model="currentSemesterModel"
                     outline
                     single-line
             ></v-select>
@@ -54,22 +54,49 @@
 
 <script>
     export default {
-        name: "stlAllotmentToolbar",
+        name: "StlAllotmentToolbar",
         props:[],
         data: () => ({
 
         }),
         computed:{
+            currentSemesterModel: {
+                get() {
+                    return this.$store.state.currentSemester;
+                },
 
+                set(value) {
+                    if (this.$store.state.currentSemester != value) {
+                        this.$store.commit('setData', {path: 'currentSemester', value});
+                        this.$store.dispatch('changeSemester');
+                    }
+                }
+            },
+            currentDimensionModel: {
+                get() {
+                    return this.$store.state.currentDimension;
+                },
+
+                set(value) {
+                    if (this.$store.state.currentDimension != value) {
+                        this.$store.commit('setData', {path: 'currentDimension', value});
+                        if (value == 1){
+                            this.$route.push({name: 'hiDiscipline', params: {id: this.$store.state.сurrentAllotment.id}});
+                        }
+                        else if (value == 2){
+                            this.$route.push({name: 'StlPageHiEmployee', params: {id: this.$store.state.сurrentAllotment.id}});
+                        }
+                        else if (value == 3){
+                            this.$route.push({name: 'StlPageHiGroup', params: {id: this.$store.state.сurrentAllotment.id}});
+                        }
+                        //this.$store.dispatch('changeDimension');
+                    }
+                }
+            },
         },
 
         watch:{
-            selectedDimension: function (val) {
 
-            },
-            selectedSemester: function (val) {
-                this.$store.dispatch('changeSemester', val);
-            },
         },
 
         methods:{
@@ -82,4 +109,4 @@
     }
 </script>
 
-<style src="../assets/sass/components/appAllotmentToolbar.scss" lang="scss"/>
+<style></style>

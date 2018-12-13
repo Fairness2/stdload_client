@@ -40,7 +40,9 @@
                         <v-card-text v-if="Object.keys($store.state.сurrentAllotment).length !== 0">
                             <v-layout row wrap>
                                 <v-flex xs12>
-                                    <v-btn class="success" @click="openAllotment">Открыть</v-btn>
+                                    <router-link :to="{name: 'hiDiscipline', params: {id: $store.state.сurrentAllotment.id}}">
+                                        <v-btn class="success">Открыть</v-btn>
+                                    </router-link>
                                     <v-btn class="error" @click="deleteAllotment">Удалить</v-btn>
                                 </v-flex>
 
@@ -85,15 +87,15 @@
                                 </v-flex>
 
                                 <v-flex xs12 class="body-1">
-                                    Распределно часов: {{$store.state.сurrentAllotment ? $store.state.сurrentAllotment.dis_hours : ''}}
+                                    Распределно часов: {{$store.state.сurrentAllotment.dis_hours}}
                                 </v-flex>
                                 <v-flex xs12 class="body-1">
-                                    Всего часов часов: {{$store.state.сurrentAllotment ? $store.state.сurrentAllotment.all_hours : ''}}
+                                    Всего часов часов: {{$store.state.сurrentAllotment.all_hours}}
                                 </v-flex>
-                                <v-flex xs12 class="body-1" v-bind:class="$store.state.сurrentAllotment ? isDistributed($store.state.сurrentAllotment.dis_hours, $store.state.сurrentAllotment.all_hours) : ''">
-                                    Осталось распределить: {{$store.state.сurrentAllotment ? $store.state.сurrentAllotment.all_hours - $store.state.сurrentAllotment.dis_hours : 0}}
+                                <v-flex xs12 class="body-1" v-bind:class="isDistributed($store.state.сurrentAllotment.dis_hours, $store.state.сurrentAllotment.all_hours)">
+                                    Осталось распределить: {{$store.state.сurrentAllotment.all_hours - $store.state.сurrentAllotment.dis_hours}}
                                 </v-flex>
-                                <v-flex v-show="$store.state.сurrentAllotment ? $store.state.сurrentAllotment.is_main : false" xs12 class="body-1">
+                                <v-flex v-show="$store.state.сurrentAllotment.is_main" xs12 class="body-1">
                                     Основное распределение
                                 </v-flex>
                             </v-layout>
