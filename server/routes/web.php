@@ -20,8 +20,15 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('/page/allotments', 'PageController@index')->name('page_allotments')->middleware('auth');
+Route::get('/page/hi_discipline/{id}', 'PageController@index')->name('page_hi_discipline')->middleware('auth');
 
 Route::get('/allotments', 'AllotmentController@getAllotments')->name('allotments')->middleware('auth');
 Route::post('/allotments', 'AllotmentController@addAllotment')->name('create_allotment')->middleware('auth');
 Route::post('/allotments/edit', 'AllotmentController@editAllotment')->name('edit_allotment')->middleware('auth');
 Route::post('/allotments/remove', 'AllotmentController@removeAllotment')->name('remove_allotment')->middleware('auth');
+Route::get('/allotments/get_allotment', 'AllotmentController@getAllotment')->name('get_allotment')->middleware('auth');
+Route::post('/allotments/load_allotment', 'AllotmentController@parseFile')->name('create_allotment')->middleware('auth');
+
+Route::get('/workers/get_workers', 'WorkersController@getWorkers')->name('get_workers')->middleware('auth');
+
+Route::get('/hi_discipline/get_discipline', 'HiDisciplineController@getDiscipline')->name('get_allotment')->middleware('auth');

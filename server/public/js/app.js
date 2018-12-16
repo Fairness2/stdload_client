@@ -16737,7 +16737,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 // exports
 
@@ -16752,6 +16752,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__stlAllotmentToolbar___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__stlAllotmentToolbar__);
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -17344,7 +17350,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 // exports
 
@@ -17409,12 +17415,73 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     name: "StlAllotmentToolbar",
+    components: {},
     props: [],
     data: function data() {
-        return {};
+        return {
+            showLoadInFile: false,
+            selectSemester: 3,
+            updateWorkers: false
+        };
     },
     computed: {
         currentSemesterModel: {
@@ -17472,20 +17539,22 @@ var render = function() {
         { staticClass: "allotment_toolbox__element" },
         [
           _c(
-            "v-btn",
-            {
-              attrs: {
-                outline: "",
-                color: "primary",
-                title: "К распределениям"
-              },
-              on: {
-                click: function($event) {
-                  _vm.goPageAllotments()
-                }
-              }
-            },
-            [_c("v-icon", [_vm._v("arrow_back")])],
+            "router-link",
+            { attrs: { to: { name: "homePage" } } },
+            [
+              _c(
+                "v-btn",
+                {
+                  attrs: {
+                    outline: "",
+                    color: "primary",
+                    title: "К распределениям"
+                  }
+                },
+                [_c("v-icon", [_vm._v("arrow_back")])],
+                1
+              )
+            ],
             1
           )
         ],
@@ -17587,15 +17656,166 @@ var render = function() {
         { staticClass: "allotment_toolbox__element" },
         [
           _c(
-            "v-btn",
+            "v-dialog",
             {
-              attrs: {
-                outline: "",
-                color: "primary",
-                title: "Загрузить из файла"
+              attrs: { width: "500" },
+              model: {
+                value: _vm.showLoadInFile,
+                callback: function($$v) {
+                  _vm.showLoadInFile = $$v
+                },
+                expression: "showLoadInFile"
               }
             },
-            [_c("v-icon", [_vm._v("cloud_upload")])],
+            [
+              _c(
+                "v-btn",
+                {
+                  attrs: {
+                    slot: "activator",
+                    outline: "",
+                    color: "primary",
+                    title: "Загрузить из файла"
+                  },
+                  slot: "activator"
+                },
+                [_c("v-icon", [_vm._v("cloud_upload")])],
+                1
+              ),
+              _vm._v(" "),
+              _c("v-card", [
+                _c(
+                  "form",
+                  {
+                    attrs: {
+                      method: "post",
+                      action: "/allotments/load_allotment",
+                      enctype: "multipart/form-data"
+                    }
+                  },
+                  [
+                    _c(
+                      "v-card-title",
+                      {
+                        staticClass: "headline grey lighten-2",
+                        attrs: { "primary-title": "" }
+                      },
+                      [
+                        _vm._v(
+                          "\n                        Выберите файл\n                    "
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "v-card-text",
+                      [
+                        _c("input", {
+                          attrs: { type: "hidden", name: "_token" },
+                          domProps: { value: _vm.$store.getters.csrf }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: {
+                            type: "hidden",
+                            name: "allotment_id",
+                            required: ""
+                          },
+                          domProps: {
+                            value: _vm.$store.state.сurrentAllotment.id
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: { type: "file", name: "file", required: "" }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: {
+                            type: "hidden",
+                            name: "semester",
+                            required: ""
+                          },
+                          domProps: { value: _vm.selectSemester }
+                        }),
+                        _vm._v(" "),
+                        _c("v-select", {
+                          attrs: {
+                            color: "primary",
+                            items: _vm.$store.state.semesters,
+                            label: "Семестр"
+                          },
+                          model: {
+                            value: _vm.selectSemester,
+                            callback: function($$v) {
+                              _vm.selectSemester = $$v
+                            },
+                            expression: "selectSemester"
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: { type: "hidden", name: "update_workers" },
+                          domProps: { value: _vm.updateWorkers }
+                        }),
+                        _vm._v(" "),
+                        _c("v-checkbox", {
+                          attrs: { label: "Обновить преподавателей" },
+                          model: {
+                            value: _vm.updateWorkers,
+                            callback: function($$v) {
+                              _vm.updateWorkers = $$v
+                            },
+                            expression: "updateWorkers"
+                          }
+                        })
+                      ],
+                      1
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "v-card-actions",
+                      [
+                        _c(
+                          "v-btn",
+                          {
+                            attrs: {
+                              color: "success",
+                              flat: "",
+                              type: "submit"
+                            }
+                          },
+                          [
+                            _vm._v(
+                              "\n                            Загрузить\n                        "
+                            )
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c(
+                          "v-btn",
+                          {
+                            attrs: { color: "", flat: "" },
+                            on: {
+                              click: function($event) {
+                                _vm.showLoadInFile = false
+                              }
+                            }
+                          },
+                          [
+                            _vm._v(
+                              "\n                            Отмена\n                        "
+                            )
+                          ]
+                        )
+                      ],
+                      1
+                    )
+                  ],
+                  1
+                )
+              ])
+            ],
             1
           )
         ],
@@ -18046,6 +18266,8 @@ var render = function() {
                                       _c("v-select", {
                                         attrs: {
                                           items: _vm.$store.state.workers,
+                                          "item-value": "id",
+                                          "item-text": "fio",
                                           label: "Преподаватель"
                                         },
                                         model: {
@@ -18143,6 +18365,8 @@ var render = function() {
                                           _c("v-select", {
                                             attrs: {
                                               items: _vm.$store.state.workers,
+                                              "item-value": "id",
+                                              "item-text": "fio",
                                               label: "Преподаватель"
                                             },
                                             model: {
@@ -18257,6 +18481,8 @@ var render = function() {
                                           _c("v-select", {
                                             attrs: {
                                               items: _vm.$store.state.workers,
+                                              "item-value": "id",
+                                              "item-text": "fio",
                                               label: "Преподаватель"
                                             },
                                             model: {

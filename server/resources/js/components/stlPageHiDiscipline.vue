@@ -125,6 +125,8 @@
                                         <v-select
                                                 v-model="selectedWorkerModel"
                                                 :items="$store.state.workers"
+                                                item-value="id"
+                                                item-text="fio"
                                                 label="Преподаватель"
                                         ></v-select>
                                         <v-btn color="primary">Назначить</v-btn>
@@ -150,6 +152,8 @@
                                         <v-select
                                                 v-model="selectedWorkerModel"
                                                 :items="$store.state.workers"
+                                                item-value="id"
+                                                item-text="fio"
                                                 label="Преподаватель"
                                         ></v-select>
                                         <v-btn color="primary">Назначить</v-btn>
@@ -177,6 +181,8 @@
                                         <v-select
                                                 v-model="selectedWorkerModel"
                                                 :items="$store.state.workers"
+                                                item-value="id"
+                                                item-text="fio"
                                                 label="Преподаватель"
                                         ></v-select>
                                         <v-btn color="primary">Назначить</v-btn>

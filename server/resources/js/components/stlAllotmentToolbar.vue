@@ -1,9 +1,11 @@
 <template>
     <v-layout row fill-height  class="allotment_toolbox">
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" @click="goPageAllotments()" title="К распределениям">
-                <v-icon>arrow_back</v-icon>
-            </v-btn>
+            <router-link :to="{name: 'homePage'}">
+                <v-btn outline color="primary" title="К распределениям">
+                    <v-icon>arrow_back</v-icon>
+                </v-btn>
+            </router-link>
         </div>
         <div class="dimensions allotment_toolbox__element">
             <v-select
@@ -37,9 +39,62 @@
             </v-btn>
         </div>
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" title="Загрузить из файла">
-                <v-icon>cloud_upload</v-icon>
-            </v-btn>
+
+            <v-dialog v-model="showLoadInFile" width="500">
+                <v-btn slot="activator" outline color="primary" title="Загрузить из файла">
+                    <v-icon>cloud_upload</v-icon>
+                </v-btn>
+
+                <v-card>
+                    <form method="post" action="/allotments/load_allotment" enctype="multipart/form-data">
+                        <v-card-title
+                                class="headline grey lighten-2"
+                                primary-title
+                        >
+                            Выберите файл
+                        </v-card-title>
+
+                        <v-card-text>
+
+                            <input type="hidden" name="_token" :value="$store.getters.csrf">
+                            <input type="hidden" name="allotment_id" :value="$store.state.сurrentAllotment.id" required>
+                            <input type="file" name="file" required>
+                            <input type="hidden" name="semester" :value="selectSemester" required>
+                            <v-select
+                                    color="primary"
+                                    :items="$store.state.semesters"
+                                    label="Семестр"
+                                    v-model="selectSemester"
+                            ></v-select>
+                            <input type="hidden" name="update_workers" :value="updateWorkers">
+                            <v-checkbox
+                                    v-model="updateWorkers"
+                                    label="Обновить преподавателей"
+                            ></v-checkbox>
+
+                        </v-card-text>
+
+                        <v-card-actions>
+                            <v-btn
+                                    color="success"
+                                    flat
+                                    type="submit"
+                            >
+                                Загрузить
+                            </v-btn>
+
+                            <v-btn
+                                    color=""
+                                    flat
+                                    @click="showLoadInFile = false"
+                            >
+                                Отмена
+                            </v-btn>
+                        </v-card-actions>
+                    </form>
+                </v-card>
+
+            </v-dialog>
         </div>
         <div class="allotment_toolbox__element">
             <v-btn outline color="primary" title="Сделать основным">
@@ -53,11 +108,16 @@
 </template>
 
 <script>
+
+
     export default {
         name: "StlAllotmentToolbar",
+        components: {},
         props:[],
         data: () => ({
-
+            showLoadInFile: false,
+            selectSemester: 3,
+            updateWorkers: false,
         }),
         computed:{
             currentSemesterModel: {
