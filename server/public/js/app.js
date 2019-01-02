@@ -71,7 +71,7 @@
 
 
 var bind = __webpack_require__(9);
-var isBuffer = __webpack_require__(56);
+var isBuffer = __webpack_require__(57);
 
 /*global toString:true*/
 
@@ -11793,7 +11793,7 @@ module.exports = g;
 /* WEBPACK VAR INJECTION */(function(process) {
 
 var utils = __webpack_require__(0);
-var normalizeHeaderName = __webpack_require__(58);
+var normalizeHeaderName = __webpack_require__(59);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -12126,7 +12126,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(44);
+var	fixUrls = __webpack_require__(45);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -12464,12 +12464,12 @@ module.exports = function bind(fn, thisArg) {
 
 
 var utils = __webpack_require__(0);
-var settle = __webpack_require__(59);
-var buildURL = __webpack_require__(61);
-var parseHeaders = __webpack_require__(62);
-var isURLSameOrigin = __webpack_require__(63);
+var settle = __webpack_require__(60);
+var buildURL = __webpack_require__(62);
+var parseHeaders = __webpack_require__(63);
+var isURLSameOrigin = __webpack_require__(64);
 var createError = __webpack_require__(11);
-var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(64);
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(65);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -12566,7 +12566,7 @@ module.exports = function xhrAdapter(config) {
     // This is only done if running in a standard browser environment.
     // Specifically not if we're in a web worker, or react-native.
     if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(65);
+      var cookies = __webpack_require__(66);
 
       // Add xsrf header
       var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -12650,7 +12650,7 @@ module.exports = function xhrAdapter(config) {
 "use strict";
 
 
-var enhanceError = __webpack_require__(60);
+var enhanceError = __webpack_require__(61);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -12711,7 +12711,7 @@ module.exports = Cancel;
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(15);
-module.exports = __webpack_require__(84);
+module.exports = __webpack_require__(85);
 
 
 /***/ }),
@@ -12724,21 +12724,23 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__router__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__store_index_js__ = __webpack_require__(36);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuetify__ = __webpack_require__(41);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuetify___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_vuetify__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify_dist_vuetify_min_css__ = __webpack_require__(42);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify_dist_vuetify_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_vuetify_dist_vuetify_min_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_material_design_icons_iconfont_dist_material_design_icons_css__ = __webpack_require__(45);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_material_design_icons_iconfont_dist_material_design_icons_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_material_design_icons_iconfont_dist_material_design_icons_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vuetify_es5_util_colors__ = __webpack_require__(52);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vuetify_es5_util_colors___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_vuetify_es5_util_colors__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__packages_axios_client_client_js__ = __webpack_require__(53);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_vue_tippy__ = __webpack_require__(73);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_vue_tippy___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8_vue_tippy__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__components_stlLoader__ = __webpack_require__(74);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__components_stlLoader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9__components_stlLoader__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlPageHome__ = __webpack_require__(79);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlPageHome___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__components_stlPageHome__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuex_router_sync__ = __webpack_require__(41);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuex_router_sync___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_vuex_router_sync__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify__ = __webpack_require__(42);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_vuetify__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css__ = __webpack_require__(43);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__packages_axios_client_client_js__ = __webpack_require__(54);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_tippy__ = __webpack_require__(74);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_tippy___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9_vue_tippy__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlLoader__ = __webpack_require__(75);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlLoader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__components_stlLoader__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_stlPageHome__ = __webpack_require__(80);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_stlPageHome___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11__components_stlPageHome__);
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -12761,9 +12763,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
-__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_8_vue_tippy___default.a);
-__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_7__packages_axios_client_client_js__["a" /* default */]);
-__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_3_vuetify___default.a, {
+
+__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_9_vue_tippy___default.a);
+__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_8__packages_axios_client_client_js__["a" /* default */]);
+__WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_4_vuetify___default.a, {
     theme: {
         primary: '#1976D2',
         secondary: '#424242',
@@ -12780,9 +12783,13 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_3_vuet
 
 
 __WEBPACK_IMPORTED_MODULE_0_vue___default.a.config.productionTip = false;
+
+// Синхронизируем чтобы состояние маршрута было доступно как часть хранилища
+Object(__WEBPACK_IMPORTED_MODULE_3_vuex_router_sync__["sync"])(__WEBPACK_IMPORTED_MODULE_2__store_index_js__["a" /* default */], __WEBPACK_IMPORTED_MODULE_1__router__["a" /* default */]);
+
 var app = new __WEBPACK_IMPORTED_MODULE_0_vue___default.a({
     el: '#app',
-    components: { stlLoader: __WEBPACK_IMPORTED_MODULE_9__components_stlLoader___default.a, stlPageHome: __WEBPACK_IMPORTED_MODULE_10__components_stlPageHome___default.a },
+    components: { stlLoader: __WEBPACK_IMPORTED_MODULE_10__components_stlLoader___default.a, stlPageHome: __WEBPACK_IMPORTED_MODULE_11__components_stlPageHome___default.a },
     store: __WEBPACK_IMPORTED_MODULE_2__store_index_js__["a" /* default */],
     router: __WEBPACK_IMPORTED_MODULE_1__router__["a" /* default */]
 });
@@ -16044,46 +16051,46 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
     computed: {
         currentAllotmentModel: {
             get: function get() {
-                return this.$store.state.сurrentAllotment;
+                return this.$store.state.currentAllotment;
             },
             set: function set(value) {
-                this.$store.commit('setData', { path: 'сurrentAllotment', value: value });
+                this.$store.commit('setData', { path: 'currentAllotment', value: value });
             }
         },
         allotmentNameModel: {
             get: function get() {
-                return this.$store.state.сurrentAllotment.name;
+                return this.$store.state.currentAllotment.name;
             },
             set: function set(value) {
-                value = _extends({}, this.$store.state.сurrentAllotment, { name: value });
-                this.$store.commit('setData', { path: 'сurrentAllotment', value: value });
+                value = _extends({}, this.$store.state.currentAllotment, { name: value });
+                this.$store.commit('setData', { path: 'currentAllotment', value: value });
             }
         },
         allotmentYearBeginModel: {
             get: function get() {
-                return this.$store.state.сurrentAllotment.year_begin;
+                return this.$store.state.currentAllotment.year_begin;
             },
             set: function set(value) {
-                value = _extends({}, this.$store.state.сurrentAllotment, { year_begin: value });
-                this.$store.commit('setData', { path: 'сurrentAllotment', value: value });
+                value = _extends({}, this.$store.state.currentAllotment, { year_begin: value });
+                this.$store.commit('setData', { path: 'currentAllotment', value: value });
             }
         },
         allotmentYearEndModel: {
             get: function get() {
-                return this.$store.state.сurrentAllotment.year_end;
+                return this.$store.state.currentAllotment.year_end;
             },
             set: function set(value) {
-                value = _extends({}, this.$store.state.сurrentAllotment, { year_end: value });
-                this.$store.commit('setData', { path: 'сurrentAllotment', value: value });
+                value = _extends({}, this.$store.state.currentAllotment, { year_end: value });
+                this.$store.commit('setData', { path: 'currentAllotment', value: value });
             }
         },
         allotmentIsMainModel: {
             get: function get() {
-                return this.$store.state.сurrentAllotment.is_main;
+                return this.$store.state.currentAllotment.is_main;
             },
             set: function set(value) {
-                value = _extends({}, this.$store.state.сurrentAllotment, { is_main: value });
-                this.$store.commit('setData', { path: 'сurrentAllotment', value: value });
+                value = _extends({}, this.$store.state.currentAllotment, { is_main: value });
+                this.$store.commit('setData', { path: 'currentAllotment', value: value });
             }
         },
 
@@ -16278,7 +16285,7 @@ var render = function() {
                         ])
                       ]),
                       _vm._v(" "),
-                      Object.keys(_vm.$store.state.сurrentAllotment).length !==
+                      Object.keys(_vm.$store.state.currentAllotment).length !==
                       0
                         ? _c(
                             "v-card-text",
@@ -16300,7 +16307,7 @@ var render = function() {
                                               params: {
                                                 id:
                                                   _vm.$store.state
-                                                    .сurrentAllotment.id
+                                                    .currentAllotment.id
                                               }
                                             }
                                           }
@@ -16435,7 +16442,7 @@ var render = function() {
                                       _vm._v(
                                         "\n                                Распределно часов: " +
                                           _vm._s(
-                                            _vm.$store.state.сurrentAllotment
+                                            _vm.$store.state.currentAllotment
                                               .dis_hours
                                           ) +
                                           "\n                            "
@@ -16453,7 +16460,7 @@ var render = function() {
                                       _vm._v(
                                         "\n                                Всего часов часов: " +
                                           _vm._s(
-                                            _vm.$store.state.сurrentAllotment
+                                            _vm.$store.state.currentAllotment
                                               .all_hours
                                           ) +
                                           "\n                            "
@@ -16466,9 +16473,9 @@ var render = function() {
                                     {
                                       staticClass: "body-1",
                                       class: _vm.isDistributed(
-                                        _vm.$store.state.сurrentAllotment
+                                        _vm.$store.state.currentAllotment
                                           .dis_hours,
-                                        _vm.$store.state.сurrentAllotment
+                                        _vm.$store.state.currentAllotment
                                           .all_hours
                                       ),
                                       attrs: { xs12: "" }
@@ -16477,9 +16484,9 @@ var render = function() {
                                       _vm._v(
                                         "\n                                Осталось распределить: " +
                                           _vm._s(
-                                            _vm.$store.state.сurrentAllotment
+                                            _vm.$store.state.currentAllotment
                                               .all_hours -
-                                              _vm.$store.state.сurrentAllotment
+                                              _vm.$store.state.currentAllotment
                                                 .dis_hours
                                           ) +
                                           "\n                            "
@@ -16495,10 +16502,10 @@ var render = function() {
                                           name: "show",
                                           rawName: "v-show",
                                           value:
-                                            _vm.$store.state.сurrentAllotment
+                                            _vm.$store.state.currentAllotment
                                               .is_main,
                                           expression:
-                                            "$store.state.сurrentAllotment.is_main"
+                                            "$store.state.currentAllotment.is_main"
                                         }
                                       ],
                                       staticClass: "body-1",
@@ -16737,7 +16744,7 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 // exports
 
@@ -16748,10 +16755,79 @@ exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__stlAllotmentToolbar__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__stlAllotmentToolbar___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__stlAllotmentToolbar__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(37);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__);
+
+
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -17034,7 +17110,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 /* harmony default export */ __webpack_exports__["default"] = ({
     name: "stlHiDiscipline",
-    components: { StlAllotmentToolbar: __WEBPACK_IMPORTED_MODULE_0__stlAllotmentToolbar___default.a },
+    components: { StlAllotmentToolbar: __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar___default.a },
     data: function data() {
         return {
             pages: [{
@@ -17046,11 +17122,29 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
             isNotSetings: true,
             isDisciplineSetings: false,
             isGroupSetings: false,
-            isLoadElementSetings: false
+            isLoadElementSetings: false,
+            isSaveChange: null,
+            isSetWorker: null
 
         };
     },
     computed: {
+        selectedThreadModel: {
+            get: function get() {
+                return this.$store.state.selectedThread;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'selectedThread', value: value });
+            }
+        },
+        selectedAuditoryModel: {
+            get: function get() {
+                return this.$store.state.selectedAuditory;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'selectedAuditory', value: value });
+            }
+        },
         selectedCommentModel: {
             get: function get() {
                 return this.$store.state.currentLoadElement.comment;
@@ -17187,7 +17281,10 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
                 page: 1
             });
 
-            this.selectedWorkerModel = {};
+            this.selectedWorkerModel = null;
+            this.isSetWorker = null;
+
+            this.$store.dispatch('updateHiDisciplineGroup');
         },
         selectGroup: function selectGroup(item) {
             this.currentGroupModel = item;
@@ -17204,9 +17301,12 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
                 page: 2
             });
 
-            this.selectedWorkerModel = {};
+            this.selectedWorkerModel = null;
+            this.isSetWorker = null;
+
+            this.$store.dispatch('updateHiDisciplineLoadElements');
         },
-        selectJob: function selectJob(item) {
+        selectLoadElement: function selectLoadElement(item) {
             this.currentLoadElementModel = item;
 
             this.isNotSetings = false;
@@ -17225,42 +17325,162 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
                 this.pages[this.pages.length - 1].text = item.name;
             }
 
-            this.selectedWorkerModel = {};
+            this.selectedWorkerModel = null;
+            this.selectedThreadModel = null;
+            this.selectedAuditoryModel = null;
+            this.isSaveChange = null;
+            this.isSetWorker = null;
+
+            this.$store.dispatch('updateHiDisciplineLoadElement');
         },
         clickNavMenu: function clickNavMenu(page) {
             for (var i = this.pages.length - 1; i > page; i--) {
                 this.pages.pop();
             }
+            this.pages[page].disabled = true;
             switch (page) {
                 case 0:
                     this.isNotSetings = true;
                     this.isDisciplineSetings = false;
                     this.isGroupSetings = false;
                     this.isLoadElementSetings = false;
+                    this.$store.dispatch('updateHiDisciplineDiscipline');
                     break;
                 case 1:
                     this.isNotSetings = false;
                     this.isDisciplineSetings = true;
                     this.isGroupSetings = false;
                     this.isLoadElementSetings = false;
+                    this.$store.dispatch('updateHiDisciplineGroup');
                     break;
                 case 2:
                     this.isNotSetings = false;
                     this.isDisciplineSetings = false;
                     this.isGroupSetings = true;
                     this.isLoadElementSetings = false;
+                    this.$store.dispatch('updateHiDisciplineLoadElements');
                     break;
             }
 
-            this.selectedWorkerModel = {};
+            this.selectedThreadModel = null;
+            this.selectedAuditoryModel = null;
+            this.isSaveChange = null;
+            this.isSetWorker = null;
         },
         init: function init() {
-            this.updateTable();
-        }
+            this.updateHiDiscipline();
+        },
+        updateHiDiscipline: function updateHiDiscipline() {
+            this.$store.dispatch('updateHiDiscipline');
+        },
+        saveChange: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee() {
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                _context.next = 2;
+                                return this.$store.dispatch('saveChangeLoadElement');
+
+                            case 2:
+                                this.isSaveChange = _context.sent;
+
+                            case 3:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function saveChange() {
+                return _ref.apply(this, arguments);
+            }
+
+            return saveChange;
+        }(),
+        setWorkerLoadElement: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee2() {
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                _context2.next = 2;
+                                return this.$store.dispatch('setWorkerLoadElementHiDiscipline');
+
+                            case 2:
+                                this.isSetWorker = _context2.sent;
+
+                            case 3:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function setWorkerLoadElement() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return setWorkerLoadElement;
+        }(),
+        setWorkerGroup: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee3() {
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                _context3.next = 2;
+                                return this.$store.dispatch('setWorkerGroupHiDiscipline');
+
+                            case 2:
+                                this.isSetWorker = _context3.sent;
+
+                            case 3:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function setWorkerGroup() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return setWorkerGroup;
+        }(),
+        setWorkerDiscipline: function () {
+            var _ref4 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee4() {
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee4$(_context4) {
+                    while (1) {
+                        switch (_context4.prev = _context4.next) {
+                            case 0:
+                                _context4.next = 2;
+                                return this.$store.dispatch('setWorkerDisciplineHiDiscipline');
+
+                            case 2:
+                                this.isSetWorker = _context4.sent;
+
+                            case 3:
+                            case "end":
+                                return _context4.stop();
+                        }
+                    }
+                }, _callee4, this);
+            }));
+
+            function setWorkerDiscipline() {
+                return _ref4.apply(this, arguments);
+            }
+
+            return setWorkerDiscipline;
+        }()
     },
 
     beforeMount: function beforeMount() {
-        //this.init();
+        this.init();
     }
 });
 
@@ -17503,11 +17723,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 if (this.$store.state.currentDimension != value) {
                     this.$store.commit('setData', { path: 'currentDimension', value: value });
                     if (value == 1) {
-                        this.$route.push({ name: 'hiDiscipline', params: { id: this.$store.state.сurrentAllotment.id } });
+                        this.$route.push({ name: 'hiDiscipline', params: { id: this.$store.state.currentAllotment.id } });
                     } else if (value == 2) {
-                        this.$route.push({ name: 'StlPageHiEmployee', params: { id: this.$store.state.сurrentAllotment.id } });
+                        this.$route.push({ name: 'StlPageHiEmployee', params: { id: this.$store.state.currentAllotment.id } });
                     } else if (value == 3) {
-                        this.$route.push({ name: 'StlPageHiGroup', params: { id: this.$store.state.сurrentAllotment.id } });
+                        this.$route.push({ name: 'StlPageHiGroup', params: { id: this.$store.state.currentAllotment.id } });
                     }
                     //this.$store.dispatch('changeDimension');
                 }
@@ -17722,7 +17942,7 @@ var render = function() {
                             required: ""
                           },
                           domProps: {
-                            value: _vm.$store.state.сurrentAllotment.id
+                            value: _vm.$store.state.currentAllotment.id
                           }
                         }),
                         _vm._v(" "),
@@ -17850,7 +18070,7 @@ var render = function() {
             _c("b", { staticClass: "text--primary" }, [
               _vm._v(
                 "Распределение: " +
-                  _vm._s(_vm.$store.state.сurrentAllotment.name)
+                  _vm._s(_vm.$store.state.currentAllotment.name)
               )
             ])
           ])
@@ -18119,13 +18339,24 @@ var render = function() {
                                         )
                                       ]),
                                       _vm._v(" "),
-                                      (item.worker
+                                      (item.sub_group
+                                      ? true
+                                      : false)
+                                        ? _c("v-list-tile-sub-title", [
+                                            _vm._v(
+                                              "Подгруппа: " +
+                                                _vm._s(item.sub_group)
+                                            )
+                                          ])
+                                        : _vm._e(),
+                                      _vm._v(" "),
+                                      (item.worker_fio
                                       ? true
                                       : false)
                                         ? _c("v-list-tile-sub-title", [
                                             _vm._v(
                                               "Преподаватель: " +
-                                                _vm._s(item.worker)
+                                                _vm._s(item.worker_fio)
                                             )
                                           ])
                                         : _vm._e()
@@ -18281,8 +18512,44 @@ var render = function() {
                                       _vm._v(" "),
                                       _c(
                                         "v-btn",
-                                        { attrs: { color: "primary" } },
+                                        {
+                                          attrs: { color: "primary" },
+                                          on: { click: _vm.setWorkerDiscipline }
+                                        },
                                         [_vm._v("Назначить")]
+                                      ),
+                                      _vm._v(" "),
+                                      _c(
+                                        "v-alert",
+                                        {
+                                          attrs: {
+                                            value: _vm.isSetWorker === true,
+                                            type: "success",
+                                            transition: "scale-transition",
+                                            outline: ""
+                                          }
+                                        },
+                                        [
+                                          _vm._v(
+                                            "\n                                        Преподавтаель назначен.\n                                    "
+                                          )
+                                        ]
+                                      ),
+                                      _vm._v(" "),
+                                      _c(
+                                        "v-alert",
+                                        {
+                                          attrs: {
+                                            value: _vm.isSetWorker === false,
+                                            type: "warning",
+                                            outline: ""
+                                          }
+                                        },
+                                        [
+                                          _vm._v(
+                                            "\n                                        Назначить преподавателя не удалось.\n                                    "
+                                          )
+                                        ]
                                       )
                                     ],
                                     1
@@ -18380,8 +18647,45 @@ var render = function() {
                                           _vm._v(" "),
                                           _c(
                                             "v-btn",
-                                            { attrs: { color: "primary" } },
+                                            {
+                                              attrs: { color: "primary" },
+                                              on: { click: _vm.setWorkerGroup }
+                                            },
                                             [_vm._v("Назначить")]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-alert",
+                                            {
+                                              attrs: {
+                                                value: _vm.isSetWorker === true,
+                                                type: "success",
+                                                transition: "scale-transition",
+                                                outline: ""
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Преподавтаель назначен.\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-alert",
+                                            {
+                                              attrs: {
+                                                value:
+                                                  _vm.isSetWorker === false,
+                                                type: "warning",
+                                                outline: ""
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Назначить преподавателя не удалось.\n                                    "
+                                              )
+                                            ]
                                           )
                                         ],
                                         1
@@ -18428,7 +18732,7 @@ var render = function() {
                                           " " +
                                             _vm._s(
                                               _vm.$store.state
-                                                .currentLoadElement.all_hours
+                                                .currentLoadElement.hours_planed
                                             )
                                         )
                                       ]),
@@ -18459,14 +18763,15 @@ var render = function() {
                                       ),
                                       _vm._v(" "),
                                       _vm.$store.state.currentLoadElement
-                                        .subgroup
+                                        .sub_group
                                         ? _c("div", [
                                             _c("b", [_vm._v("Подгруппа:")]),
                                             _vm._v(
                                               " " +
                                                 _vm._s(
                                                   _vm.$store.state
-                                                    .currentLoadElement.subgroup
+                                                    .currentLoadElement
+                                                    .sub_group
                                                 ) +
                                                 "\n                                "
                                             )
@@ -18496,8 +18801,47 @@ var render = function() {
                                           _vm._v(" "),
                                           _c(
                                             "v-btn",
-                                            { attrs: { color: "primary" } },
+                                            {
+                                              attrs: { color: "primary" },
+                                              on: {
+                                                click: _vm.setWorkerLoadElement
+                                              }
+                                            },
                                             [_vm._v("Назначить")]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-alert",
+                                            {
+                                              attrs: {
+                                                value: _vm.isSetWorker === true,
+                                                type: "success",
+                                                transition: "scale-transition",
+                                                outline: ""
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Преподавтаель назначен.\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-alert",
+                                            {
+                                              attrs: {
+                                                value:
+                                                  _vm.isSetWorker === false,
+                                                type: "warning",
+                                                outline: ""
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Назначить преподавателя не удалось.\n                                    "
+                                              )
+                                            ]
                                           )
                                         ],
                                         1
@@ -18514,9 +18858,11 @@ var render = function() {
                                 "div",
                                 { staticClass: "settings__form" },
                                 [
-                                  _c("v-combobox", {
+                                  _c("v-select", {
                                     attrs: {
                                       items: _vm.$store.state.threads,
+                                      "item-value": "id",
+                                      "item-text": "name",
                                       label: "Поток"
                                     },
                                     model: {
@@ -18528,9 +18874,11 @@ var render = function() {
                                     }
                                   }),
                                   _vm._v(" "),
-                                  _c("v-combobox", {
+                                  _c("v-select", {
                                     attrs: {
                                       items: _vm.$store.state.auditorys,
+                                      "item-value": "id",
+                                      "item-text": "name",
                                       label: "Аудитория"
                                     },
                                     model: {
@@ -18653,9 +19001,47 @@ var render = function() {
                                     }
                                   }),
                                   _vm._v(" "),
-                                  _c("v-btn", { attrs: { color: "success" } }, [
-                                    _vm._v("Сохранить изменения")
-                                  ])
+                                  _c(
+                                    "v-alert",
+                                    {
+                                      attrs: {
+                                        value: _vm.isSaveChange === true,
+                                        type: "success",
+                                        transition: "scale-transition",
+                                        outline: ""
+                                      }
+                                    },
+                                    [
+                                      _vm._v(
+                                        "\n                                Изменения сохранены.\n                            "
+                                      )
+                                    ]
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-alert",
+                                    {
+                                      attrs: {
+                                        value: _vm.isSaveChange === false,
+                                        type: "warning",
+                                        outline: ""
+                                      }
+                                    },
+                                    [
+                                      _vm._v(
+                                        "\n                                Сохранить изменения не удалось.\n                            "
+                                      )
+                                    ]
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-btn",
+                                    {
+                                      attrs: { color: "success" },
+                                      on: { click: _vm.saveChange }
+                                    },
+                                    [_vm._v("Сохранить изменения")]
+                                  )
                                 ],
                                 1
                               ),
@@ -18689,18 +19075,14 @@ var render = function() {
                               key: "items",
                               fn: function(props) {
                                 return [
-                                  _c("td", [_vm._v(_vm._s(props.item.name))]),
+                                  _c("td", [_vm._v(_vm._s(props.item.fio))]),
                                   _vm._v(" "),
-                                  _c("td", [
-                                    _vm._v(_vm._s(props.item.position))
+                                  _c("td", { staticClass: "text-xs-right" }, [
+                                    _vm._v(_vm._s(props.item.group))
                                   ]),
                                   _vm._v(" "),
                                   _c("td", { staticClass: "text-xs-right" }, [
-                                    _vm._v(_vm._s(props.item.hours))
-                                  ]),
-                                  _vm._v(" "),
-                                  _c("td", { staticClass: "text-xs-right" }, [
-                                    _vm._v(_vm._s(props.item.part))
+                                    _vm._v(_vm._s(props.item.type_class))
                                   ])
                                 ]
                               }
@@ -18775,7 +19157,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
         currentDimension: 1,
 
         allotments: [],
-        сurrentAllotment: {},
+        currentAllotment: {},
         allotmentsCreateError: false,
 
         disciplines: [],
@@ -18785,7 +19167,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
         loadElements: [],
         currentLoadElement: {},
         workers: [],
-        currentWorker: {},
+        currentWorker: null,
 
         threads: [],
         auditorys: [],
@@ -18794,13 +19176,13 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             text: 'Преподаватель',
             align: 'left',
             sortable: false,
-            value: 'name'
-        }, { text: 'Должность', value: 'position' }, { text: 'Часов', value: 'hours' }, { text: 'Доля', value: 'part' }],
+            value: 'fio'
+        }, { text: 'Группа', value: 'group' }, { text: 'Занятие', value: 'type_class' }],
 
         peopleData: [],
 
-        selectedThread: {},
-        selectedAuditory: {}
+        selectedThread: null,
+        selectedAuditory: null
     },
 
     getters: {
@@ -18847,7 +19229,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
 
 
                                 commit('setData', { path: 'allotments', value: list });
-                                commit('setData', { path: 'сurrentAllotment', value: {} });
+                                commit('setData', { path: 'currentAllotment', value: {} });
 
                             case 6:
                             case 'end':
@@ -18873,11 +19255,11 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                         switch (_context2.prev = _context2.next) {
                             case 0:
                                 params = {
-                                    'allotment_id': this.state.сurrentAllotment.id,
+                                    'allotment_id': this.state.currentAllotment.id,
                                     'semester': this.state.selectedSemester
                                 };
                                 _context2.next = 3;
-                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/allotments/discipline/get_disciplines', params);
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/hi_discipline/get_disciplines', { params: params });
 
                             case 3:
                                 response = _context2.sent;
@@ -18911,7 +19293,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                         switch (_context3.prev = _context3.next) {
                             case 0:
                                 params = {
-                                    'allotment_id': this.state.сurrentAllotment.id,
+                                    'allotment_id': this.state.currentAllotment.id,
                                     'semester': this.state.selectedSemester,
                                     'discipline': this.state.currentDicipline.id
                                 };
@@ -18950,7 +19332,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                         switch (_context4.prev = _context4.next) {
                             case 0:
                                 params = {
-                                    'allotment_id': this.state.сurrentAllotment.id,
+                                    'allotment_id': this.state.currentAllotment.id,
                                     'semester': this.state.selectedSemester,
                                     'discipline': this.state.currentDicipline.id,
                                     'group': this.state.currentGroup.id
@@ -19062,7 +19444,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                             case 0:
                                 commit('setLoader', true);
                                 _context7.next = 3;
-                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/allotments/edit', this.state.сurrentAllotment);
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/allotments/edit', this.state.currentAllotment);
 
                             case 3:
                                 response = _context7.sent;
@@ -19103,7 +19485,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                         switch (_context8.prev = _context8.next) {
                             case 0:
                                 commit('setLoader', true);
-                                params = { 'id': this.state.сurrentAllotment.id };
+                                params = { 'id': this.state.currentAllotment.id };
                                 _context8.next = 4;
                                 return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/allotments/remove', params);
 
@@ -19148,7 +19530,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                                 commit('setData', { path: 'selectedSemester', value: val });
 
                                 _context9.next = 4;
-                                return dispatch('fetchDisciplineDisciplines');
+                                return dispatch('fetchHiDisciplineDisciplines');
 
                             case 4:
 
@@ -19167,6 +19549,677 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             }
 
             return changeSemester;
+        }(),
+        updateHiDiscipline: function () {
+            var _ref21 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee10(_ref20) {
+                var commit = _ref20.commit,
+                    dispatch = _ref20.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee10$(_context10) {
+                    while (1) {
+                        switch (_context10.prev = _context10.next) {
+                            case 0:
+                                commit('setLoader', true);
+
+                                if (!(Object.keys(this.state.currentAllotment).length === 0)) {
+                                    _context10.next = 4;
+                                    break;
+                                }
+
+                                _context10.next = 4;
+                                return dispatch('fetchAllotment');
+
+                            case 4:
+                                _context10.next = 6;
+                                return dispatch('fetchWorkers');
+
+                            case 6:
+                                _context10.next = 8;
+                                return dispatch('fetchThreads');
+
+                            case 8:
+                                _context10.next = 10;
+                                return dispatch('fetchClassrooms');
+
+                            case 10:
+                                _context10.next = 12;
+                                return dispatch('fetchHiDisciplineDisciplines');
+
+                            case 12:
+                                commit('setLoader', false);
+
+                            case 13:
+                            case 'end':
+                                return _context10.stop();
+                        }
+                    }
+                }, _callee10, this);
+            }));
+
+            function updateHiDiscipline(_x12) {
+                return _ref21.apply(this, arguments);
+            }
+
+            return updateHiDiscipline;
+        }(),
+        fetchAllotment: function () {
+            var _ref23 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee11(_ref22) {
+                var commit = _ref22.commit,
+                    dispatch = _ref22.dispatch;
+                var allotmentId, response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee11$(_context11) {
+                    while (1) {
+                        switch (_context11.prev = _context11.next) {
+                            case 0:
+                                allotmentId = this.state.route.params.id;
+                                _context11.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/allotments/get_allotment', {
+                                    params: {
+                                        id: allotmentId
+                                    }
+                                });
+
+                            case 3:
+                                response = _context11.sent;
+                                list = response.data.status ? response.data.data : {};
+
+
+                                commit('setData', { path: 'currentAllotment', value: list });
+
+                            case 6:
+                            case 'end':
+                                return _context11.stop();
+                        }
+                    }
+                }, _callee11, this);
+            }));
+
+            function fetchAllotment(_x13) {
+                return _ref23.apply(this, arguments);
+            }
+
+            return fetchAllotment;
+        }(),
+        fetchWorkers: function () {
+            var _ref25 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee12(_ref24) {
+                var commit = _ref24.commit,
+                    dispatch = _ref24.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee12$(_context12) {
+                    while (1) {
+                        switch (_context12.prev = _context12.next) {
+                            case 0:
+                                _context12.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/workers/get_workers');
+
+                            case 2:
+                                response = _context12.sent;
+                                list = response.data.status ? response.data.data : {};
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: null });
+
+                            case 6:
+                            case 'end':
+                                return _context12.stop();
+                        }
+                    }
+                }, _callee12, this);
+            }));
+
+            function fetchWorkers(_x14) {
+                return _ref25.apply(this, arguments);
+            }
+
+            return fetchWorkers;
+        }(),
+        fetchThreads: function () {
+            var _ref27 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee13(_ref26) {
+                var commit = _ref26.commit,
+                    dispatch = _ref26.dispatch;
+                var params, response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee13$(_context13) {
+                    while (1) {
+                        switch (_context13.prev = _context13.next) {
+                            case 0:
+                                params = {
+                                    'allotment': this.state.currentAllotment.id
+                                };
+                                _context13.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/flows/get_flows', { params: params });
+
+                            case 3:
+                                response = _context13.sent;
+                                list = response.data.status ? response.data.data : {};
+
+
+                                commit('setData', { path: 'threads', value: list });
+                                commit('setData', { path: 'selectedThread', value: null });
+
+                            case 7:
+                            case 'end':
+                                return _context13.stop();
+                        }
+                    }
+                }, _callee13, this);
+            }));
+
+            function fetchThreads(_x15) {
+                return _ref27.apply(this, arguments);
+            }
+
+            return fetchThreads;
+        }(),
+        fetchClassrooms: function () {
+            var _ref29 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee14(_ref28) {
+                var commit = _ref28.commit,
+                    dispatch = _ref28.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee14$(_context14) {
+                    while (1) {
+                        switch (_context14.prev = _context14.next) {
+                            case 0:
+                                _context14.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/classrooms/get_classrooms');
+
+                            case 2:
+                                response = _context14.sent;
+                                list = response.data.status ? response.data.data : {};
+
+
+                                commit('setData', { path: 'auditorys', value: list });
+                                commit('setData', { path: 'selectedAuditory', value: null });
+
+                            case 6:
+                            case 'end':
+                                return _context14.stop();
+                        }
+                    }
+                }, _callee14, this);
+            }));
+
+            function fetchClassrooms(_x16) {
+                return _ref29.apply(this, arguments);
+            }
+
+            return fetchClassrooms;
+        }(),
+        fetchHiDisciplineDisciplines: function () {
+            var _ref31 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee15(_ref30) {
+                var commit = _ref30.commit,
+                    dispatch = _ref30.dispatch;
+                var params, response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee15$(_context15) {
+                    while (1) {
+                        switch (_context15.prev = _context15.next) {
+                            case 0:
+                                params = {
+                                    'allotment': this.state.currentAllotment.id,
+                                    'semester': this.state.currentSemester
+                                };
+                                _context15.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/hi_discipline/get_disciplines', { params: params });
+
+                            case 3:
+                                response = _context15.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'disciplines', value: list });
+                                commit('setData', { path: 'currentDicipline', value: {} });
+
+                            case 7:
+                            case 'end':
+                                return _context15.stop();
+                        }
+                    }
+                }, _callee15, this);
+            }));
+
+            function fetchHiDisciplineDisciplines(_x17) {
+                return _ref31.apply(this, arguments);
+            }
+
+            return fetchHiDisciplineDisciplines;
+        }(),
+        updateHiDisciplineDiscipline: function () {
+            var _ref33 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee16(_ref32) {
+                var commit = _ref32.commit,
+                    dispatch = _ref32.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee16$(_context16) {
+                    while (1) {
+                        switch (_context16.prev = _context16.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context16.next = 3;
+                                return dispatch('fetchHiDisciplineDisciplines');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context16.stop();
+                        }
+                    }
+                }, _callee16, this);
+            }));
+
+            function updateHiDisciplineDiscipline(_x18) {
+                return _ref33.apply(this, arguments);
+            }
+
+            return updateHiDisciplineDiscipline;
+        }(),
+        updateHiDisciplineGroup: function () {
+            var _ref35 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee17(_ref34) {
+                var commit = _ref34.commit,
+                    dispatch = _ref34.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee17$(_context17) {
+                    while (1) {
+                        switch (_context17.prev = _context17.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context17.next = 3;
+                                return dispatch('fetchHiDisciplineGroups');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context17.stop();
+                        }
+                    }
+                }, _callee17, this);
+            }));
+
+            function updateHiDisciplineGroup(_x19) {
+                return _ref35.apply(this, arguments);
+            }
+
+            return updateHiDisciplineGroup;
+        }(),
+        fetchHiDisciplineGroups: function () {
+            var _ref37 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee18(_ref36) {
+                var commit = _ref36.commit,
+                    dispatch = _ref36.dispatch;
+                var params, response, list, listWorker;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee18$(_context18) {
+                    while (1) {
+                        switch (_context18.prev = _context18.next) {
+                            case 0:
+                                params = {
+                                    'allotment': this.state.currentAllotment.id,
+                                    'semester': this.state.currentSemester,
+                                    'discipline': this.state.currentDicipline.id
+                                };
+                                _context18.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/hi_discipline/get_groups', { params: params });
+
+                            case 3:
+                                response = _context18.sent;
+                                list = response.data.status ? response.data.data.groups : [];
+                                listWorker = response.data.status ? response.data.data.distributionElements : [];
+
+
+                                commit('setData', { path: 'groups', value: list });
+                                commit('setData', { path: 'currentGroup', value: {} });
+                                commit('setData', { path: 'peopleData', value: listWorker });
+
+                            case 9:
+                            case 'end':
+                                return _context18.stop();
+                        }
+                    }
+                }, _callee18, this);
+            }));
+
+            function fetchHiDisciplineGroups(_x20) {
+                return _ref37.apply(this, arguments);
+            }
+
+            return fetchHiDisciplineGroups;
+        }(),
+        updateHiDisciplineLoadElements: function () {
+            var _ref39 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee19(_ref38) {
+                var commit = _ref38.commit,
+                    dispatch = _ref38.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee19$(_context19) {
+                    while (1) {
+                        switch (_context19.prev = _context19.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context19.next = 3;
+                                return dispatch('fetchHiDisciplineLoadElements');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context19.stop();
+                        }
+                    }
+                }, _callee19, this);
+            }));
+
+            function updateHiDisciplineLoadElements(_x21) {
+                return _ref39.apply(this, arguments);
+            }
+
+            return updateHiDisciplineLoadElements;
+        }(),
+        fetchHiDisciplineLoadElements: function () {
+            var _ref41 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee20(_ref40) {
+                var commit = _ref40.commit,
+                    dispatch = _ref40.dispatch;
+                var params, response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee20$(_context20) {
+                    while (1) {
+                        switch (_context20.prev = _context20.next) {
+                            case 0:
+                                params = {
+                                    'allotment': this.state.currentAllotment.id,
+                                    'semester': this.state.currentSemester,
+                                    'discipline': this.state.currentDicipline.id,
+                                    'group': this.state.currentGroup.id
+                                };
+                                _context20.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/hi_discipline/get_load_elements', { params: params });
+
+                            case 3:
+                                response = _context20.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'loadElements', value: list });
+                                commit('setData', { path: 'currentLoadElement', value: {} });
+
+                            case 7:
+                            case 'end':
+                                return _context20.stop();
+                        }
+                    }
+                }, _callee20, this);
+            }));
+
+            function fetchHiDisciplineLoadElements(_x22) {
+                return _ref41.apply(this, arguments);
+            }
+
+            return fetchHiDisciplineLoadElements;
+        }(),
+        updateHiDisciplineLoadElement: function () {
+            var _ref43 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee21(_ref42) {
+                var commit = _ref42.commit,
+                    dispatch = _ref42.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee21$(_context21) {
+                    while (1) {
+                        switch (_context21.prev = _context21.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context21.next = 3;
+                                return dispatch('fetchHiDisciplineLoadElement');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context21.stop();
+                        }
+                    }
+                }, _callee21, this);
+            }));
+
+            function updateHiDisciplineLoadElement(_x23) {
+                return _ref43.apply(this, arguments);
+            }
+
+            return updateHiDisciplineLoadElement;
+        }(),
+        fetchHiDisciplineLoadElement: function () {
+            var _ref45 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee22(_ref44) {
+                var commit = _ref44.commit,
+                    dispatch = _ref44.dispatch;
+                var params, response, list, worker_id, thread_id, classroom_id;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee22$(_context22) {
+                    while (1) {
+                        switch (_context22.prev = _context22.next) {
+                            case 0:
+                                params = {
+                                    'load_element': this.state.currentLoadElement.id
+                                };
+                                _context22.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/hi_discipline/get_load_element', { params: params });
+
+                            case 3:
+                                response = _context22.sent;
+                                list = response.data.status ? response.data.data : {};
+                                worker_id = null;
+                                thread_id = null;
+                                classroom_id = null;
+
+                                if (Object.keys(list !== 0)) {
+                                    worker_id = list.worker_id;
+                                    thread_id = list.flow_id;
+                                    classroom_id = list.classroom_id;
+                                }
+                                commit('setData', { path: 'currentLoadElement', value: list });
+                                commit('setData', { path: 'currentWorker', value: worker_id });
+                                commit('setData', { path: 'selectedThread', value: thread_id });
+                                commit('setData', { path: 'selectedAuditory', value: classroom_id });
+
+                            case 13:
+                            case 'end':
+                                return _context22.stop();
+                        }
+                    }
+                }, _callee22, this);
+            }));
+
+            function fetchHiDisciplineLoadElement(_x24) {
+                return _ref45.apply(this, arguments);
+            }
+
+            return fetchHiDisciplineLoadElement;
+        }(),
+        saveChangeLoadElement: function () {
+            var _ref47 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee23(_ref46) {
+                var commit = _ref46.commit,
+                    dispatch = _ref46.dispatch;
+                var params, response, res;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee23$(_context23) {
+                    while (1) {
+                        switch (_context23.prev = _context23.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = {
+                                    'id': this.state.currentLoadElement.id,
+                                    'thread': this.state.selectedThread,
+                                    'classroom': this.state.selectedAuditory,
+                                    'need_interactive_board': this.state.currentLoadElement.need_interactive_board,
+                                    'need_multimedia_classroom': this.state.currentLoadElement.need_multimedia_classroom,
+                                    'need_marker_board': this.state.currentLoadElement.need_marker_board,
+                                    'comment': this.state.currentLoadElement.comment,
+                                    'hours_first_before': this.state.currentLoadElement.hours_first_before,
+                                    'hours_second_befor': this.state.currentLoadElement.hours_second_befor,
+                                    'fours_first_after': this.state.currentLoadElement.fours_first_after,
+                                    'hours_second_after': this.state.currentLoadElement.hours_second_after
+                                };
+                                _context23.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/load_elements/set_load_element', params);
+
+                            case 4:
+                                response = _context23.sent;
+                                res = response.data.status;
+
+
+                                commit('setLoader', false);
+                                return _context23.abrupt('return', res);
+
+                            case 8:
+                            case 'end':
+                                return _context23.stop();
+                        }
+                    }
+                }, _callee23, this);
+            }));
+
+            function saveChangeLoadElement(_x25) {
+                return _ref47.apply(this, arguments);
+            }
+
+            return saveChangeLoadElement;
+        }(),
+        setWorkerLoadElementHiDiscipline: function () {
+            var _ref49 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee24(_ref48) {
+                var commit = _ref48.commit,
+                    dispatch = _ref48.dispatch;
+                var params, response, res, elem;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee24$(_context24) {
+                    while (1) {
+                        switch (_context24.prev = _context24.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = {
+                                    'load_element': this.state.currentLoadElement.id,
+                                    'worker': this.state.currentWorker
+                                };
+                                _context24.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/load_elements/set_worker', params);
+
+                            case 4:
+                                response = _context24.sent;
+                                res = response.data.status;
+
+                                if (!res) {
+                                    _context24.next = 11;
+                                    break;
+                                }
+
+                                elem = this.state.currentLoadElement;
+                                _context24.next = 10;
+                                return dispatch('fetchHiDisciplineLoadElements');
+
+                            case 10:
+                                commit('setData', { path: 'currentLoadElement', value: elem });
+
+                            case 11:
+                                commit('setLoader', false);
+                                return _context24.abrupt('return', res);
+
+                            case 13:
+                            case 'end':
+                                return _context24.stop();
+                        }
+                    }
+                }, _callee24, this);
+            }));
+
+            function setWorkerLoadElementHiDiscipline(_x26) {
+                return _ref49.apply(this, arguments);
+            }
+
+            return setWorkerLoadElementHiDiscipline;
+        }(),
+        setWorkerGroupHiDiscipline: function () {
+            var _ref51 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee25(_ref50) {
+                var commit = _ref50.commit,
+                    dispatch = _ref50.dispatch;
+                var params, response, res;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee25$(_context25) {
+                    while (1) {
+                        switch (_context25.prev = _context25.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = {
+                                    'allotment': this.state.currentAllotment.id,
+                                    'discipline': this.state.currentDicipline.id,
+                                    'group': this.state.currentGroup.id,
+                                    'worker': this.state.currentWorker
+                                };
+                                _context25.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/hi_discipline/set_worker_group', params);
+
+                            case 4:
+                                response = _context25.sent;
+                                res = response.data.status;
+
+                                if (!res) {
+                                    _context25.next = 9;
+                                    break;
+                                }
+
+                                _context25.next = 9;
+                                return dispatch('fetchHiDisciplineLoadElements');
+
+                            case 9:
+                                commit('setLoader', false);
+                                return _context25.abrupt('return', res);
+
+                            case 11:
+                            case 'end':
+                                return _context25.stop();
+                        }
+                    }
+                }, _callee25, this);
+            }));
+
+            function setWorkerGroupHiDiscipline(_x27) {
+                return _ref51.apply(this, arguments);
+            }
+
+            return setWorkerGroupHiDiscipline;
+        }(),
+        setWorkerDisciplineHiDiscipline: function () {
+            var _ref53 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee26(_ref52) {
+                var commit = _ref52.commit,
+                    dispatch = _ref52.dispatch;
+                var params, response, res;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee26$(_context26) {
+                    while (1) {
+                        switch (_context26.prev = _context26.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = {
+                                    'allotment': this.state.currentAllotment.id,
+                                    'discipline': this.state.currentDicipline.id,
+                                    'worker': this.state.currentWorker
+                                };
+                                _context26.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/hi_discipline/set_worker_discipline', params);
+
+                            case 4:
+                                response = _context26.sent;
+                                res = response.data.status;
+
+                                if (!res) {
+                                    _context26.next = 9;
+                                    break;
+                                }
+
+                                _context26.next = 9;
+                                return dispatch('fetchHiDisciplineGroups');
+
+                            case 9:
+                                commit('setLoader', false);
+                                return _context26.abrupt('return', res);
+
+                            case 11:
+                            case 'end':
+                                return _context26.stop();
+                        }
+                    }
+                }, _callee26, this);
+            }));
+
+            function setWorkerDisciplineHiDiscipline(_x28) {
+                return _ref53.apply(this, arguments);
+            }
+
+            return setWorkerDisciplineHiDiscipline;
         }()
     }
 
@@ -20902,6 +21955,87 @@ var index_esm = {
 
 /***/ }),
 /* 41 */
+/***/ (function(module, exports) {
+
+exports.sync = function (store, router, options) {
+  var moduleName = (options || {}).moduleName || 'route'
+
+  store.registerModule(moduleName, {
+    namespaced: true,
+    state: cloneRoute(router.currentRoute),
+    mutations: {
+      'ROUTE_CHANGED': function ROUTE_CHANGED (state, transition) {
+        store.state[moduleName] = cloneRoute(transition.to, transition.from)
+      }
+    }
+  })
+
+  var isTimeTraveling = false
+  var currentPath
+
+  // sync router on store change
+  var storeUnwatch = store.watch(
+    function (state) { return state[moduleName]; },
+    function (route) {
+      var fullPath = route.fullPath;
+      if (fullPath === currentPath) {
+        return
+      }
+      if (currentPath != null) {
+        isTimeTraveling = true
+        router.push(route)
+      }
+      currentPath = fullPath
+    },
+    { sync: true }
+  )
+
+  // sync store on router navigation
+  var afterEachUnHook = router.afterEach(function (to, from) {
+    if (isTimeTraveling) {
+      isTimeTraveling = false
+      return
+    }
+    currentPath = to.fullPath
+    store.commit(moduleName + '/ROUTE_CHANGED', { to: to, from: from })
+  })
+
+  return function unsync () {
+    // On unsync, remove router hook
+    if (afterEachUnHook != null) {
+      afterEachUnHook()
+    }
+
+    // On unsync, remove store watch
+    if (storeUnwatch != null) {
+      storeUnwatch()
+    }
+
+    // On unsync, unregister Module with store
+    store.unregisterModule(moduleName)
+  }
+}
+
+function cloneRoute (to, from) {
+  var clone = {
+    name: to.name,
+    path: to.path,
+    hash: to.hash,
+    query: to.query,
+    params: to.params,
+    fullPath: to.fullPath,
+    meta: to.meta
+  }
+  if (from) {
+    clone.from = cloneRoute(from)
+  }
+  return Object.freeze(clone)
+}
+
+
+
+/***/ }),
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -43761,13 +44895,13 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_vue__;
 //# sourceMappingURL=vuetify.js.map
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(43);
+var content = __webpack_require__(44);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -43792,7 +44926,7 @@ if(false) {
 }
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(false);
@@ -43806,7 +44940,7 @@ exports.push([module.i, "/*!\n* Vuetify v1.3.12\n* Forged by John Leider\n* Rele
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports) {
 
 
@@ -43901,13 +45035,13 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(46);
+var content = __webpack_require__(47);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -43932,22 +45066,22 @@ if(false) {
 }
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var escape = __webpack_require__(47);
+var escape = __webpack_require__(48);
 exports = module.exports = __webpack_require__(1)(false);
 // imports
 
 
 // module
-exports.push([module.i, "@font-face {\n  font-family: 'Material Icons';\n  font-style: normal;\n  font-weight: 400;\n  src: url(" + escape(__webpack_require__(48)) + ");\n  /* For IE6-8 */\n  src: local(\"Material Icons\"), local(\"MaterialIcons-Regular\"), url(" + escape(__webpack_require__(49)) + ") format(\"woff2\"), url(" + escape(__webpack_require__(50)) + ") format(\"woff\"), url(" + escape(__webpack_require__(51)) + ") format(\"truetype\"); }\n\n.material-icons {\n  font-family: 'Material Icons';\n  font-weight: normal;\n  font-style: normal;\n  font-size: 24px;\n  /* Preferred icon size */\n  display: inline-block;\n  line-height: 1;\n  text-transform: none;\n  letter-spacing: normal;\n  word-wrap: normal;\n  white-space: nowrap;\n  direction: ltr;\n  /* Support for all WebKit browsers. */\n  -webkit-font-smoothing: antialiased;\n  /* Support for Safari and Chrome. */\n  text-rendering: optimizeLegibility;\n  /* Support for Firefox. */\n  -moz-osx-font-smoothing: grayscale;\n  /* Support for IE. */\n  font-feature-settings: 'liga';\n  font-display: block; }\n", ""]);
+exports.push([module.i, "@font-face {\n  font-family: 'Material Icons';\n  font-style: normal;\n  font-weight: 400;\n  src: url(" + escape(__webpack_require__(49)) + ");\n  /* For IE6-8 */\n  src: local(\"Material Icons\"), local(\"MaterialIcons-Regular\"), url(" + escape(__webpack_require__(50)) + ") format(\"woff2\"), url(" + escape(__webpack_require__(51)) + ") format(\"woff\"), url(" + escape(__webpack_require__(52)) + ") format(\"truetype\"); }\n\n.material-icons {\n  font-family: 'Material Icons';\n  font-weight: normal;\n  font-style: normal;\n  font-size: 24px;\n  /* Preferred icon size */\n  display: inline-block;\n  line-height: 1;\n  text-transform: none;\n  letter-spacing: normal;\n  word-wrap: normal;\n  white-space: nowrap;\n  direction: ltr;\n  /* Support for all WebKit browsers. */\n  -webkit-font-smoothing: antialiased;\n  /* Support for Safari and Chrome. */\n  text-rendering: optimizeLegibility;\n  /* Support for Firefox. */\n  -moz-osx-font-smoothing: grayscale;\n  /* Support for IE. */\n  font-feature-settings: 'liga';\n  font-display: block; }\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports) {
 
 module.exports = function escape(url) {
@@ -43969,31 +45103,31 @@ module.exports = function escape(url) {
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.eot?016c14adad95a0e21a2ae4fbc36955c6";
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.woff2?8a9a261c8b8dfe90db11f1817a9d22e1";
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.woff?c38ebd3cd38c98fbd16bf31d1d24ce64";
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.ttf?55242ea5c378da626cab5b4aaf9c2255";
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44324,11 +45458,11 @@ exports.default = Object.freeze({
 //# sourceMappingURL=colors.js.map
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(54);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(55);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_axios__);
 
 
@@ -44425,13 +45559,13 @@ var client = __WEBPACK_IMPORTED_MODULE_0_axios___default.a.create();
 });
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(55);
+module.exports = __webpack_require__(56);
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44439,7 +45573,7 @@ module.exports = __webpack_require__(55);
 
 var utils = __webpack_require__(0);
 var bind = __webpack_require__(9);
-var Axios = __webpack_require__(57);
+var Axios = __webpack_require__(58);
 var defaults = __webpack_require__(6);
 
 /**
@@ -44474,14 +45608,14 @@ axios.create = function create(instanceConfig) {
 
 // Expose Cancel & CancelToken
 axios.Cancel = __webpack_require__(13);
-axios.CancelToken = __webpack_require__(71);
+axios.CancelToken = __webpack_require__(72);
 axios.isCancel = __webpack_require__(12);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(72);
+axios.spread = __webpack_require__(73);
 
 module.exports = axios;
 
@@ -44490,7 +45624,7 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports) {
 
 /*!
@@ -44517,7 +45651,7 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44525,8 +45659,8 @@ function isSlowBuffer (obj) {
 
 var defaults = __webpack_require__(6);
 var utils = __webpack_require__(0);
-var InterceptorManager = __webpack_require__(66);
-var dispatchRequest = __webpack_require__(67);
+var InterceptorManager = __webpack_require__(67);
+var dispatchRequest = __webpack_require__(68);
 
 /**
  * Create a new instance of Axios
@@ -44603,7 +45737,7 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44622,7 +45756,7 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44655,7 +45789,7 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44683,7 +45817,7 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44756,7 +45890,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44816,7 +45950,7 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44891,7 +46025,7 @@ module.exports = (
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44934,7 +46068,7 @@ module.exports = btoa;
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44994,7 +46128,7 @@ module.exports = (
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45053,18 +46187,18 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var utils = __webpack_require__(0);
-var transformData = __webpack_require__(68);
+var transformData = __webpack_require__(69);
 var isCancel = __webpack_require__(12);
 var defaults = __webpack_require__(6);
-var isAbsoluteURL = __webpack_require__(69);
-var combineURLs = __webpack_require__(70);
+var isAbsoluteURL = __webpack_require__(70);
+var combineURLs = __webpack_require__(71);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -45146,7 +46280,7 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 68 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45173,7 +46307,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45194,7 +46328,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45215,7 +46349,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45279,7 +46413,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45313,7 +46447,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -50644,19 +51778,19 @@ module.exports = g;
 });
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(75)
+  __webpack_require__(76)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(77)
+var __vue_script__ = __webpack_require__(78)
 /* template */
-var __vue_template__ = __webpack_require__(78)
+var __vue_template__ = __webpack_require__(79)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -50695,13 +51829,13 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(76);
+var content = __webpack_require__(77);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -50721,7 +51855,7 @@ if(false) {
 }
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(false);
@@ -50735,7 +51869,7 @@ exports.push([module.i, "\n.stl-loader {\n  position: fixed;\n  left: 0;\n  top:
 
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -50761,7 +51895,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -50794,19 +51928,19 @@ if (false) {
 }
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(80)
+  __webpack_require__(81)
 }
 var normalizeComponent = __webpack_require__(3)
 /* script */
-var __vue_script__ = __webpack_require__(82)
+var __vue_script__ = __webpack_require__(83)
 /* template */
-var __vue_template__ = __webpack_require__(83)
+var __vue_template__ = __webpack_require__(84)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -50845,13 +51979,13 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(81);
+var content = __webpack_require__(82);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -50871,7 +52005,7 @@ if(false) {
 }
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(false);
@@ -50885,7 +52019,7 @@ exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -50908,7 +52042,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -50932,7 +52066,7 @@ if (false) {
 }
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin

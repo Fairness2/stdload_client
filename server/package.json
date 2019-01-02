@@ -24,6 +24,7 @@
     },
     "dependencies": {
         "material-design-icons-iconfont": "^4.0.3",
-        "vue-tippy": "^2.0.23"
+        "vue-tippy": "^2.0.23",
+        "vuex-router-sync": "^5.0.0"
     }
 }

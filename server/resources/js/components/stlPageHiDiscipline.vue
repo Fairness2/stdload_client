@@ -81,7 +81,8 @@
                                 <v-list-tile-content>
                                     <v-list-tile-title>{{item.name}}</v-list-tile-title>
                                     <v-list-tile-sub-title>Часов распределено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
-                                    <v-list-tile-sub-title v-if="item.worker ? true : false">Преподаватель: {{item.worker}}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title v-if="item.sub_group ? true : false">Подгруппа: {{item.sub_group}}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title v-if="item.worker_fio ? true : false">Преподаватель: {{item.worker_fio}}</v-list-tile-sub-title>
                                 </v-list-tile-content>
 
                             </v-list-tile>
@@ -129,7 +130,22 @@
                                                 item-text="fio"
                                                 label="Преподаватель"
                                         ></v-select>
-                                        <v-btn color="primary">Назначить</v-btn>
+                                        <v-btn color="primary" v-on:click="setWorkerDiscipline">Назначить</v-btn>
+                                        <v-alert
+                                                :value="isSetWorker === true"
+                                                type="success"
+                                                transition="scale-transition"
+                                                outline
+                                        >
+                                            Преподавтаель назначен.
+                                        </v-alert>
+                                        <v-alert
+                                                :value="isSetWorker === false"
+                                                type="warning"
+                                                outline
+                                        >
+                                            Назначить преподавателя не удалось.
+                                        </v-alert>
                                     </div>
 
                                 </div>
@@ -156,7 +172,22 @@
                                                 item-text="fio"
                                                 label="Преподаватель"
                                         ></v-select>
-                                        <v-btn color="primary">Назначить</v-btn>
+                                        <v-btn color="primary" v-on:click="setWorkerGroup">Назначить</v-btn>
+                                        <v-alert
+                                                :value="isSetWorker === true"
+                                                type="success"
+                                                transition="scale-transition"
+                                                outline
+                                        >
+                                            Преподавтаель назначен.
+                                        </v-alert>
+                                        <v-alert
+                                                :value="isSetWorker === false"
+                                                type="warning"
+                                                outline
+                                        >
+                                            Назначить преподавателя не удалось.
+                                        </v-alert>
                                     </div>
                                 </div>
                             </v-card-title>
@@ -167,12 +198,12 @@
                             <v-card-title primary-title>
                                 <div>
                                     <h3 class="headline mb-0">{{$store.state.currentLoadElement.name}}</h3>
-                                    <div><b>Часов всего:</b> {{$store.state.currentLoadElement.all_hours}}</div>
+                                    <div><b>Часов всего:</b> {{$store.state.currentLoadElement.hours_planed}}</div>
                                     <div v-bind:class="isDistributed($store.state.currentLoadElement.dis_hours, $store.state.currentLoadElement.all_hours)">
                                         <b>Часов распределено:</b> {{$store.state.currentLoadElement.dis_hours}}
                                     </div>
-                                    <div v-if="$store.state.currentLoadElement.subgroup">
-                                        <b>Подгруппа:</b> {{$store.state.currentLoadElement.subgroup}}
+                                    <div v-if="$store.state.currentLoadElement.sub_group">
+                                        <b>Подгруппа:</b> {{$store.state.currentLoadElement.sub_group}}
                                     </div>
 
                                     <v-divider/>
@@ -185,7 +216,22 @@
                                                 item-text="fio"
                                                 label="Преподаватель"
                                         ></v-select>
-                                        <v-btn color="primary">Назначить</v-btn>
+                                        <v-btn color="primary" v-on:click="setWorkerLoadElement">Назначить</v-btn>
+                                        <v-alert
+                                                :value="isSetWorker === true"
+                                                type="success"
+                                                transition="scale-transition"
+                                                outline
+                                        >
+                                            Преподавтаель назначен.
+                                        </v-alert>
+                                        <v-alert
+                                                :value="isSetWorker === false"
+                                                type="warning"
+                                                outline
+                                        >
+                                            Назначить преподавателя не удалось.
+                                        </v-alert>
                                     </div>
                                 </div>
                             </v-card-title>
@@ -194,18 +240,20 @@
 
                             <div class="settings__form">
 
-                                <v-combobox
+                                <v-select
                                         v-model="selectedThreadModel"
                                         :items="$store.state.threads"
+                                        item-value="id"
+                                        item-text="name"
                                         label="Поток"
-                                >
-                                </v-combobox>
-                                <v-combobox
+                                ></v-select>
+                                <v-select
                                         v-model="selectedAuditoryModel"
                                         :items="$store.state.auditorys"
+                                        item-value="id"
+                                        item-text="name"
                                         label="Аудитория"
-                                >
-                                </v-combobox>
+                                ></v-select>
                                 <v-checkbox
                                         label="Нужна интерактивная доска"
                                         v-model="selectedNeedIntBoardModel"
@@ -243,7 +291,23 @@
                                         v-model="selectedCommentModel"
                                 ></v-textarea>
 
-                                <v-btn color="success">Сохранить изменения</v-btn>
+                                <v-alert
+                                        :value="isSaveChange === true"
+                                        type="success"
+                                        transition="scale-transition"
+                                        outline
+                                >
+                                    Изменения сохранены.
+                                </v-alert>
+                                <v-alert
+                                        :value="isSaveChange === false"
+                                        type="warning"
+                                        outline
+                                >
+                                    Сохранить изменения не удалось.
+                                </v-alert>
+
+                                <v-btn color="success" v-on:click="saveChange">Сохранить изменения</v-btn>
 
                             </div>
 
@@ -257,10 +321,9 @@
                                 v-show="isGroupSetings || isDisciplineSetings"
                         >
                             <template slot="items" slot-scope="props">
-                                <td>{{ props.item.name }}</td>
-                                <td>{{ props.item.position }}</td>
-                                <td class="text-xs-right">{{ props.item.hours }}</td>
-                                <td class="text-xs-right">{{ props.item.part }}</td>
+                                <td>{{ props.item.fio }}</td>
+                                <td class="text-xs-right">{{ props.item.group }}</td>
+                                <td class="text-xs-right">{{ props.item.type_class }}</td>
                             </template>
                             <template slot="no-data">
                                     Нет назначенных преподавателей
@@ -294,9 +357,29 @@
             isDisciplineSetings: false,
             isGroupSetings: false,
             isLoadElementSetings: false,
+            isSaveChange: null,
+            isSetWorker: null,
 
         }),
         computed:{
+            selectedThreadModel: {
+                get() {
+                    return this.$store.state.selectedThread;
+                },
+
+                set(value) {
+                    this.$store.commit('setData', {path: 'selectedThread', value});
+                }
+            },
+            selectedAuditoryModel: {
+                get() {
+                    return this.$store.state.selectedAuditory;
+                },
+
+                set(value) {
+                    this.$store.commit('setData', {path: 'selectedAuditory', value});
+                }
+            },
             selectedCommentModel: {
                 get() {
                     return this.$store.state.currentLoadElement.comment;
@@ -447,7 +530,10 @@
                     page: 1
                 });
 
-                this.selectedWorkerModel = {};
+                this.selectedWorkerModel = null;
+                this.isSetWorker = null;
+
+                this.$store.dispatch('updateHiDisciplineGroup');
 
             },
             selectGroup(item){
@@ -465,9 +551,12 @@
                     page: 2
                 });
 
-                this.selectedWorkerModel = {};
+                this.selectedWorkerModel = null;
+                this.isSetWorker = null;
+
+                this.$store.dispatch('updateHiDisciplineLoadElements');
             },
-            selectJob(item){
+            selectLoadElement(item){
                 this.currentLoadElementModel = item;
 
                 this.isNotSetings = false;
@@ -487,43 +576,72 @@
                     this.pages[this.pages.length - 1].text = item.name;
                 }
 
-                this.selectedWorkerModel = {};
+                this.selectedWorkerModel = null;
+                this.selectedThreadModel = null;
+                this.selectedAuditoryModel = null;
+                this.isSaveChange = null;
+                this.isSetWorker = null;
+
+                this.$store.dispatch('updateHiDisciplineLoadElement');
             },
 
             clickNavMenu(page){
                 for (let i = this.pages.length - 1; i > page; i--){
                     this.pages.pop();
                 }
+                this.pages[page].disabled = true;
                 switch (page) {
                     case 0:
                         this.isNotSetings = true;
                         this.isDisciplineSetings = false;
                         this.isGroupSetings = false;
                         this.isLoadElementSetings = false;
+                        this.$store.dispatch('updateHiDisciplineDiscipline');
                         break;
                     case 1:
                         this.isNotSetings = false;
                         this.isDisciplineSetings = true;
                         this.isGroupSetings = false;
                         this.isLoadElementSetings = false;
+                        this.$store.dispatch('updateHiDisciplineGroup');
                         break;
                     case 2:
                         this.isNotSetings = false;
                         this.isDisciplineSetings = false;
                         this.isGroupSetings = true;
                         this.isLoadElementSetings = false;
+                        this.$store.dispatch('updateHiDisciplineLoadElements');
                         break;
                 }
 
-                this.selectedWorkerModel = {};
+                this.selectedThreadModel = null;
+                this.selectedAuditoryModel = null;
+                this.isSaveChange = null;
+                this.isSetWorker = null;
             },
             init(){
-                this.updateTable();
+                this.updateHiDiscipline();
+            },
+            updateHiDiscipline(){
+                this.$store.dispatch('updateHiDiscipline');
+            },
+
+            async saveChange(){
+                 this.isSaveChange = await this.$store.dispatch('saveChangeLoadElement');
+            },
+            async setWorkerLoadElement(){
+                this.isSetWorker = await this.$store.dispatch('setWorkerLoadElementHiDiscipline');
+            },
+            async setWorkerGroup(){
+                this.isSetWorker = await this.$store.dispatch('setWorkerGroupHiDiscipline');
+            },
+            async setWorkerDiscipline(){
+                this.isSetWorker = await this.$store.dispatch('setWorkerDisciplineHiDiscipline');
             },
         },
 
         beforeMount() {
-            //this.init();
+            this.init();
         }
 
     }

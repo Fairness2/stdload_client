@@ -31,4 +31,16 @@ Route::post('/allotments/load_allotment', 'AllotmentController@parseFile')->name
 
 Route::get('/workers/get_workers', 'WorkersController@getWorkers')->name('get_workers')->middleware('auth');
 
-Route::get('/hi_discipline/get_discipline', 'HiDisciplineController@getDiscipline')->name('get_allotment')->middleware('auth');
+Route::get('/hi_discipline/get_disciplines', 'HiDisciplineController@getDisciplines')->middleware('auth');
+Route::get('/hi_discipline/get_groups', 'HiDisciplineController@getGroups')->middleware('auth');
+Route::get('/hi_discipline/get_load_elements', 'HiDisciplineController@getLoadElements')->middleware('auth');
+Route::get('/hi_discipline/get_load_element', 'HiDisciplineController@getLoadElement')->middleware('auth');
+Route::post('/hi_discipline/set_worker_group', 'HiDisciplineController@setWorkerGroup')->middleware('auth');
+Route::post('/hi_discipline/set_worker_discipline', 'HiDisciplineController@setWorkerDiscipline')->middleware('auth');
+
+Route::get('/flows/get_flows', 'FlowsController@getFlows')->name('get_flows')->middleware('auth');
+
+Route::get('/classrooms/get_classrooms', 'ClassroomsController@getClassrooms')->name('get_classrooms')->middleware('auth');
+
+Route::post('/load_elements/set_load_element', 'LoadElementController@setLoadElement')->name('set_load_element')->middleware('auth');
+Route::post('/load_elements/set_worker', 'LoadElementController@setWorker')->name('set_worker')->middleware('auth');
