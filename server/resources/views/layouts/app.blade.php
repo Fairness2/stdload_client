@@ -47,8 +47,8 @@
                                 </li>
 
                                 <li class="stl-user__item">
-                                    <a href="" class="stl-user__link">
-                                        <div class="stl-user__link-text">Справочники</div>
+                                    <a href="{{ route('admin') }}" class="stl-user__link">
+                                        <div class="stl-user__link-text">Администрирование</div>
                                     </a>
                                 </li>
 

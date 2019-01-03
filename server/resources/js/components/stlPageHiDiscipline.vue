@@ -114,10 +114,10 @@
                         <div v-show="isDisciplineSetings">
                             <v-card-title primary-title>
                                 <div>
-                                    <h3 class="headline mb-0">{{$store.state.currentDicipline.name}}</h3>
-                                    <div><b>Часов всего:</b> {{$store.state.currentDicipline.all_hours}}</div>
-                                    <div v-bind:class="isDistributed($store.state.currentDicipline.dis_hours, $store.state.currentDicipline.all_hours)">
-                                        <b>Часов распределено:</b> {{$store.state.currentDicipline.dis_hours}}
+                                    <h3 class="headline mb-0">{{$store.state.currentDiscipline.name}}</h3>
+                                    <div><b>Часов всего:</b> {{$store.state.currentDiscipline.all_hours}}</div>
+                                    <div v-bind:class="isDistributed($store.state.currentDiscipline.dis_hours, $store.state.currentDiscipline.all_hours)">
+                                        <b>Часов распределено:</b> {{$store.state.currentDiscipline.dis_hours}}
                                     </div>
 
                                     <v-divider/>
@@ -461,13 +461,13 @@
                 }
             },
 
-            currentDiciplineModel: {
+            currentDisciplineModel: {
                 get() {
-                    return this.$store.state.currentDicipline;
+                    return this.$store.state.currentDiscipline;
                 },
 
                 set(value) {
-                    this.$store.commit('setData', {path: 'currentDicipline', value});
+                    this.$store.commit('setData', {path: 'currentDiscipline', value});
                 }
             },
 
@@ -516,7 +516,7 @@
                 return '';
             },
             selectDiscipline(item){
-                this.currentDiciplineModel = item;
+                this.currentDisciplineModel = item;
 
                 this.isNotSetings = false;
                 this.isDisciplineSetings = true;

@@ -43,7 +43,7 @@ class Helpers
         if($ip = self::getClientIP()){
             $params['ip'] = $ip;
         }
-        DB::table('logs.log_route')->insert($params);
+        //DB::table('logs.log_route')->insert($params);
     }
 
     /**
@@ -72,8 +72,8 @@ class Helpers
     }
 
     public static function loggingDB($query){
-        $res = DB::table('logs.log_query')
-            ->insert(['query' => $query->sql, 'bindings' => json_encode($query->bindings)]);
+        /*$res = DB::table('logs.log_query')
+            ->insert(['query' => $query->sql, 'bindings' => json_encode($query->bindings)]);*/
     }
 
 
