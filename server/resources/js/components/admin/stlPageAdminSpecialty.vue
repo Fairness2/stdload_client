@@ -184,7 +184,7 @@
             },
             specialtyFacultyModel: {
                 get() {
-                    let faculty = this.$store.state.faculties.find(c => c.id == this.$store.state.currentSpecialty.faculty_id) || {};
+                    let faculty = this.$store.state.faculties.find(c => c.id == this.$store.state.currentSpecialty.faculty_id) || null;
                     return faculty;
                 },
 
@@ -195,7 +195,7 @@
             },
             specialtyQualificationModel: {
                 get() {
-                    let qualification = this.$store.state.qualifications.find(c => c.id == this.$store.state.currentSpecialty.qualification_id) || {};
+                    let qualification = this.$store.state.qualifications.find(c => c.id == this.$store.state.currentSpecialty.qualification_id) || null;
                     return qualification;
                 },
 

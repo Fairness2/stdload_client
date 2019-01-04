@@ -2,21 +2,21 @@
     <v-layout row justify-space-around fill-height>
 
         <v-flex xs12 sm6>
-            <v-card class="stl-classroom">
+            <v-card class="stl-flow">
                 <v-toolbar class="header white--text">
-                    <div class="subheading">Аудитории</div>
+                    <div class="subheading">Потоки</div>
                 </v-toolbar>
 
-                <v-list two-line class="stl-classroom__list">
-                    <template v-for="(item, index) in $store.state.classrooms">
+                <v-list two-line class="stl-flow__list">
+                    <template v-for="(item, index) in $store.state.flows">
                         <v-list-tile
                                 :key="item.id"
-                                @click="currentClassroomModel = item"
+                                @click="currentFlowModel = item"
                                 ripple
                         >
                             <v-list-tile-content>
                                 <v-list-tile-title>{{item.name}}</v-list-tile-title>
-                                <v-list-tile-sub-title class="text--primary">Корпус: {{ getBuildingName(item.building_id) }}</v-list-tile-sub-title>
+                                <v-list-tile-sub-title class="text--primary">Распределение: {{ getAllotmentName(item.allotment_id) }}</v-list-tile-sub-title>
                             </v-list-tile-content>
 
                         </v-list-tile>
@@ -32,10 +32,10 @@
                 <v-flex xs12>
                     <v-card class="">
                         <v-toolbar class="header white--text">
-                            <div class="subheading">Параметры аудитории</div>
+                            <div class="subheading">Параметры потока</div>
                         </v-toolbar>
 
-                        <v-card-text v-if="Object.keys($store.state.currentClassroom).length !== 0">
+                        <v-card-text v-if="Object.keys($store.state.currentFlow).length !== 0">
                             <v-layout row wrap>
                                 <v-flex xs12>
 
@@ -44,40 +44,40 @@
                                 <v-flex xs12>
                                     <v-form>
                                         <v-text-field
-                                                v-model="classroomNameModel"
+                                                v-model="flowNameModel"
                                                 label="Название"
                                                 required
                                         ></v-text-field>
                                         <v-combobox
-                                                v-model="classroomBuildingModel"
-                                                :items="$store.state.buildings"
+                                                v-model="flowAllotmentModel"
+                                                :items="$store.state.allotments"
                                                 item-value="id"
-                                                item-text="full_name"
-                                                label="Корпус"
+                                                item-text="name"
+                                                label="Распределение"
                                                 chips
                                         ></v-combobox>
                                         <v-btn
                                                 class="primary"
-                                                v-on:click="updateClassroom"
+                                                v-on:click="updateFlow"
                                         >
                                             Изменить
                                         </v-btn>
-                                        <v-btn class="error" @click="deleteClassroom">Удалить</v-btn>
+                                        <v-btn class="error" @click="deleteFlow">Удалить</v-btn>
                                     </v-form>
                                     <v-divider></v-divider>
                                 </v-flex>
                             </v-layout>
                         </v-card-text>
                         <v-card-text v-else>
-                            Выберите аудиторию...
+                            Выберите поток...
                         </v-card-text>
                     </v-card>
                 </v-flex>
 
                 <v-flex xs12>
-                    <v-card class="new_classroom">
+                    <v-card class="new_flow">
                         <v-toolbar class="header white--text">
-                            <div class="subheading">Новая аудитория</div>
+                            <div class="subheading">Новый поток</div>
                         </v-toolbar>
 
                         <v-card-text>
@@ -89,16 +89,16 @@
                                 ></v-text-field>
 
                                 <v-combobox
-                                        v-model="building"
-                                        :items="$store.state.buildings"
+                                        v-model="allotment"
+                                        :items="$store.state.allotments"
                                         item-value="id"
-                                        item-text="full_name"
-                                        label="Корпус"
+                                        item-text="name"
+                                        label="Распределение"
                                         chips
                                 ></v-combobox>
                                 <v-btn
                                         class="success"
-                                        v-on:click="createClassroom"
+                                        v-on:click="createFlow"
                                 >
                                     <v-icon left>add</v-icon>
                                     Создать
@@ -116,52 +116,52 @@
 <script>
 
     export default {
-        name: "stlPageAdminClassroom",
+        name: "stlPageAdminFlow",
         components: {},
         data() {
             return {
                 name: '',
-                building: '',
+                allotment: '',
             }
         },
         computed:{
-            currentClassroomModel: {
+            currentFlowModel: {
                 get() {
-                    return this.$store.state.currentClassroom;
+                    return this.$store.state.currentFlow;
                 },
 
                 set(value) {
-                    this.$store.commit('setData', {path: 'currentClassroom', value});
+                    this.$store.commit('setData', {path: 'currentFlow', value});
                 }
             },
-            classroomNameModel: {
+            flowNameModel: {
                 get() {
-                    return this.$store.state.currentClassroom.name;
+                    return this.$store.state.currentFlow.name;
                 },
 
                 set(value) {
-                    value = {...this.$store.state.currentClassroom, ...{name: value}};
-                    this.$store.commit('setData', {path: 'currentClassroom', value});
+                    value = {...this.$store.state.currentFlow, ...{name: value}};
+                    this.$store.commit('setData', {path: 'currentFlow', value});
                 }
             },
-            classroomBuildingModel: {
+            flowAllotmentModel: {
                 get() {
-                    let building = this.$store.state.buildings.find(c => c.id == this.$store.state.currentClassroom.building_id) || null;
-                    return building;
+                    let allotment = this.$store.state.allotments.find(c => c.id == this.$store.state.currentFlow.allotment_id) || null;
+                    return allotment;
                 },
 
                 set(value) {
-                    value = {...this.$store.state.currentClassroom, ...{building_id: value.id}};
-                    this.$store.commit('setData', {path: 'currentClassroom', value});
+                    value = {...this.$store.state.currentFlow, ...{allotment_id: value.id}};
+                    this.$store.commit('setData', {path: 'currentFlow', value});
                 }
             },
 
         },
         methods:{
 
-            getBuildingName(id){
-                let building = this.$store.state.buildings.find(c => c.id == id) || {};
-                return Object.keys(building).length !== 0 ? building.full_name : '';
+            getAllotmentName(id){
+                let allotment = this.$store.state.allotments.find(c => c.id == id) || {};
+                return Object.keys(allotment).length !== 0 ? allotment.name : '';
             },
 
             init(){
@@ -169,22 +169,22 @@
             },
 
             updateTable(){
-                this.$store.dispatch('updateClassroom');
+                this.$store.dispatch('updateFlow');
             },
 
-            updateClassroom(){
-                this.$store.dispatch('editClassroom');
+            updateFlow(){
+                this.$store.dispatch('editFlow');
             },
 
-            createClassroom(){
+            createFlow(){
                 let params = {
                     'name': this.name,
-                    'building_id': this.building.id,
+                    'allotment_id': this.allotment.id,
                 };
-                this.$store.dispatch('createClassroom', params);
+                this.$store.dispatch('createFlow', params);
             },
-            deleteClassroom(){
-                this.$store.dispatch('removeClassroom');
+            deleteFlow(){
+                this.$store.dispatch('removeFlow');
             },
 
         },

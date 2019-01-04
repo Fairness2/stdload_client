@@ -12,6 +12,11 @@ import StlPageAdminDiscipline from '../components/admin/stlPageAdminDiscipline';
 import StlPageAdminBuilding from '../components/admin/stlPageAdminBuilding';
 import StlPageAdminClassroom from '../components/admin/stlPageAdminClassroom';
 import StlPageAdminSpecialty from '../components/admin/stlPageAdminSpecialty';
+import StlPageAdminRequirementFgos from '../components/admin/stlPageAdminRequirementFgos';
+import StlPageAdminGroup from '../components/admin/stlPageAdminGroup';
+import StlPageAdminFlow from '../components/admin/stlPageAdminFlow';
+import StlPageAdminUser from '../components/admin/stlPageAdminUser';
+import StlPageAdminWorker from '../components/admin/stlPageAdminWorker';
 
 
 Vue.use(Router);
@@ -82,6 +87,31 @@ const routes = [
         name: 'admin_specialty',
         path: '/admin/specialty',
         component: StlPageAdminSpecialty,
+    },
+    {
+        name: 'admin_requirement_fgos',
+        path: '/admin/requirement_fgos',
+        component: StlPageAdminRequirementFgos,
+    },
+    {
+        name: 'admin_group',
+        path: '/admin/group',
+        component: StlPageAdminGroup,
+    },
+    {
+        name: 'admin_flow',
+        path: '/admin/flow',
+        component: StlPageAdminFlow,
+    },
+    {
+        name: 'admin_user',
+        path: '/admin/user',
+        component: StlPageAdminUser,
+    },
+    {
+        name: 'admin_worker',
+        path: '/admin/worker',
+        component: StlPageAdminWorker,
     },
 
 ];

@@ -47,7 +47,7 @@ Route::get('/classrooms/get_classrooms', 'ClassroomsController@getClassrooms')->
 Route::post('/load_elements/set_load_element', 'LoadElementController@setLoadElement')->name('set_load_element')->middleware('auth');
 Route::post('/load_elements/set_worker', 'LoadElementController@setWorker')->name('set_worker')->middleware('auth');
 
-Route::get('/admin/users', 'PageController@index')->middleware('auth');
+Route::get('/admin/user', 'PageController@index')->middleware('auth');
 Route::get('/admin/building', 'PageController@index')->middleware('auth');
 Route::get('/admin/classroom', 'PageController@index')->middleware('auth');
 Route::get('/admin/worker', 'PageController@index')->middleware('auth');
@@ -61,6 +61,11 @@ Route::get('/admin/requirement_fgos', 'PageController@index')->middleware('auth'
 Route::get('/admin/roles', 'PageController@index')->middleware('auth');
 Route::get('/admin/specialty', 'PageController@index')->middleware('auth');
 Route::get('/admin/type_class', 'PageController@index')->middleware('auth');
+Route::get('/admin/degrees_worker', 'PageController@index')->middleware('auth');
+Route::get('/admin/position_worker', 'PageController@index')->middleware('auth');
+Route::get('/admin/rate_worker', 'PageController@index')->middleware('auth');
+Route::get('/admin/staff_worker', 'PageController@index')->middleware('auth');
+Route::get('/admin/trained_worker', 'PageController@index')->middleware('auth');
 
 Route::get('/admin/roles/get', 'AdminController@getRoles')->middleware('auth');
 Route::post('/admin/roles/create', 'AdminController@createRole')->middleware('auth');
@@ -106,3 +111,41 @@ Route::get('/admin/specialty/get', 'AdminController@getSpecialty')->middleware('
 Route::post('/admin/specialty/create', 'AdminController@createSpecialty')->middleware('auth');
 Route::post('/admin/specialty/edit', 'AdminController@editSpecialty')->middleware('auth');
 Route::post('/admin/specialty/remove', 'AdminController@removeSpecialty')->middleware('auth');
+
+Route::get('/admin/requirement_fgos/get', 'AdminController@getRequirementFgos')->middleware('auth');
+Route::post('/admin/requirement_fgos/create', 'AdminController@createRequirementFgos')->middleware('auth');
+Route::post('/admin/requirement_fgos/edit', 'AdminController@editRequirementFgos')->middleware('auth');
+Route::post('/admin/requirement_fgos/remove', 'AdminController@removeRequirementFgos')->middleware('auth');
+
+Route::get('/admin/group/get', 'AdminController@getGroup')->middleware('auth');
+Route::post('/admin/group/create', 'AdminController@createGroup')->middleware('auth');
+Route::post('/admin/group/edit', 'AdminController@editGroup')->middleware('auth');
+Route::post('/admin/group/remove', 'AdminController@removeGroup')->middleware('auth');
+
+Route::get('/admin/flow/get', 'AdminController@getFlow')->middleware('auth');
+Route::post('/admin/flow/create', 'AdminController@createFlow')->middleware('auth');
+Route::post('/admin/flow/edit', 'AdminController@editFlow')->middleware('auth');
+Route::post('/admin/flow/remove', 'AdminController@removeFlow')->middleware('auth');
+
+Route::get('/admin/user/get', 'AdminController@getUser')->middleware('auth');
+Route::post('/admin/user/edit', 'AdminController@editUser')->middleware('auth');
+
+Route::get('/admin/worker/get', 'AdminController@getWorker')->middleware('auth');
+Route::post('/admin/worker/create', 'AdminController@createWorker')->middleware('auth');
+Route::post('/admin/worker/edit', 'AdminController@editWorker')->middleware('auth');
+Route::post('/admin/worker/remove', 'AdminController@removeWorker')->middleware('auth');
+
+Route::get('/admin/degrees_worker/get', 'AdminController@getDegreesWorker')->middleware('auth');
+Route::post('/admin/degrees_worker/edit', 'AdminController@editDegreesWorker')->middleware('auth');
+
+Route::get('/admin/position_worker/get', 'AdminController@getPositionWorker')->middleware('auth');
+Route::post('/admin/position_worker/edit', 'AdminController@editPositionWorker')->middleware('auth');
+
+Route::get('/admin/rate_worker/get', 'AdminController@getRateWorker')->middleware('auth');
+Route::post('/admin/rate_worker/edit', 'AdminController@editRateWorker')->middleware('auth');
+
+Route::get('/admin/staff_worker/get', 'AdminController@getStaffWorker')->middleware('auth');
+Route::post('/admin/staff_worker/edit', 'AdminController@editStaffWorker')->middleware('auth');
+
+Route::get('/admin/trained_worker/get', 'AdminController@getTrainedWorker')->middleware('auth');
+Route::post('/admin/trained_worker/edit', 'AdminController@editTrainedWorker')->middleware('auth');

@@ -80,6 +80,15 @@ const store = new Vuex.Store({
 
       specialties: [],
       currentSpecialty: {},
+
+      requirementFgos: [],
+      currentRequirementFgos: {},
+
+      flows: [],
+      currentFlow: {},
+
+      users: [],
+      currentUser: {},
   },
 
   getters: {
@@ -753,6 +762,289 @@ const store = new Vuex.Store({
 
           commit('setData', {path: 'specialties', value: list});
           commit('setData', {path: 'currentSpecialty', value: {}});
+      },
+
+      async updateRequirementFgos({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchSpecialty');
+          await dispatch('fetchRequirementFgos');
+          commit('setLoader', false);
+      },
+      async createRequirementFgos({commit, dispatch}, params){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/requirement_fgos/create', params);
+          if (response.data.status)
+              await dispatch('fetchRequirementFgos');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async editRequirementFgos({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/requirement_fgos/edit', this.state.currentRequirementFgos);
+          if (response.data.status)
+              await dispatch('fetchRequirementFgos');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async removeRequirementFgos({commit, dispatch}){
+          commit('setLoader', true);
+          let params = {'id': this.state.currentRequirementFgos.id};
+          const response = await Vue.axiosClient.client.post('/admin/requirement_fgos/remove', params);
+          if (response.data.status)
+              await dispatch('fetchRequirementFgos');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchRequirementFgos({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/requirement_fgos/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'requirementFgos', value: list});
+          commit('setData', {path: 'currentRequirementFgos', value: {}});
+      },
+
+      async updateGroup({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchSpecialty');
+          await dispatch('fetchGroup');
+          commit('setLoader', false);
+      },
+      async createGroup({commit, dispatch}, params){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/group/create', params);
+          if (response.data.status)
+              await dispatch('fetchGroup');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async editGroup({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/group/edit', this.state.currentGroup);
+          if (response.data.status)
+              await dispatch('fetchGroup');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async removeGroup({commit, dispatch}){
+          commit('setLoader', true);
+          let params = {'id': this.state.currentGroup.id};
+          const response = await Vue.axiosClient.client.post('/admin/group/remove', params);
+          if (response.data.status)
+              await dispatch('fetchGroup');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchGroup({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/group/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'groups', value: list});
+          commit('setData', {path: 'currentGroup', value: {}});
+      },
+
+      async updateFlow({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchAllotments');
+          await dispatch('fetchFlow');
+          commit('setLoader', false);
+      },
+      async createFlow({commit, dispatch}, params){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/flow/create', params);
+          if (response.data.status)
+              await dispatch('fetchFlow');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async editFlow({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/flow/edit', this.state.currentFlow);
+          if (response.data.status)
+              await dispatch('fetchFlow');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async removeFlow({commit, dispatch}){
+          commit('setLoader', true);
+          let params = {'id': this.state.currentFlow.id};
+          const response = await Vue.axiosClient.client.post('/admin/flow/remove', params);
+          if (response.data.status)
+              await dispatch('fetchFlow');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchFlow({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/flow/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'flows', value: list});
+          commit('setData', {path: 'currentFlow', value: {}});
+      },
+
+      async updateUser({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchRoles');
+          await dispatch('fetchAdminWorkers');
+          await dispatch('fetchUser');
+          commit('setLoader', false);
+      },
+      async editUser({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/user/edit', this.state.currentUser);
+          if (response.data.status)
+              await dispatch('fetchUser');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchUser({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/user/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'users', value: list});
+          commit('setData', {path: 'currentUser', value: {}});
+      },
+
+      async updateWorker({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchAdminWorkers');
+          commit('setLoader', false);
+      },
+      async createWorker({commit, dispatch}, params){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/worker/create', params);
+          if (response.data.status)
+              await dispatch('fetchAdminWorkers');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async editWorker({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/worker/edit', this.state.currentWorker);
+          if (response.data.status)
+              await dispatch('fetchAdminWorkers');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async removeWorker({commit, dispatch}){
+          commit('setLoader', true);
+          let params = {'id': this.state.currentWorker.id};
+          const response = await Vue.axiosClient.client.post('/admin/worker/remove', params);
+          if (response.data.status)
+              await dispatch('fetchAdminWorkers');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchAdminWorkers({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/worker/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: {}});
+      },
+
+      async updateDegreesWorker({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchDegreesWorker');
+          commit('setLoader', false);
+      },
+      async editDegreesWorker({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/degrees_worker/edit', this.state.currentWorker);
+          if (response.data.status)
+              await dispatch('fetchDegreesWorker');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchDegreesWorker({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/degrees_worker/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: {}});
+      },
+
+      async updatePositionWorker({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchPositionWorker');
+          commit('setLoader', false);
+      },
+      async editPositionWorker({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/position_worker/edit', this.state.currentWorker);
+          if (response.data.status)
+              await dispatch('fetchPositionWorker');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchPositionWorker({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/position_worker/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: {}});
+      },
+
+      async updateRateWorker({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchRateWorker');
+          commit('setLoader', false);
+      },
+      async editRateWorker({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/rate_worker/edit', this.state.currentWorker);
+          if (response.data.status)
+              await dispatch('fetchRateWorker');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchRateWorker({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/rate_worker/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: {}});
+      },
+
+      async updateStaffWorker({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchStaffWorker');
+          commit('setLoader', false);
+      },
+      async editStaffWorker({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/staff_worker/edit', this.state.currentWorker);
+          if (response.data.status)
+              await dispatch('fetchStaffWorker');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchStaffWorker({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/staff_worker/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: {}});
+      },
+
+      async updateTrainedWorker({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchTrainedWorker');
+          commit('setLoader', false);
+      },
+      async editTrainedWorker({commit, dispatch}){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.post('/admin/trained_worker/edit', this.state.currentWorker);
+          if (response.data.status)
+              await dispatch('fetchTrainedWorker');
+          commit('setLoader', false);
+          return response.data.status;
+      },
+      async fetchTrainedWorker({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/admin/trained_worker/get'),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: {}});
       },
   }
 

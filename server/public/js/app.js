@@ -13089,6 +13089,21 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__components_admin_stlPageAdminClassroom___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_12__components_admin_stlPageAdminClassroom__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty__ = __webpack_require__(137);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos__ = __webpack_require__(142);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup__ = __webpack_require__(147);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow__ = __webpack_require__(152);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser__ = __webpack_require__(157);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__ = __webpack_require__(165);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__);
+
+
+
+
+
 
 
 
@@ -13159,6 +13174,26 @@ var routes = [{
     name: 'admin_specialty',
     path: '/admin/specialty',
     component: __WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty___default.a
+}, {
+    name: 'admin_requirement_fgos',
+    path: '/admin/requirement_fgos',
+    component: __WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos___default.a
+}, {
+    name: 'admin_group',
+    path: '/admin/group',
+    component: __WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup___default.a
+}, {
+    name: 'admin_flow',
+    path: '/admin/flow',
+    component: __WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow___default.a
+}, {
+    name: 'admin_user',
+    path: '/admin/user',
+    component: __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser___default.a
+}, {
+    name: 'admin_worker',
+    path: '/admin/worker',
+    component: __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker___default.a
 }];
 
 /* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_1_vue_router__["a" /* default */]({
@@ -19276,7 +19311,16 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
         currentClassroom: {},
 
         specialties: [],
-        currentSpecialty: {}
+        currentSpecialty: {},
+
+        requirementFgos: [],
+        currentRequirementFgos: {},
+
+        flows: [],
+        currentFlow: {},
+
+        users: [],
+        currentUser: {}
     },
 
     getters: {
@@ -22036,6 +22080,1416 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             }
 
             return fetchSpecialty;
+        }(),
+        updateRequirementFgos: function () {
+            var _ref145 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee72(_ref144) {
+                var commit = _ref144.commit,
+                    dispatch = _ref144.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee72$(_context72) {
+                    while (1) {
+                        switch (_context72.prev = _context72.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context72.next = 3;
+                                return dispatch('fetchSpecialty');
+
+                            case 3:
+                                _context72.next = 5;
+                                return dispatch('fetchRequirementFgos');
+
+                            case 5:
+                                commit('setLoader', false);
+
+                            case 6:
+                            case 'end':
+                                return _context72.stop();
+                        }
+                    }
+                }, _callee72, this);
+            }));
+
+            function updateRequirementFgos(_x83) {
+                return _ref145.apply(this, arguments);
+            }
+
+            return updateRequirementFgos;
+        }(),
+        createRequirementFgos: function () {
+            var _ref147 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee73(_ref146, params) {
+                var commit = _ref146.commit,
+                    dispatch = _ref146.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee73$(_context73) {
+                    while (1) {
+                        switch (_context73.prev = _context73.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context73.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/requirement_fgos/create', params);
+
+                            case 3:
+                                response = _context73.sent;
+
+                                if (!response.data.status) {
+                                    _context73.next = 7;
+                                    break;
+                                }
+
+                                _context73.next = 7;
+                                return dispatch('fetchRequirementFgos');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context73.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context73.stop();
+                        }
+                    }
+                }, _callee73, this);
+            }));
+
+            function createRequirementFgos(_x84, _x85) {
+                return _ref147.apply(this, arguments);
+            }
+
+            return createRequirementFgos;
+        }(),
+        editRequirementFgos: function () {
+            var _ref149 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee74(_ref148) {
+                var commit = _ref148.commit,
+                    dispatch = _ref148.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee74$(_context74) {
+                    while (1) {
+                        switch (_context74.prev = _context74.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context74.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/requirement_fgos/edit', this.state.currentRequirementFgos);
+
+                            case 3:
+                                response = _context74.sent;
+
+                                if (!response.data.status) {
+                                    _context74.next = 7;
+                                    break;
+                                }
+
+                                _context74.next = 7;
+                                return dispatch('fetchRequirementFgos');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context74.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context74.stop();
+                        }
+                    }
+                }, _callee74, this);
+            }));
+
+            function editRequirementFgos(_x86) {
+                return _ref149.apply(this, arguments);
+            }
+
+            return editRequirementFgos;
+        }(),
+        removeRequirementFgos: function () {
+            var _ref151 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee75(_ref150) {
+                var commit = _ref150.commit,
+                    dispatch = _ref150.dispatch;
+                var params, response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee75$(_context75) {
+                    while (1) {
+                        switch (_context75.prev = _context75.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = { 'id': this.state.currentRequirementFgos.id };
+                                _context75.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/requirement_fgos/remove', params);
+
+                            case 4:
+                                response = _context75.sent;
+
+                                if (!response.data.status) {
+                                    _context75.next = 8;
+                                    break;
+                                }
+
+                                _context75.next = 8;
+                                return dispatch('fetchRequirementFgos');
+
+                            case 8:
+                                commit('setLoader', false);
+                                return _context75.abrupt('return', response.data.status);
+
+                            case 10:
+                            case 'end':
+                                return _context75.stop();
+                        }
+                    }
+                }, _callee75, this);
+            }));
+
+            function removeRequirementFgos(_x87) {
+                return _ref151.apply(this, arguments);
+            }
+
+            return removeRequirementFgos;
+        }(),
+        fetchRequirementFgos: function () {
+            var _ref153 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee76(_ref152) {
+                var commit = _ref152.commit,
+                    dispatch = _ref152.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee76$(_context76) {
+                    while (1) {
+                        switch (_context76.prev = _context76.next) {
+                            case 0:
+                                _context76.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/requirement_fgos/get');
+
+                            case 2:
+                                response = _context76.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'requirementFgos', value: list });
+                                commit('setData', { path: 'currentRequirementFgos', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context76.stop();
+                        }
+                    }
+                }, _callee76, this);
+            }));
+
+            function fetchRequirementFgos(_x88) {
+                return _ref153.apply(this, arguments);
+            }
+
+            return fetchRequirementFgos;
+        }(),
+        updateGroup: function () {
+            var _ref155 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee77(_ref154) {
+                var commit = _ref154.commit,
+                    dispatch = _ref154.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee77$(_context77) {
+                    while (1) {
+                        switch (_context77.prev = _context77.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context77.next = 3;
+                                return dispatch('fetchSpecialty');
+
+                            case 3:
+                                _context77.next = 5;
+                                return dispatch('fetchGroup');
+
+                            case 5:
+                                commit('setLoader', false);
+
+                            case 6:
+                            case 'end':
+                                return _context77.stop();
+                        }
+                    }
+                }, _callee77, this);
+            }));
+
+            function updateGroup(_x89) {
+                return _ref155.apply(this, arguments);
+            }
+
+            return updateGroup;
+        }(),
+        createGroup: function () {
+            var _ref157 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee78(_ref156, params) {
+                var commit = _ref156.commit,
+                    dispatch = _ref156.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee78$(_context78) {
+                    while (1) {
+                        switch (_context78.prev = _context78.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context78.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/group/create', params);
+
+                            case 3:
+                                response = _context78.sent;
+
+                                if (!response.data.status) {
+                                    _context78.next = 7;
+                                    break;
+                                }
+
+                                _context78.next = 7;
+                                return dispatch('fetchGroup');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context78.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context78.stop();
+                        }
+                    }
+                }, _callee78, this);
+            }));
+
+            function createGroup(_x90, _x91) {
+                return _ref157.apply(this, arguments);
+            }
+
+            return createGroup;
+        }(),
+        editGroup: function () {
+            var _ref159 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee79(_ref158) {
+                var commit = _ref158.commit,
+                    dispatch = _ref158.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee79$(_context79) {
+                    while (1) {
+                        switch (_context79.prev = _context79.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context79.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/group/edit', this.state.currentGroup);
+
+                            case 3:
+                                response = _context79.sent;
+
+                                if (!response.data.status) {
+                                    _context79.next = 7;
+                                    break;
+                                }
+
+                                _context79.next = 7;
+                                return dispatch('fetchGroup');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context79.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context79.stop();
+                        }
+                    }
+                }, _callee79, this);
+            }));
+
+            function editGroup(_x92) {
+                return _ref159.apply(this, arguments);
+            }
+
+            return editGroup;
+        }(),
+        removeGroup: function () {
+            var _ref161 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee80(_ref160) {
+                var commit = _ref160.commit,
+                    dispatch = _ref160.dispatch;
+                var params, response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee80$(_context80) {
+                    while (1) {
+                        switch (_context80.prev = _context80.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = { 'id': this.state.currentGroup.id };
+                                _context80.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/group/remove', params);
+
+                            case 4:
+                                response = _context80.sent;
+
+                                if (!response.data.status) {
+                                    _context80.next = 8;
+                                    break;
+                                }
+
+                                _context80.next = 8;
+                                return dispatch('fetchGroup');
+
+                            case 8:
+                                commit('setLoader', false);
+                                return _context80.abrupt('return', response.data.status);
+
+                            case 10:
+                            case 'end':
+                                return _context80.stop();
+                        }
+                    }
+                }, _callee80, this);
+            }));
+
+            function removeGroup(_x93) {
+                return _ref161.apply(this, arguments);
+            }
+
+            return removeGroup;
+        }(),
+        fetchGroup: function () {
+            var _ref163 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee81(_ref162) {
+                var commit = _ref162.commit,
+                    dispatch = _ref162.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee81$(_context81) {
+                    while (1) {
+                        switch (_context81.prev = _context81.next) {
+                            case 0:
+                                _context81.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/group/get');
+
+                            case 2:
+                                response = _context81.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'groups', value: list });
+                                commit('setData', { path: 'currentGroup', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context81.stop();
+                        }
+                    }
+                }, _callee81, this);
+            }));
+
+            function fetchGroup(_x94) {
+                return _ref163.apply(this, arguments);
+            }
+
+            return fetchGroup;
+        }(),
+        updateFlow: function () {
+            var _ref165 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee82(_ref164) {
+                var commit = _ref164.commit,
+                    dispatch = _ref164.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee82$(_context82) {
+                    while (1) {
+                        switch (_context82.prev = _context82.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context82.next = 3;
+                                return dispatch('fetchAllotments');
+
+                            case 3:
+                                _context82.next = 5;
+                                return dispatch('fetchFlow');
+
+                            case 5:
+                                commit('setLoader', false);
+
+                            case 6:
+                            case 'end':
+                                return _context82.stop();
+                        }
+                    }
+                }, _callee82, this);
+            }));
+
+            function updateFlow(_x95) {
+                return _ref165.apply(this, arguments);
+            }
+
+            return updateFlow;
+        }(),
+        createFlow: function () {
+            var _ref167 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee83(_ref166, params) {
+                var commit = _ref166.commit,
+                    dispatch = _ref166.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee83$(_context83) {
+                    while (1) {
+                        switch (_context83.prev = _context83.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context83.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/flow/create', params);
+
+                            case 3:
+                                response = _context83.sent;
+
+                                if (!response.data.status) {
+                                    _context83.next = 7;
+                                    break;
+                                }
+
+                                _context83.next = 7;
+                                return dispatch('fetchFlow');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context83.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context83.stop();
+                        }
+                    }
+                }, _callee83, this);
+            }));
+
+            function createFlow(_x96, _x97) {
+                return _ref167.apply(this, arguments);
+            }
+
+            return createFlow;
+        }(),
+        editFlow: function () {
+            var _ref169 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee84(_ref168) {
+                var commit = _ref168.commit,
+                    dispatch = _ref168.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee84$(_context84) {
+                    while (1) {
+                        switch (_context84.prev = _context84.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context84.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/flow/edit', this.state.currentFlow);
+
+                            case 3:
+                                response = _context84.sent;
+
+                                if (!response.data.status) {
+                                    _context84.next = 7;
+                                    break;
+                                }
+
+                                _context84.next = 7;
+                                return dispatch('fetchFlow');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context84.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context84.stop();
+                        }
+                    }
+                }, _callee84, this);
+            }));
+
+            function editFlow(_x98) {
+                return _ref169.apply(this, arguments);
+            }
+
+            return editFlow;
+        }(),
+        removeFlow: function () {
+            var _ref171 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee85(_ref170) {
+                var commit = _ref170.commit,
+                    dispatch = _ref170.dispatch;
+                var params, response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee85$(_context85) {
+                    while (1) {
+                        switch (_context85.prev = _context85.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = { 'id': this.state.currentFlow.id };
+                                _context85.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/flow/remove', params);
+
+                            case 4:
+                                response = _context85.sent;
+
+                                if (!response.data.status) {
+                                    _context85.next = 8;
+                                    break;
+                                }
+
+                                _context85.next = 8;
+                                return dispatch('fetchFlow');
+
+                            case 8:
+                                commit('setLoader', false);
+                                return _context85.abrupt('return', response.data.status);
+
+                            case 10:
+                            case 'end':
+                                return _context85.stop();
+                        }
+                    }
+                }, _callee85, this);
+            }));
+
+            function removeFlow(_x99) {
+                return _ref171.apply(this, arguments);
+            }
+
+            return removeFlow;
+        }(),
+        fetchFlow: function () {
+            var _ref173 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee86(_ref172) {
+                var commit = _ref172.commit,
+                    dispatch = _ref172.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee86$(_context86) {
+                    while (1) {
+                        switch (_context86.prev = _context86.next) {
+                            case 0:
+                                _context86.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/flow/get');
+
+                            case 2:
+                                response = _context86.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'flows', value: list });
+                                commit('setData', { path: 'currentFlow', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context86.stop();
+                        }
+                    }
+                }, _callee86, this);
+            }));
+
+            function fetchFlow(_x100) {
+                return _ref173.apply(this, arguments);
+            }
+
+            return fetchFlow;
+        }(),
+        updateUser: function () {
+            var _ref175 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee87(_ref174) {
+                var commit = _ref174.commit,
+                    dispatch = _ref174.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee87$(_context87) {
+                    while (1) {
+                        switch (_context87.prev = _context87.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context87.next = 3;
+                                return dispatch('fetchRoles');
+
+                            case 3:
+                                _context87.next = 5;
+                                return dispatch('fetchAdminWorkers');
+
+                            case 5:
+                                _context87.next = 7;
+                                return dispatch('fetchUser');
+
+                            case 7:
+                                commit('setLoader', false);
+
+                            case 8:
+                            case 'end':
+                                return _context87.stop();
+                        }
+                    }
+                }, _callee87, this);
+            }));
+
+            function updateUser(_x101) {
+                return _ref175.apply(this, arguments);
+            }
+
+            return updateUser;
+        }(),
+        editUser: function () {
+            var _ref177 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee88(_ref176) {
+                var commit = _ref176.commit,
+                    dispatch = _ref176.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee88$(_context88) {
+                    while (1) {
+                        switch (_context88.prev = _context88.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context88.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/user/edit', this.state.currentUser);
+
+                            case 3:
+                                response = _context88.sent;
+
+                                if (!response.data.status) {
+                                    _context88.next = 7;
+                                    break;
+                                }
+
+                                _context88.next = 7;
+                                return dispatch('fetchUser');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context88.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context88.stop();
+                        }
+                    }
+                }, _callee88, this);
+            }));
+
+            function editUser(_x102) {
+                return _ref177.apply(this, arguments);
+            }
+
+            return editUser;
+        }(),
+        fetchUser: function () {
+            var _ref179 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee89(_ref178) {
+                var commit = _ref178.commit,
+                    dispatch = _ref178.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee89$(_context89) {
+                    while (1) {
+                        switch (_context89.prev = _context89.next) {
+                            case 0:
+                                _context89.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/user/get');
+
+                            case 2:
+                                response = _context89.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'users', value: list });
+                                commit('setData', { path: 'currentUser', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context89.stop();
+                        }
+                    }
+                }, _callee89, this);
+            }));
+
+            function fetchUser(_x103) {
+                return _ref179.apply(this, arguments);
+            }
+
+            return fetchUser;
+        }(),
+        updateWorker: function () {
+            var _ref181 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee90(_ref180) {
+                var commit = _ref180.commit,
+                    dispatch = _ref180.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee90$(_context90) {
+                    while (1) {
+                        switch (_context90.prev = _context90.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context90.next = 3;
+                                return dispatch('fetchAdminWorkers');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context90.stop();
+                        }
+                    }
+                }, _callee90, this);
+            }));
+
+            function updateWorker(_x104) {
+                return _ref181.apply(this, arguments);
+            }
+
+            return updateWorker;
+        }(),
+        createWorker: function () {
+            var _ref183 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee91(_ref182, params) {
+                var commit = _ref182.commit,
+                    dispatch = _ref182.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee91$(_context91) {
+                    while (1) {
+                        switch (_context91.prev = _context91.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context91.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/worker/create', params);
+
+                            case 3:
+                                response = _context91.sent;
+
+                                if (!response.data.status) {
+                                    _context91.next = 7;
+                                    break;
+                                }
+
+                                _context91.next = 7;
+                                return dispatch('fetchAdminWorkers');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context91.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context91.stop();
+                        }
+                    }
+                }, _callee91, this);
+            }));
+
+            function createWorker(_x105, _x106) {
+                return _ref183.apply(this, arguments);
+            }
+
+            return createWorker;
+        }(),
+        editWorker: function () {
+            var _ref185 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee92(_ref184) {
+                var commit = _ref184.commit,
+                    dispatch = _ref184.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee92$(_context92) {
+                    while (1) {
+                        switch (_context92.prev = _context92.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context92.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/worker/edit', this.state.currentWorker);
+
+                            case 3:
+                                response = _context92.sent;
+
+                                if (!response.data.status) {
+                                    _context92.next = 7;
+                                    break;
+                                }
+
+                                _context92.next = 7;
+                                return dispatch('fetchAdminWorkers');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context92.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context92.stop();
+                        }
+                    }
+                }, _callee92, this);
+            }));
+
+            function editWorker(_x107) {
+                return _ref185.apply(this, arguments);
+            }
+
+            return editWorker;
+        }(),
+        removeWorker: function () {
+            var _ref187 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee93(_ref186) {
+                var commit = _ref186.commit,
+                    dispatch = _ref186.dispatch;
+                var params, response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee93$(_context93) {
+                    while (1) {
+                        switch (_context93.prev = _context93.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                params = { 'id': this.state.currentWorker.id };
+                                _context93.next = 4;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/worker/remove', params);
+
+                            case 4:
+                                response = _context93.sent;
+
+                                if (!response.data.status) {
+                                    _context93.next = 8;
+                                    break;
+                                }
+
+                                _context93.next = 8;
+                                return dispatch('fetchAdminWorkers');
+
+                            case 8:
+                                commit('setLoader', false);
+                                return _context93.abrupt('return', response.data.status);
+
+                            case 10:
+                            case 'end':
+                                return _context93.stop();
+                        }
+                    }
+                }, _callee93, this);
+            }));
+
+            function removeWorker(_x108) {
+                return _ref187.apply(this, arguments);
+            }
+
+            return removeWorker;
+        }(),
+        fetchAdminWorkers: function () {
+            var _ref189 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee94(_ref188) {
+                var commit = _ref188.commit,
+                    dispatch = _ref188.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee94$(_context94) {
+                    while (1) {
+                        switch (_context94.prev = _context94.next) {
+                            case 0:
+                                _context94.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/worker/get');
+
+                            case 2:
+                                response = _context94.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context94.stop();
+                        }
+                    }
+                }, _callee94, this);
+            }));
+
+            function fetchAdminWorkers(_x109) {
+                return _ref189.apply(this, arguments);
+            }
+
+            return fetchAdminWorkers;
+        }(),
+        updateDegreesWorker: function () {
+            var _ref191 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee95(_ref190) {
+                var commit = _ref190.commit,
+                    dispatch = _ref190.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee95$(_context95) {
+                    while (1) {
+                        switch (_context95.prev = _context95.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context95.next = 3;
+                                return dispatch('fetchDegreesWorker');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context95.stop();
+                        }
+                    }
+                }, _callee95, this);
+            }));
+
+            function updateDegreesWorker(_x110) {
+                return _ref191.apply(this, arguments);
+            }
+
+            return updateDegreesWorker;
+        }(),
+        editDegreesWorker: function () {
+            var _ref193 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee96(_ref192) {
+                var commit = _ref192.commit,
+                    dispatch = _ref192.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee96$(_context96) {
+                    while (1) {
+                        switch (_context96.prev = _context96.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context96.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/degrees_worker/edit', this.state.currentWorker);
+
+                            case 3:
+                                response = _context96.sent;
+
+                                if (!response.data.status) {
+                                    _context96.next = 7;
+                                    break;
+                                }
+
+                                _context96.next = 7;
+                                return dispatch('fetchDegreesWorker');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context96.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context96.stop();
+                        }
+                    }
+                }, _callee96, this);
+            }));
+
+            function editDegreesWorker(_x111) {
+                return _ref193.apply(this, arguments);
+            }
+
+            return editDegreesWorker;
+        }(),
+        fetchDegreesWorker: function () {
+            var _ref195 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee97(_ref194) {
+                var commit = _ref194.commit,
+                    dispatch = _ref194.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee97$(_context97) {
+                    while (1) {
+                        switch (_context97.prev = _context97.next) {
+                            case 0:
+                                _context97.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/degrees_worker/get');
+
+                            case 2:
+                                response = _context97.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context97.stop();
+                        }
+                    }
+                }, _callee97, this);
+            }));
+
+            function fetchDegreesWorker(_x112) {
+                return _ref195.apply(this, arguments);
+            }
+
+            return fetchDegreesWorker;
+        }(),
+        updatePositionWorker: function () {
+            var _ref197 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee98(_ref196) {
+                var commit = _ref196.commit,
+                    dispatch = _ref196.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee98$(_context98) {
+                    while (1) {
+                        switch (_context98.prev = _context98.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context98.next = 3;
+                                return dispatch('fetchPositionWorker');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context98.stop();
+                        }
+                    }
+                }, _callee98, this);
+            }));
+
+            function updatePositionWorker(_x113) {
+                return _ref197.apply(this, arguments);
+            }
+
+            return updatePositionWorker;
+        }(),
+        editPositionWorker: function () {
+            var _ref199 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee99(_ref198) {
+                var commit = _ref198.commit,
+                    dispatch = _ref198.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee99$(_context99) {
+                    while (1) {
+                        switch (_context99.prev = _context99.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context99.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/position_worker/edit', this.state.currentWorker);
+
+                            case 3:
+                                response = _context99.sent;
+
+                                if (!response.data.status) {
+                                    _context99.next = 7;
+                                    break;
+                                }
+
+                                _context99.next = 7;
+                                return dispatch('fetchPositionWorker');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context99.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context99.stop();
+                        }
+                    }
+                }, _callee99, this);
+            }));
+
+            function editPositionWorker(_x114) {
+                return _ref199.apply(this, arguments);
+            }
+
+            return editPositionWorker;
+        }(),
+        fetchPositionWorker: function () {
+            var _ref201 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee100(_ref200) {
+                var commit = _ref200.commit,
+                    dispatch = _ref200.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee100$(_context100) {
+                    while (1) {
+                        switch (_context100.prev = _context100.next) {
+                            case 0:
+                                _context100.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/position_worker/get');
+
+                            case 2:
+                                response = _context100.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context100.stop();
+                        }
+                    }
+                }, _callee100, this);
+            }));
+
+            function fetchPositionWorker(_x115) {
+                return _ref201.apply(this, arguments);
+            }
+
+            return fetchPositionWorker;
+        }(),
+        updateRateWorker: function () {
+            var _ref203 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee101(_ref202) {
+                var commit = _ref202.commit,
+                    dispatch = _ref202.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee101$(_context101) {
+                    while (1) {
+                        switch (_context101.prev = _context101.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context101.next = 3;
+                                return dispatch('fetchRateWorker');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context101.stop();
+                        }
+                    }
+                }, _callee101, this);
+            }));
+
+            function updateRateWorker(_x116) {
+                return _ref203.apply(this, arguments);
+            }
+
+            return updateRateWorker;
+        }(),
+        editRateWorker: function () {
+            var _ref205 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee102(_ref204) {
+                var commit = _ref204.commit,
+                    dispatch = _ref204.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee102$(_context102) {
+                    while (1) {
+                        switch (_context102.prev = _context102.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context102.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/rate_worker/edit', this.state.currentWorker);
+
+                            case 3:
+                                response = _context102.sent;
+
+                                if (!response.data.status) {
+                                    _context102.next = 7;
+                                    break;
+                                }
+
+                                _context102.next = 7;
+                                return dispatch('fetchRateWorker');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context102.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context102.stop();
+                        }
+                    }
+                }, _callee102, this);
+            }));
+
+            function editRateWorker(_x117) {
+                return _ref205.apply(this, arguments);
+            }
+
+            return editRateWorker;
+        }(),
+        fetchRateWorker: function () {
+            var _ref207 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee103(_ref206) {
+                var commit = _ref206.commit,
+                    dispatch = _ref206.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee103$(_context103) {
+                    while (1) {
+                        switch (_context103.prev = _context103.next) {
+                            case 0:
+                                _context103.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/rate_worker/get');
+
+                            case 2:
+                                response = _context103.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context103.stop();
+                        }
+                    }
+                }, _callee103, this);
+            }));
+
+            function fetchRateWorker(_x118) {
+                return _ref207.apply(this, arguments);
+            }
+
+            return fetchRateWorker;
+        }(),
+        updateStaffWorker: function () {
+            var _ref209 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee104(_ref208) {
+                var commit = _ref208.commit,
+                    dispatch = _ref208.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee104$(_context104) {
+                    while (1) {
+                        switch (_context104.prev = _context104.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context104.next = 3;
+                                return dispatch('fetchStaffWorker');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context104.stop();
+                        }
+                    }
+                }, _callee104, this);
+            }));
+
+            function updateStaffWorker(_x119) {
+                return _ref209.apply(this, arguments);
+            }
+
+            return updateStaffWorker;
+        }(),
+        editStaffWorker: function () {
+            var _ref211 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee105(_ref210) {
+                var commit = _ref210.commit,
+                    dispatch = _ref210.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee105$(_context105) {
+                    while (1) {
+                        switch (_context105.prev = _context105.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context105.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/staff_worker/edit', this.state.currentWorker);
+
+                            case 3:
+                                response = _context105.sent;
+
+                                if (!response.data.status) {
+                                    _context105.next = 7;
+                                    break;
+                                }
+
+                                _context105.next = 7;
+                                return dispatch('fetchStaffWorker');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context105.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context105.stop();
+                        }
+                    }
+                }, _callee105, this);
+            }));
+
+            function editStaffWorker(_x120) {
+                return _ref211.apply(this, arguments);
+            }
+
+            return editStaffWorker;
+        }(),
+        fetchStaffWorker: function () {
+            var _ref213 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee106(_ref212) {
+                var commit = _ref212.commit,
+                    dispatch = _ref212.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee106$(_context106) {
+                    while (1) {
+                        switch (_context106.prev = _context106.next) {
+                            case 0:
+                                _context106.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/staff_worker/get');
+
+                            case 2:
+                                response = _context106.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context106.stop();
+                        }
+                    }
+                }, _callee106, this);
+            }));
+
+            function fetchStaffWorker(_x121) {
+                return _ref213.apply(this, arguments);
+            }
+
+            return fetchStaffWorker;
+        }(),
+        updateTrainedWorker: function () {
+            var _ref215 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee107(_ref214) {
+                var commit = _ref214.commit,
+                    dispatch = _ref214.dispatch;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee107$(_context107) {
+                    while (1) {
+                        switch (_context107.prev = _context107.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context107.next = 3;
+                                return dispatch('fetchTrainedWorker');
+
+                            case 3:
+                                commit('setLoader', false);
+
+                            case 4:
+                            case 'end':
+                                return _context107.stop();
+                        }
+                    }
+                }, _callee107, this);
+            }));
+
+            function updateTrainedWorker(_x122) {
+                return _ref215.apply(this, arguments);
+            }
+
+            return updateTrainedWorker;
+        }(),
+        editTrainedWorker: function () {
+            var _ref217 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee108(_ref216) {
+                var commit = _ref216.commit,
+                    dispatch = _ref216.dispatch;
+                var response;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee108$(_context108) {
+                    while (1) {
+                        switch (_context108.prev = _context108.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context108.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.post('/admin/trained_worker/edit', this.state.currentWorker);
+
+                            case 3:
+                                response = _context108.sent;
+
+                                if (!response.data.status) {
+                                    _context108.next = 7;
+                                    break;
+                                }
+
+                                _context108.next = 7;
+                                return dispatch('fetchTrainedWorker');
+
+                            case 7:
+                                commit('setLoader', false);
+                                return _context108.abrupt('return', response.data.status);
+
+                            case 9:
+                            case 'end':
+                                return _context108.stop();
+                        }
+                    }
+                }, _callee108, this);
+            }));
+
+            function editTrainedWorker(_x123) {
+                return _ref217.apply(this, arguments);
+            }
+
+            return editTrainedWorker;
+        }(),
+        fetchTrainedWorker: function () {
+            var _ref219 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee109(_ref218) {
+                var commit = _ref218.commit,
+                    dispatch = _ref218.dispatch;
+                var response, list;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee109$(_context109) {
+                    while (1) {
+                        switch (_context109.prev = _context109.next) {
+                            case 0:
+                                _context109.next = 2;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/admin/trained_worker/get');
+
+                            case 2:
+                                response = _context109.sent;
+                                list = response.data.status ? response.data.data : [];
+
+
+                                commit('setData', { path: 'workers', value: list });
+                                commit('setData', { path: 'currentWorker', value: {} });
+
+                            case 6:
+                            case 'end':
+                                return _context109.stop();
+                        }
+                    }
+                }, _callee109, this);
+            }));
+
+            function fetchTrainedWorker(_x124) {
+                return _ref219.apply(this, arguments);
+            }
+
+            return fetchTrainedWorker;
         }()
     }
 
@@ -54029,15 +55483,21 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     data: function data() {
         return {
 
-            paths: [{ 'name': 'Пользователи', 'path': '/admin/users' }, { 'name': 'Корпуса', 'path': '/admin/building' }, //
+            paths: [{ 'name': 'Пользователи', 'path': '/admin/user' }, //
+            { 'name': 'Корпуса', 'path': '/admin/building' }, //
             { 'name': 'Аудитории', 'path': '/admin/classroom' }, //
-            { 'name': 'Преподаватели', 'path': '/admin/worker' }, { 'name': 'Дисциплины', 'path': '/admin/discipline' }, //
+            { 'name': 'Преподаватели', 'path': '/admin/worker' }, //
+            { 'name': 'Дисциплины', 'path': '/admin/discipline' }, //
             { 'name': 'Факультеты', 'path': '/admin/faculty' }, //
-            { 'name': 'Потоки', 'path': '/admin/flow' }, { 'name': 'Группы', 'path': '/admin/group' }, { 'name': 'Должности', 'path': '/admin/position' }, //
+            { 'name': 'Потоки', 'path': '/admin/flow' }, //
+            { 'name': 'Группы', 'path': '/admin/group' }, //
+            { 'name': 'Должности', 'path': '/admin/position' }, //
             { 'name': 'Квалификации', 'path': '/admin/qualification' }, //
-            { 'name': 'Требования ФГОС', 'path': '/admin/requirement_fgos' }, { 'name': 'Роли', 'path': '/admin/roles' }, //
+            { 'name': 'Требования ФГОС', 'path': '/admin/requirement_fgos' }, //
+            { 'name': 'Роли', 'path': '/admin/roles' }, //
             { 'name': 'Направления подготовки', 'path': '/admin/specialty' }, //
-            { 'name': 'Типы занятий', 'path': '/admin/type_class' }]
+            { 'name': 'Типы занятий', 'path': '/admin/type_class' }, //
+            { 'name': 'Остепенеённость преподавателей', 'path': '/admin/degrees_worker' }, { 'name': 'Должности преподавателей', 'path': '/admin/position_worker' }, { 'name': 'Ставка преподавателей', 'path': '/admin/rate_worker' }, { 'name': 'Штатность преподавателей', 'path': '/admin/staff_worker' }, { 'name': 'Базовое образование преподавателей', 'path': '/admin/trained_worker' }]
         };
     },
 
@@ -58396,7 +59856,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
                 var building = this.$store.state.buildings.find(function (c) {
                     return c.id == _this.$store.state.currentClassroom.building_id;
-                }) || {};
+                }) || null;
                 return building;
             },
             set: function set(value) {
@@ -59025,7 +60485,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
                 var faculty = this.$store.state.faculties.find(function (c) {
                     return c.id == _this.$store.state.currentSpecialty.faculty_id;
-                }) || {};
+                }) || null;
                 return faculty;
             },
             set: function set(value) {
@@ -59039,7 +60499,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
                 var qualification = this.$store.state.qualifications.find(function (c) {
                     return c.id == _this2.$store.state.currentSpecialty.qualification_id;
-                }) || {};
+                }) || null;
                 return qualification;
             },
             set: function set(value) {
@@ -59451,6 +60911,3442 @@ if (false) {
   module.hot.accept()
   if (module.hot.data) {
     require("vue-hot-reload-api")      .rerender("data-v-56a013a4", module.exports)
+  }
+}
+
+/***/ }),
+/* 142 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(143)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(145)
+/* template */
+var __vue_template__ = __webpack_require__(146)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminRequirementFgos.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-1f908f78", Component.options)
+  } else {
+    hotAPI.reload("data-v-1f908f78", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 143 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(144);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("04d85a50", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1f908f78\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRequirementFgos.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1f908f78\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRequirementFgos.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 144 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 145 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminRequirementFgos",
+    components: {},
+    data: function data() {
+        return {
+            specialty: '',
+            out_workers: '',
+            degrees: '',
+            inner_workers: '',
+            trained_worker: '',
+            year_begin: '',
+            year_end: '',
+            yearRules: [function (v) {
+                return !!v || 'Введите учебный год';
+            }, function (v) {
+                return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг-гггг'
+                );
+            }]
+        };
+    },
+
+    computed: {
+        currentRequirementFgosModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosOutWorkersModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.out_workers;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { out_workers: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosDegreesModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.degrees;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { degrees: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosInnerWorkersModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.inner_workers;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { inner_workers: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosTrainedWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.trained_worker;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { trained_worker: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosYearBeginModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.year_begin;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { year_begin: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosYearEndModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.year_end;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { year_end: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosSpecialtyModel: {
+            get: function get() {
+                var _this = this;
+
+                var specialty = this.$store.state.specialties.find(function (c) {
+                    return c.id == _this.$store.state.currentRequirementFgos.specialty_id;
+                }) || null;
+                return specialty;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { specialty_id: value.id });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getSpecialtyName: function getSpecialtyName(id) {
+            var specialty = this.$store.state.specialties.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(specialty).length !== 0 ? specialty.full_name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateRequirementFgos');
+        },
+        updateRequirementFgos: function updateRequirementFgos() {
+            this.$store.dispatch('editRequirementFgos');
+        },
+        createRequirementFgos: function createRequirementFgos() {
+            var params = {
+                'specialty_id': this.specialty.id,
+                'out_workers': this.out_workers,
+                'degrees': this.degrees,
+                'inner_workers': this.inner_workers,
+                'trained_worker': this.trained_worker,
+                'year_begin': this.year_begin,
+                'year_end': this.year_end
+            };
+            this.$store.dispatch('createRequirementFgos', params);
+        },
+        deleteRequirementFgos: function deleteRequirementFgos() {
+            this.$store.dispatch('removeRequirementFgos');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 146 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-requirement-fgos" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Требования ФГОС")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-requirement-fgos__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.requirementFgos, function(
+                    item,
+                    index
+                  ) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentRequirementFgosModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(
+                                  _vm._s(item.year_begin) +
+                                    "-" +
+                                    _vm._s(item.year_end)
+                                )
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Специальность: " +
+                                      _vm._s(
+                                        _vm.getSpecialtyName(item.specialty_id)
+                                      )
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры ФГОС")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentRequirementFgos)
+                        .length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.specialties,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Специальность",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosSpecialtyModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosSpecialtyModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosSpecialtyModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label:
+                                                "% работников сторонней профильной организации",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosOutWorkersModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosOutWorkersModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosOutWorkersModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label: "% остепенённости",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosDegreesModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosDegreesModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosDegreesModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label: "% штатных ППС",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosInnerWorkersModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosInnerWorkersModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosInnerWorkersModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label:
+                                                "% работников с наличием базового образования",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosTrainedWorkerModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosTrainedWorkerModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosTrainedWorkerModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              rules: _vm.yearRules,
+                                              counter: 4,
+                                              label: "Год начала",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosYearBeginModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosYearBeginModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosYearBeginModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              rules: _vm.yearRules,
+                                              counter: 4,
+                                              label: "Год окончания",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosYearEndModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosYearEndModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosYearEndModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: {
+                                                click: _vm.updateRequirementFgos
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: {
+                                                click: _vm.deleteRequirementFgos
+                                              }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите ФГОС...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_requirement-fgos" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый ФГОС")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.specialties,
+                                  "item-value": "id",
+                                  "item-text": "full_name",
+                                  label: "Специальность",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.specialty,
+                                  callback: function($$v) {
+                                    _vm.specialty = $$v
+                                  },
+                                  expression: "specialty"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label:
+                                    "% работников сторонней профильной организации",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.out_workers,
+                                  callback: function($$v) {
+                                    _vm.out_workers = $$v
+                                  },
+                                  expression: "out_workers"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label: "% остепенённости",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.degrees,
+                                  callback: function($$v) {
+                                    _vm.degrees = $$v
+                                  },
+                                  expression: "degrees"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label: "% штатных ППС",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.inner_workers,
+                                  callback: function($$v) {
+                                    _vm.inner_workers = $$v
+                                  },
+                                  expression: "inner_workers"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label:
+                                    "% работников с наличием базового образования",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.trained_worker,
+                                  callback: function($$v) {
+                                    _vm.trained_worker = $$v
+                                  },
+                                  expression: "trained_worker"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  rules: _vm.yearRules,
+                                  counter: 4,
+                                  label: "Год начала",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.year_begin,
+                                  callback: function($$v) {
+                                    _vm.year_begin = $$v
+                                  },
+                                  expression: "year_begin"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  rules: _vm.yearRules,
+                                  counter: 4,
+                                  label: "Год окончания",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.year_end,
+                                  callback: function($$v) {
+                                    _vm.year_end = $$v
+                                  },
+                                  expression: "year_end"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createRequirementFgos }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-1f908f78", module.exports)
+  }
+}
+
+/***/ }),
+/* 147 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(148)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(150)
+/* template */
+var __vue_template__ = __webpack_require__(151)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminGroup.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-3c54cb2f", Component.options)
+  } else {
+    hotAPI.reload("data-v-3c54cb2f", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 148 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(149);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("3028fb1f", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-3c54cb2f\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminGroup.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-3c54cb2f\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminGroup.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 149 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 150 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminGroup",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            specialty: '',
+            year_begin: '',
+            is_full_time: true,
+            is_accelerated: false,
+            number_students: null,
+
+            yearRules: [function (v) {
+                return !!v || 'Введите учебный год';
+            }, function (v) {
+                return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг'
+                );
+            }]
+        };
+    },
+
+    computed: {
+        currentGroupModel: {
+            get: function get() {
+                return this.$store.state.currentGroup;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupNameModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { name: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupYearBeginModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.year_begin;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { year_begin: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupIsFullTimeModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.is_full_time;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { is_full_time: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupIsAcceleratedModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.is_accelerated;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { is_accelerated: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupNumberStudentsModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.number_students;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { number_students: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupSpecialtyModel: {
+            get: function get() {
+                var _this = this;
+
+                var specialty = this.$store.state.specialties.find(function (c) {
+                    return c.id == _this.$store.state.currentGroup.specialty_id;
+                }) || null;
+                return specialty;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { specialty_id: value.id });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateGroup');
+        },
+        updateGroup: function updateGroup() {
+            this.$store.dispatch('editGroup');
+        },
+        createGroup: function createGroup() {
+            var params = {
+                'name': this.name,
+                'specialty_id': this.specialty.id,
+                'year_begin': this.year_begin,
+                'is_full_time': this.is_full_time,
+                'is_accelerated': this.is_accelerated,
+                'number_students': this.number_students
+            };
+            this.$store.dispatch('createGroup', params);
+        },
+        deleteGroup: function deleteGroup() {
+            this.$store.dispatch('removeGroup');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 151 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-group" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Группы")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-group__list" },
+                [
+                  _vm._l(_vm.$store.state.groups, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentGroupModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.name))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры группы")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentGroup).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.groupNameModel,
+                                              callback: function($$v) {
+                                                _vm.groupNameModel = $$v
+                                              },
+                                              expression: "groupNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.specialties,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Специальность",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.groupSpecialtyModel,
+                                              callback: function($$v) {
+                                                _vm.groupSpecialtyModel = $$v
+                                              },
+                                              expression: "groupSpecialtyModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              rules: _vm.yearRules,
+                                              counter: 4,
+                                              label: "Год поступления",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.groupYearBeginModel,
+                                              callback: function($$v) {
+                                                _vm.groupYearBeginModel = $$v
+                                              },
+                                              expression: "groupYearBeginModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Очная" },
+                                            model: {
+                                              value: _vm.groupIsFullTimeModel,
+                                              callback: function($$v) {
+                                                _vm.groupIsFullTimeModel = $$v
+                                              },
+                                              expression: "groupIsFullTimeModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Ускоренная" },
+                                            model: {
+                                              value:
+                                                _vm.groupIsAcceleratedModel,
+                                              callback: function($$v) {
+                                                _vm.groupIsAcceleratedModel = $$v
+                                              },
+                                              expression:
+                                                "groupIsAcceleratedModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              counter: 2,
+                                              label: "Количество студентов",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.groupNumberStudentsModel,
+                                              callback: function($$v) {
+                                                _vm.groupNumberStudentsModel = $$v
+                                              },
+                                              expression:
+                                                "groupNumberStudentsModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateGroup }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteGroup }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите группу...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_пroup" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая группа")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Название", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.specialties,
+                                  "item-value": "id",
+                                  "item-text": "full_name",
+                                  label: "Специальность",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.specialty,
+                                  callback: function($$v) {
+                                    _vm.specialty = $$v
+                                  },
+                                  expression: "specialty"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  rules: _vm.yearRules,
+                                  counter: 4,
+                                  label: "Год поступления",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.year_begin,
+                                  callback: function($$v) {
+                                    _vm.year_begin = $$v
+                                  },
+                                  expression: "year_begin"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-checkbox", {
+                                attrs: { label: "Очная" },
+                                model: {
+                                  value: _vm.is_full_time,
+                                  callback: function($$v) {
+                                    _vm.is_full_time = $$v
+                                  },
+                                  expression: "is_full_time"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-checkbox", {
+                                attrs: { label: "Ускоренная" },
+                                model: {
+                                  value: _vm.is_accelerated,
+                                  callback: function($$v) {
+                                    _vm.is_accelerated = $$v
+                                  },
+                                  expression: "is_accelerated"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  counter: 2,
+                                  label: "Количество студентов",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.number_students,
+                                  callback: function($$v) {
+                                    _vm.number_students = $$v
+                                  },
+                                  expression: "number_students"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createGroup }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-3c54cb2f", module.exports)
+  }
+}
+
+/***/ }),
+/* 152 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(153)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(155)
+/* template */
+var __vue_template__ = __webpack_require__(156)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminFlow.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-1a9a602e", Component.options)
+  } else {
+    hotAPI.reload("data-v-1a9a602e", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 153 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(154);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("69f52a6a", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1a9a602e\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFlow.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1a9a602e\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFlow.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 154 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 155 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminFlow",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            allotment: ''
+        };
+    },
+
+    computed: {
+        currentFlowModel: {
+            get: function get() {
+                return this.$store.state.currentFlow;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentFlow', value: value });
+            }
+        },
+        flowNameModel: {
+            get: function get() {
+                return this.$store.state.currentFlow.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentFlow, { name: value });
+                this.$store.commit('setData', { path: 'currentFlow', value: value });
+            }
+        },
+        flowAllotmentModel: {
+            get: function get() {
+                var _this = this;
+
+                var allotment = this.$store.state.allotments.find(function (c) {
+                    return c.id == _this.$store.state.currentFlow.allotment_id;
+                }) || null;
+                return allotment;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentFlow, { allotment_id: value.id });
+                this.$store.commit('setData', { path: 'currentFlow', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getAllotmentName: function getAllotmentName(id) {
+            var allotment = this.$store.state.allotments.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(allotment).length !== 0 ? allotment.name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateFlow');
+        },
+        updateFlow: function updateFlow() {
+            this.$store.dispatch('editFlow');
+        },
+        createFlow: function createFlow() {
+            var params = {
+                'name': this.name,
+                'allotment_id': this.allotment.id
+            };
+            this.$store.dispatch('createFlow', params);
+        },
+        deleteFlow: function deleteFlow() {
+            this.$store.dispatch('removeFlow');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 156 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-flow" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Потоки")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-flow__list", attrs: { "two-line": "" } },
+                [
+                  _vm._l(_vm.$store.state.flows, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentFlowModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Распределение: " +
+                                      _vm._s(
+                                        _vm.getAllotmentName(item.allotment_id)
+                                      )
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры потока")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentFlow).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.flowNameModel,
+                                              callback: function($$v) {
+                                                _vm.flowNameModel = $$v
+                                              },
+                                              expression: "flowNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.allotments,
+                                              "item-value": "id",
+                                              "item-text": "name",
+                                              label: "Распределение",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.flowAllotmentModel,
+                                              callback: function($$v) {
+                                                _vm.flowAllotmentModel = $$v
+                                              },
+                                              expression: "flowAllotmentModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateFlow }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteFlow }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите поток...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_flow" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый поток")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Название", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.allotments,
+                                  "item-value": "id",
+                                  "item-text": "name",
+                                  label: "Распределение",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.allotment,
+                                  callback: function($$v) {
+                                    _vm.allotment = $$v
+                                  },
+                                  expression: "allotment"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createFlow }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-1a9a602e", module.exports)
+  }
+}
+
+/***/ }),
+/* 157 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(158)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(160)
+/* template */
+var __vue_template__ = __webpack_require__(164)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminUser.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-dc7e976a", Component.options)
+  } else {
+    hotAPI.reload("data-v-dc7e976a", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 158 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(159);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("1d072fce", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc7e976a\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminUser.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc7e976a\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminUser.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 159 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 160 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminUser",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentUserModel: {
+            get: function get() {
+                return this.$store.state.currentUser;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentUser', value: value });
+            }
+        },
+        userWorkerIdModel: {
+            get: function get() {
+                var _this = this;
+
+                var worker = this.$store.state.workers.find(function (c) {
+                    return c.id == _this.$store.state.currentUser.worker_id;
+                }) || null;
+                return worker;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentUser, { worker_id: value.id });
+                this.$store.commit('setData', { path: 'currentUser', value: value });
+            }
+        },
+        userRolesModel: {
+            get: function get() {
+                var _this2 = this;
+
+                var roles = [];
+
+                var _loop = function _loop(role_index) {
+                    var role = _this2.$store.state.roles.find(function (c) {
+                        return c.id == _this2.$store.state.currentUser.roles[role_index];
+                    });
+                    if (role) roles.push(role);
+                };
+
+                for (var role_index in this.$store.state.currentUser.roles) {
+                    _loop(role_index);
+                }
+                return roles;
+            },
+            set: function set(value) {
+                var roles = [];
+                for (var role_index in value) {
+                    roles.push(value[role_index].id);
+                }
+                value = _extends({}, this.$store.state.currentUser, { roles: roles });
+                this.$store.commit('setData', { path: 'currentUser', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateUser');
+        },
+        updateUser: function updateUser() {
+            this.$store.dispatch('editUser');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 161 */,
+/* 162 */,
+/* 163 */,
+/* 164 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-user" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Пользователи")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-user__list", attrs: { "two-line": "" } },
+                [
+                  _vm._l(_vm.$store.state.users, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentUserModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.email))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [_vm._v("ФИО: " + _vm._s(item.name))]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры пользователя")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentUser).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Email: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentUser.email
+                                        ) + "\n                                "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentUser.name
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.workers,
+                                              "item-value": "id",
+                                              "item-text": "fio",
+                                              label: "Преподаватель",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.userWorkerIdModel,
+                                              callback: function($$v) {
+                                                _vm.userWorkerIdModel = $$v
+                                              },
+                                              expression: "userWorkerIdModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.roles,
+                                              "item-value": "id",
+                                              "item-text": "public_name",
+                                              label: "Роли",
+                                              multiple: "",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.userRolesModel,
+                                              callback: function($$v) {
+                                                _vm.userRolesModel = $$v
+                                              },
+                                              expression: "userRolesModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateUser }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите пользователя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-dc7e976a", module.exports)
+  }
+}
+
+/***/ }),
+/* 165 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(166)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(168)
+/* template */
+var __vue_template__ = __webpack_require__(169)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-24e85f04", Component.options)
+  } else {
+    hotAPI.reload("data-v-24e85f04", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 166 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(167);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("bf1fd3f6", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-24e85f04\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-24e85f04\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 167 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 168 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminWorker",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            fio: '',
+            surname: '',
+            patronymic: ''
+        };
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerNameModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { name: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerSurnameModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.surname;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { surname: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerPatronymicModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.patronymic;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { patronymic: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerFioModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.fio;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { fio: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerNotActiveModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.not_active;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { not_active: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editWorker');
+        },
+        createWorker: function createWorker() {
+            var params = {
+                'name': this.name,
+                'surname': this.surname,
+                'patronymic': this.patronymic,
+                'fio': this.fio
+            };
+            this.$store.dispatch('createWorker', params);
+        },
+        deleteWorker: function deleteWorker() {
+            this.$store.dispatch('removeWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 169 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-worker" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-worker__list" },
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры преподавателя")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Имя",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerNameModel,
+                                              callback: function($$v) {
+                                                _vm.workerNameModel = $$v
+                                              },
+                                              expression: "workerNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Фамилия",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerSurnameModel,
+                                              callback: function($$v) {
+                                                _vm.workerSurnameModel = $$v
+                                              },
+                                              expression: "workerSurnameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: { label: "Отчество" },
+                                            model: {
+                                              value: _vm.workerPatronymicModel,
+                                              callback: function($$v) {
+                                                _vm.workerPatronymicModel = $$v
+                                              },
+                                              expression:
+                                                "workerPatronymicModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "ФИО",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerFioModel,
+                                              callback: function($$v) {
+                                                _vm.workerFioModel = $$v
+                                              },
+                                              expression: "workerFioModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Архивный" },
+                                            model: {
+                                              value: _vm.workerNotActiveModel,
+                                              callback: function($$v) {
+                                                _vm.workerNotActiveModel = $$v
+                                              },
+                                              expression: "workerNotActiveModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteWorker }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_worker" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый преподаватель")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Имя", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "Фамилия", required: "" },
+                                model: {
+                                  value: _vm.surname,
+                                  callback: function($$v) {
+                                    _vm.surname = $$v
+                                  },
+                                  expression: "surname"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "Отчество" },
+                                model: {
+                                  value: _vm.patronymic,
+                                  callback: function($$v) {
+                                    _vm.patronymic = $$v
+                                  },
+                                  expression: "patronymic"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "ФИО", required: "" },
+                                model: {
+                                  value: _vm.fio,
+                                  callback: function($$v) {
+                                    _vm.fio = $$v
+                                  },
+                                  expression: "fio"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createWorker }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-24e85f04", module.exports)
   }
 }
 

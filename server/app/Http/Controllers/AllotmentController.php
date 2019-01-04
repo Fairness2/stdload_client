@@ -144,9 +144,11 @@ class AllotmentController extends Controller
                 $year = '20' . $arrModify[1];
                 $qualifications = DB::table('qualification')->select('id', 'literal')->get()->all();
                 $qualificationId = null;
+                $qualificationLiteral = '';
                 foreach ($qualifications as $qualification){
                     if (mb_strrpos($arrModify[2], $qualification->literal) !== false) {
                         $qualificationId = $qualification->id;
+                        $qualificationLiteral = $qualification->literal;
                         break;
                     }
                 }
@@ -168,7 +170,7 @@ class AllotmentController extends Controller
                 if ($issetSpecialty)
                     $specialtyId = $issetSpecialty->id;
                 else
-                    $specialtyId = DB::table('specialty')->insertGetId(['name' => $arrGroup[1], 'full_name' => $arrGroup[1], 'faculty_id' => $facultyId, 'qualification_id' => $qualificationId]);
+                    $specialtyId = DB::table('specialty')->insertGetId(['name' => $arrGroup[1], 'full_name' => $arrGroup[0] . ' ' . $arrGroup[1] . ' (' . $qualificationLiteral . ')', 'faculty_id' => $facultyId, 'qualification_id' => $qualificationId]);
 
                 $groupId = DB::table('group')->insertGetId([
                     'name' => $arrGroup[1] . ' ' . $arrGroup[2],
