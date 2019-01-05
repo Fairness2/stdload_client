@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class AllotmentController extends Controller
 {
@@ -419,6 +421,298 @@ class AllotmentController extends Controller
 
             $i++;
             $cellValue = $sheetData->getCellByColumnAndRow($i,1)->getFormattedValue();
+        }
+    }
+
+    public function downloadFile(Request $request){
+        $allotmentId = $request->get('allotment_id', null);
+        $semester = $request->get('semester', null);
+        $updateWorkers = $request->get('update_workers', 'false');
+        $file = $request->file('file');
+
+        $inputFileName = $file->getPathname();
+        $spreadsheet = IOFactory::load($inputFileName);
+
+        if ($updateWorkers === 'true'){
+            $sheetData = $spreadsheet->getSheetByName('Осенний семестр');
+            $jobs = $spreadsheet->getSheetByName('Вакансии');
+            $this::updateWorkersToSheet($sheetData, $jobs, $allotmentId);
+            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer->save($inputFileName);
+            $spreadsheet = IOFactory::load($inputFileName);
+        }
+
+        if ($semester == 1 || $semester == 3) {
+            $sheetData = $spreadsheet->getSheetByName('Осенний семестр');
+            $this::setSheet($allotmentId, 1, $sheetData);
+        }
+        if ($semester == 2 || $semester == 3) {
+            $sheetData = $spreadsheet->getSheetByName('Весенний семестр');
+            $this::setSheet($allotmentId, 2, $sheetData);
+        }
+
+
+        $allotment = DB::table('allotment')->where('id', $allotmentId)->get()->first();
+        //return redirect()->route('page_hi_discipline', ['id' => $allotmentId]);
+
+        // Redirect output to a client’s web browser (Xlsx)
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $allotment->name . '.xlsx"');
+        header('Cache-Control: max-age=0');
+        // If you're serving to IE 9, then the following may be needed
+        header('Cache-Control: max-age=1');
+
+        // If you're serving to IE over SSL, then the following may be needed
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+        header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+        header('Pragma: public'); // HTTP/1.0
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
+    private function updateWorkersToSheet($sheetData, $jobs, $allotmentId){
+        $i = 18;
+        $documentWorkers = array();
+        $cellValue = $sheetData->getCellByColumnAndRow($i,1)->getFormattedValue();
+        while (mb_strrpos($cellValue, 'Вакансия') === false){
+
+            $cellValue = trim($cellValue);
+            $cellValue = preg_replace('/ {2,}/',' ',$cellValue);
+            $arrFio = explode(' ', $cellValue);
+            foreach ($arrFio as &$item){
+                $item = trim($item);
+            }
+            if (mb_strrpos($cellValue, 'Ст.') !== false){
+                $position = $arrFio[0] . ' ' . $arrFio[1];
+                $surname = $arrFio[2];
+                $name = $arrFio[3];
+                $patronymic = null;
+                if (isset($arrFio[4]))
+                    $patronymic = $arrFio[4];
+            }
+            else{
+                $position = $arrFio[0];
+                $surname = $arrFio[1];
+                $name = $arrFio[2];
+                $patronymic = null;
+                if (isset($arrFio[3]))
+                    $patronymic = $arrFio[3];
+            }
+            $fio = $surname . ' ' . $name . ($patronymic ? ' ' . $patronymic : '');
+
+            $issetWorker = DB::table('worker')->where('fio', $fio)->get()->first();
+            if ($issetWorker)
+                $documentWorkers[] = $issetWorker->id;
+
+            $i++;
+            $cellValue = $sheetData->getCellByColumnAndRow($i,1)->getFormattedValue();
+        }
+
+        $workersIdDB = DB::table('distribution_element')->select('distribution_element.worker_id AS worker_id')
+            ->leftJoin('load_element', 'distribution_element.load_element_id', '=', 'load_element.id')
+            ->whereNotIn ('distribution_element.worker_id', $documentWorkers)->where('load_element.allotment_id', $allotmentId)
+            ->where('load_element.allotment_id', $allotmentId)->limit(10)->distinct()->get()->all();
+
+        if (count($workersIdDB) == 0){
+            return;
+        }
+
+        $i = 5;
+        foreach ($workersIdDB as $workerId){
+            $position = DB::table('position_worker')
+                ->leftJoin('position', 'position_worker.position_id', '=', 'position.id')
+                ->where('position_worker.worker_id', $workerId->worker_id)->orderBy('date_begin', 'desc')
+                ->select('position.name AS name')->get()->first();
+
+            $jobs->setCellValueByColumnAndRow(4, $i, $position->name);
+
+            $worker = DB::table('worker')->where('id', $workerId->worker_id)->get()->first();
+
+            $jobs->setCellValueByColumnAndRow(5, $i, $worker->surname);
+            $jobs->setCellValueByColumnAndRow(6, $i, $worker->name);
+            $jobs->setCellValueByColumnAndRow(7, $i, $worker->patronymic);
+        }
+    }
+
+    private function setSheet($allotmentId, $semester, $sheetData){
+        $row = 12; //13
+        $disciplineCell = $sheetData->getCellByColumnAndRow(1,$row)->getFormattedValue();
+        while ($disciplineCell){
+
+            $groupCell = $sheetData->getCellByColumnAndRow(2,$row)->getFormattedValue();
+            if (!$groupCell) {
+                $row++;
+                $disciplineCell = $sheetData->getCellByColumnAndRow(1,$row)->getFormattedValue();
+                continue;
+            }
+
+            $disciplineCell = trim($disciplineCell);
+            $disciplineCell = preg_replace('/ {2,}/',' ',$disciplineCell);
+            $issetDiscipline = DB::table('discipline')->where('name', $disciplineCell)->get()->first();
+            if ($issetDiscipline)
+                $disciplineId = $issetDiscipline->id;
+            else
+                continue;
+
+            //Распознавание группы
+
+            $groupCell = trim($groupCell);
+            $groupCell = preg_replace('/ {2,}/',' ',$groupCell);
+            $arrGroup = explode(' ', $groupCell);
+            foreach ($arrGroup as &$item){
+                $item = trim($item);
+            }
+            $issetGroup = DB::table('group')->where('name', $arrGroup[1] . ' ' . $arrGroup[2])->get()->first();
+            if ($issetGroup)
+                $groupId = $issetGroup->id;
+            else {
+                continue;
+            }
+
+            $subGroup = null;
+            $subGroupCell = $sheetData->getCellByColumnAndRow(4,$row)->getFormattedValue();
+            if ($subGroupCell) {
+                $subGroupCell = trim($subGroupCell);
+                $subGroupCell = preg_replace('/ {2,}/', ' ', $subGroupCell);
+                $subGroup= $subGroupCell;
+            }
+
+            $typeClassCell = $sheetData->getCellByColumnAndRow(5,$row)->getFormattedValue();
+            $typeClassCell = trim($typeClassCell);
+            $typeClassCell = preg_replace('/ {2,}/',' ',$typeClassCell);
+            $issetTypeClass = DB::table('type_class')->where('name', $typeClassCell)->get()->first();
+            if ($issetTypeClass)
+                $typeClassId = $issetTypeClass->id;
+            else
+                continue;
+
+            $where = [['allotment_id', $allotmentId], ['semester', $semester], ['group_id', $groupId], ['discipline_id', $disciplineId], ['type_class_id', $typeClassId]];
+            if ($subGroup)
+                $where[] = ['sub_group', $subGroup];
+            $loadElement = DB::table('load_element')->where($where)->get()->first();
+            if (!$loadElement)
+                continue;
+
+            $flow = '';
+            if ($loadElement->flow_id){
+                $flowDB = DB::table('flow')->where('id', $loadElement->flow_id)->get()->first();
+                if ($flowDB)
+                    $flow = $flowDB->name;
+            }
+            $sheetData->setCellValueByColumnAndRow(8,$row, $flow);
+
+            $building = '';
+            $classroom = '';
+            if ($loadElement->classroom_id){
+                $classroomDB = DB::table('classroom')->where('id', $loadElement->classroom_id)->get()->first();
+                if ($classroomDB) {
+                    $classroom = $classroomDB->name;
+                    $buildingDB = DB::table('building')->where('id', $classroomDB->building_id)->get()->first();
+                    if ($buildingDB) {
+                        $building = $buildingDB->name;
+                    }
+                }
+            }
+            $sheetData->setCellValueByColumnAndRow(9,$row, $building);
+            $sheetData->setCellValueByColumnAndRow(10,$row, $classroom);
+
+            $needClassrom = '';
+            if ($loadElement->need_interactive_board){
+                $needClassrom .= 'ИД';
+            }
+            if ($loadElement->need_multimedia_classroom){
+                if ($needClassrom !== '')
+                    $needClassrom .= ', ';
+                $needClassrom .= 'МА';
+            }
+            if ($loadElement->need_marker_board){
+                if ($needClassrom !== '')
+                    $needClassrom .= ', ';
+                $needClassrom .= 'МД';
+            }
+            $sheetData->setCellValueByColumnAndRow(11,$row, $needClassrom);
+
+            $comment = $loadElement->comment ? $loadElement->comment : '';
+            $sheetData->setCellValueByColumnAndRow(12,$row, $comment);
+
+            $hoursFirstBefore = $loadElement->hours_first_before ? $loadElement->hours_first_before : '';
+            $sheetData->setCellValueByColumnAndRow(13,$row, $hoursFirstBefore);
+            $hoursSecondBefore = $loadElement->hours_second_befor ? $loadElement->hours_second_befor : '';
+            $sheetData->setCellValueByColumnAndRow(14,$row, $hoursSecondBefore);
+            $hoursFirstAfter = $loadElement->fours_first_after ? $loadElement->fours_first_after : '';
+            $sheetData->setCellValueByColumnAndRow(15,$row, $hoursFirstAfter);
+            $hoursSecondAfter = $loadElement->hours_second_after ? $loadElement->hours_second_after : '';
+            $sheetData->setCellValueByColumnAndRow(16,$row, $hoursSecondAfter);
+
+            $i = 18;
+            $cellWorker = $sheetData->getCellByColumnAndRow($i,1)->getFormattedValue();
+            while (mb_strrpos($cellWorker, 'Вакансия') === false){
+                $hoursDistribution = '';
+                $cellWorker = trim($cellWorker);
+                $cellWorker = preg_replace('/ {2,}/', ' ', $cellWorker);
+
+                $arrFio = explode(' ', $cellWorker);
+
+                if (mb_strrpos($cellWorker, 'Ст.') !== false){
+                    $fio = $arrFio[2] . ' ' . $arrFio[3] . (isset($arrFio[4]) ? ' ' . $arrFio[4] : '');
+                }
+                else{
+                    $fio = $arrFio[1] . ' ' . $arrFio[2] . (isset($arrFio[3]) ? ' ' . $arrFio[3] : '');
+                }
+
+                $issetWorker = DB::table('worker')->where([['fio', $fio], ['not_active', '<>', true]])->get()->first();
+                if ($issetWorker){
+                    $distributionElement = DB::table('distribution_element')->where([['load_element_id', $loadElement->id], ['worker_id', $issetWorker->id]])->get()->first();
+                    if ($distributionElement){
+                        $hoursDistribution = $loadElement->hours_planed;
+                    }
+                }
+                $sheetData->setCellValueByColumnAndRow($i,$row, $hoursDistribution);
+
+                $i++;
+                $cellWorker = $sheetData->getCellByColumnAndRow($i,1)->getFormattedValue();
+            }
+
+            while ($cellWorker){
+                $hoursDistribution = '';
+                $cellWorker = trim($cellWorker);
+                $cellWorker = preg_replace('/ {2,}/', ' ', $cellWorker);
+
+                $arrFio = explode(' ', $cellWorker);
+
+                if (count($arrFio) > 2) {
+                    if (mb_strrpos($cellWorker, 'Ст.') !== false) {
+                        $nameArr = explode('.', $arrFio[4]);
+                        $fio = $arrFio[3] . ' ' . $nameArr[0] . (isset($nameArr[1]) ? '. ' . $nameArr[1] . '.' : '.');
+                    } else {
+                        $nameArr = explode('.', $arrFio[3]);
+                        $fio = $arrFio[2] . ' ' . $nameArr[0] . (isset($nameArr[1]) ? '. ' . $nameArr[1] . '.' : '.');
+                    }
+
+                    $issetWorker = DB::table('worker')->where([['fio', $fio], ['not_active', '<>', true]])->get()->first();
+                    if ($issetWorker) {
+                        $distributionElement = DB::table('distribution_element')->where([['load_element_id', $loadElement->id], ['worker_id', $issetWorker->id]])->get()->first();
+                        if ($distributionElement) {
+                            $hoursDistribution = $loadElement->hours_planed;
+                        }
+                    }
+                    $sheetData->setCellValueByColumnAndRow($i, $row, $hoursDistribution);
+                }
+
+                $i++;
+                $cellWorker = $sheetData->getCellByColumnAndRow($i,1)->getFormattedValue();
+            }
+
+
+            $row++;
+            $oldDisciplineCell = $disciplineCell;
+            $disciplineCell = $sheetData->getCellByColumnAndRow(1,$row)->getFormattedValue();
+            $groupCell = $sheetData->getCellByColumnAndRow(2,$row)->getFormattedValue();
+            if (!$disciplineCell && $groupCell)
+                $disciplineCell = $oldDisciplineCell;
         }
     }
 }

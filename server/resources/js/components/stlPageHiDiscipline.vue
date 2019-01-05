@@ -1,7 +1,7 @@
 <template>
     <div class="page_greed">
         <stl-allotment-toolbar></stl-allotment-toolbar>
-        <div>
+        <div class="page-hi__nav">
             <v-breadcrumbs>
                 <v-icon slot="divider">chevron_right</v-icon>
                 <v-breadcrumbs-item
@@ -17,7 +17,7 @@
         <v-layout row fill-height >
 
             <v-flex xs12 sm4>
-                <v-card class="disciplines" v-if="isNotSetings">
+                <v-card class="disciplines page-hi__column" v-if="isNotSetings">
                     <v-toolbar class="header white--text">
                         <div class="subheading">Дисциплина</div>
                     </v-toolbar>
@@ -41,7 +41,7 @@
                     </v-list>
                 </v-card>
 
-                <v-card class="groups" v-if="isDisciplineSetings">
+                <v-card class="groups page-hi__column" v-if="isDisciplineSetings">
                     <v-toolbar class="header white--text">
                         <div class="subheading">Группы</div>
                     </v-toolbar>
@@ -65,7 +65,7 @@
                     </v-list>
                 </v-card>
 
-                <v-card class="jobs" v-if="(isGroupSetings || isLoadElementSetings)">
+                <v-card class="jobs page-hi__column" v-if="(isGroupSetings || isLoadElementSetings)">
                     <v-toolbar class="header white--text">
                         <div class="subheading">Занятия</div>
                     </v-toolbar>
@@ -96,7 +96,7 @@
             <v-spacer/>
 
             <v-flex xs12 sm8>
-                <v-card class="settings">
+                <v-card class="settings page-hi__column">
                     <v-toolbar class="header white--text">
                         <div class="subheading">Настройки</div>
                     </v-toolbar>
@@ -647,4 +647,16 @@
     }
 </script>
 
-<style> </style>
+<style lang="scss">
+    .page-hi{
+
+        &__nav{
+            height: 50px;
+        }
+
+        &__column{
+            height: calc(100vh - 210px);
+            overflow-y: auto;
+        }
+    }
+</style>

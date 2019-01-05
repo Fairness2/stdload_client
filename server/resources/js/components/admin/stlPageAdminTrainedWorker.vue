@@ -2,7 +2,7 @@
     <v-layout row justify-space-around fill-height>
 
         <v-flex xs12 sm6>
-            <v-card class="">
+            <v-card class="stl-page__column-card">
                 <v-toolbar class="header white--text">
                     <div class="subheading">ППС</div>
                 </v-toolbar>
@@ -26,7 +26,7 @@
             </v-card>
         </v-flex>
 
-        <v-flex xs12 sm5>
+        <v-flex xs12 sm5 class="stl-page__column">
             <v-layout row wrap>
                 <v-flex xs12>
                     <v-card class="">

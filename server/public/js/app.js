@@ -60,18 +60,437 @@
 /******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 14);
+/******/ 	return __webpack_require__(__webpack_require__.s = 15);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Author Tobias Koppers @sokra
+  Modified by Evan You @yyx990803
+*/
+
+var hasDocument = typeof document !== 'undefined'
+
+if (typeof DEBUG !== 'undefined' && DEBUG) {
+  if (!hasDocument) {
+    throw new Error(
+    'vue-style-loader cannot be used in a non-browser environment. ' +
+    "Use { target: 'node' } in your Webpack config to indicate a server-rendering environment."
+  ) }
+}
+
+var listToStyles = __webpack_require__(24)
+
+/*
+type StyleObject = {
+  id: number;
+  parts: Array<StyleObjectPart>
+}
+
+type StyleObjectPart = {
+  css: string;
+  media: string;
+  sourceMap: ?string
+}
+*/
+
+var stylesInDom = {/*
+  [id: number]: {
+    id: number,
+    refs: number,
+    parts: Array<(obj?: StyleObjectPart) => void>
+  }
+*/}
+
+var head = hasDocument && (document.head || document.getElementsByTagName('head')[0])
+var singletonElement = null
+var singletonCounter = 0
+var isProduction = false
+var noop = function () {}
+var options = null
+var ssrIdKey = 'data-vue-ssr-id'
+
+// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+// tags it will allow on a page
+var isOldIE = typeof navigator !== 'undefined' && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase())
+
+module.exports = function (parentId, list, _isProduction, _options) {
+  isProduction = _isProduction
+
+  options = _options || {}
+
+  var styles = listToStyles(parentId, list)
+  addStylesToDom(styles)
+
+  return function update (newList) {
+    var mayRemove = []
+    for (var i = 0; i < styles.length; i++) {
+      var item = styles[i]
+      var domStyle = stylesInDom[item.id]
+      domStyle.refs--
+      mayRemove.push(domStyle)
+    }
+    if (newList) {
+      styles = listToStyles(parentId, newList)
+      addStylesToDom(styles)
+    } else {
+      styles = []
+    }
+    for (var i = 0; i < mayRemove.length; i++) {
+      var domStyle = mayRemove[i]
+      if (domStyle.refs === 0) {
+        for (var j = 0; j < domStyle.parts.length; j++) {
+          domStyle.parts[j]()
+        }
+        delete stylesInDom[domStyle.id]
+      }
+    }
+  }
+}
+
+function addStylesToDom (styles /* Array<StyleObject> */) {
+  for (var i = 0; i < styles.length; i++) {
+    var item = styles[i]
+    var domStyle = stylesInDom[item.id]
+    if (domStyle) {
+      domStyle.refs++
+      for (var j = 0; j < domStyle.parts.length; j++) {
+        domStyle.parts[j](item.parts[j])
+      }
+      for (; j < item.parts.length; j++) {
+        domStyle.parts.push(addStyle(item.parts[j]))
+      }
+      if (domStyle.parts.length > item.parts.length) {
+        domStyle.parts.length = item.parts.length
+      }
+    } else {
+      var parts = []
+      for (var j = 0; j < item.parts.length; j++) {
+        parts.push(addStyle(item.parts[j]))
+      }
+      stylesInDom[item.id] = { id: item.id, refs: 1, parts: parts }
+    }
+  }
+}
+
+function createStyleElement () {
+  var styleElement = document.createElement('style')
+  styleElement.type = 'text/css'
+  head.appendChild(styleElement)
+  return styleElement
+}
+
+function addStyle (obj /* StyleObjectPart */) {
+  var update, remove
+  var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
+
+  if (styleElement) {
+    if (isProduction) {
+      // has SSR styles and in production mode.
+      // simply do nothing.
+      return noop
+    } else {
+      // has SSR styles but in dev mode.
+      // for some reason Chrome can't handle source map in server-rendered
+      // style tags - source maps in <style> only works if the style tag is
+      // created and inserted dynamically. So we remove the server rendered
+      // styles and inject new ones.
+      styleElement.parentNode.removeChild(styleElement)
+    }
+  }
+
+  if (isOldIE) {
+    // use singleton mode for IE9.
+    var styleIndex = singletonCounter++
+    styleElement = singletonElement || (singletonElement = createStyleElement())
+    update = applyToSingletonTag.bind(null, styleElement, styleIndex, false)
+    remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
+  } else {
+    // use multi-style-tag mode in all other cases
+    styleElement = createStyleElement()
+    update = applyToTag.bind(null, styleElement)
+    remove = function () {
+      styleElement.parentNode.removeChild(styleElement)
+    }
+  }
+
+  update(obj)
+
+  return function updateStyle (newObj /* StyleObjectPart */) {
+    if (newObj) {
+      if (newObj.css === obj.css &&
+          newObj.media === obj.media &&
+          newObj.sourceMap === obj.sourceMap) {
+        return
+      }
+      update(obj = newObj)
+    } else {
+      remove()
+    }
+  }
+}
+
+var replaceText = (function () {
+  var textStore = []
+
+  return function (index, replacement) {
+    textStore[index] = replacement
+    return textStore.filter(Boolean).join('\n')
+  }
+})()
+
+function applyToSingletonTag (styleElement, index, remove, obj) {
+  var css = remove ? '' : obj.css
+
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = replaceText(index, css)
+  } else {
+    var cssNode = document.createTextNode(css)
+    var childNodes = styleElement.childNodes
+    if (childNodes[index]) styleElement.removeChild(childNodes[index])
+    if (childNodes.length) {
+      styleElement.insertBefore(cssNode, childNodes[index])
+    } else {
+      styleElement.appendChild(cssNode)
+    }
+  }
+}
+
+function applyToTag (styleElement, obj) {
+  var css = obj.css
+  var media = obj.media
+  var sourceMap = obj.sourceMap
+
+  if (media) {
+    styleElement.setAttribute('media', media)
+  }
+  if (options.ssrId) {
+    styleElement.setAttribute(ssrIdKey, obj.id)
+  }
+
+  if (sourceMap) {
+    // https://developer.chrome.com/devtools/docs/javascript-debugging
+    // this makes source maps inside style tags work properly in Chrome
+    css += '\n/*# sourceURL=' + sourceMap.sources[0] + ' */'
+    // http://stackoverflow.com/a/26603875
+    css += '\n/*# sourceMappingURL=data:application/json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + ' */'
+  }
+
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = css
+  } else {
+    while (styleElement.firstChild) {
+      styleElement.removeChild(styleElement.firstChild)
+    }
+    styleElement.appendChild(document.createTextNode(css))
+  }
+}
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+/* globals __VUE_SSR_CONTEXT__ */
+
+// IMPORTANT: Do NOT use ES2015 features in this file.
+// This module is a runtime utility for cleaner component module output and will
+// be included in the final webpack user bundle.
+
+module.exports = function normalizeComponent (
+  rawScriptExports,
+  compiledTemplate,
+  functionalTemplate,
+  injectStyles,
+  scopeId,
+  moduleIdentifier /* server only */
+) {
+  var esModule
+  var scriptExports = rawScriptExports = rawScriptExports || {}
+
+  // ES6 modules interop
+  var type = typeof rawScriptExports.default
+  if (type === 'object' || type === 'function') {
+    esModule = rawScriptExports
+    scriptExports = rawScriptExports.default
+  }
+
+  // Vue.extend constructor export interop
+  var options = typeof scriptExports === 'function'
+    ? scriptExports.options
+    : scriptExports
+
+  // render functions
+  if (compiledTemplate) {
+    options.render = compiledTemplate.render
+    options.staticRenderFns = compiledTemplate.staticRenderFns
+    options._compiled = true
+  }
+
+  // functional template
+  if (functionalTemplate) {
+    options.functional = true
+  }
+
+  // scopedId
+  if (scopeId) {
+    options._scopeId = scopeId
+  }
+
+  var hook
+  if (moduleIdentifier) { // server build
+    hook = function (context) {
+      // 2.3 injection
+      context =
+        context || // cached call
+        (this.$vnode && this.$vnode.ssrContext) || // stateful
+        (this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext) // functional
+      // 2.2 with runInNewContext: true
+      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
+        context = __VUE_SSR_CONTEXT__
+      }
+      // inject component styles
+      if (injectStyles) {
+        injectStyles.call(this, context)
+      }
+      // register component module identifier for async chunk inferrence
+      if (context && context._registeredComponents) {
+        context._registeredComponents.add(moduleIdentifier)
+      }
+    }
+    // used by ssr in case component is cached and beforeCreate
+    // never gets called
+    options._ssrRegister = hook
+  } else if (injectStyles) {
+    hook = injectStyles
+  }
+
+  if (hook) {
+    var functional = options.functional
+    var existing = functional
+      ? options.render
+      : options.beforeCreate
+
+    if (!functional) {
+      // inject component registration as beforeCreate hook
+      options.beforeCreate = existing
+        ? [].concat(existing, hook)
+        : [hook]
+    } else {
+      // for template-only hot-reload because in that case the render fn doesn't
+      // go through the normalizer
+      options._injectStyles = hook
+      // register for functioal component in vue file
+      options.render = function renderWithStyleInjection (h, context) {
+        hook.call(context)
+        return existing(h, context)
+      }
+    }
+  }
+
+  return {
+    esModule: esModule,
+    exports: scriptExports,
+    options: options
+  }
+}
+
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var bind = __webpack_require__(9);
-var isBuffer = __webpack_require__(57);
+var bind = __webpack_require__(10);
+var isBuffer = __webpack_require__(157);
 
 /*global toString:true*/
 
@@ -371,425 +790,6 @@ module.exports = {
   extend: extend,
   trim: trim
 };
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-  MIT License http://www.opensource.org/licenses/mit-license.php
-  Author Tobias Koppers @sokra
-  Modified by Evan You @yyx990803
-*/
-
-var hasDocument = typeof document !== 'undefined'
-
-if (typeof DEBUG !== 'undefined' && DEBUG) {
-  if (!hasDocument) {
-    throw new Error(
-    'vue-style-loader cannot be used in a non-browser environment. ' +
-    "Use { target: 'node' } in your Webpack config to indicate a server-rendering environment."
-  ) }
-}
-
-var listToStyles = __webpack_require__(23)
-
-/*
-type StyleObject = {
-  id: number;
-  parts: Array<StyleObjectPart>
-}
-
-type StyleObjectPart = {
-  css: string;
-  media: string;
-  sourceMap: ?string
-}
-*/
-
-var stylesInDom = {/*
-  [id: number]: {
-    id: number,
-    refs: number,
-    parts: Array<(obj?: StyleObjectPart) => void>
-  }
-*/}
-
-var head = hasDocument && (document.head || document.getElementsByTagName('head')[0])
-var singletonElement = null
-var singletonCounter = 0
-var isProduction = false
-var noop = function () {}
-var options = null
-var ssrIdKey = 'data-vue-ssr-id'
-
-// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-// tags it will allow on a page
-var isOldIE = typeof navigator !== 'undefined' && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase())
-
-module.exports = function (parentId, list, _isProduction, _options) {
-  isProduction = _isProduction
-
-  options = _options || {}
-
-  var styles = listToStyles(parentId, list)
-  addStylesToDom(styles)
-
-  return function update (newList) {
-    var mayRemove = []
-    for (var i = 0; i < styles.length; i++) {
-      var item = styles[i]
-      var domStyle = stylesInDom[item.id]
-      domStyle.refs--
-      mayRemove.push(domStyle)
-    }
-    if (newList) {
-      styles = listToStyles(parentId, newList)
-      addStylesToDom(styles)
-    } else {
-      styles = []
-    }
-    for (var i = 0; i < mayRemove.length; i++) {
-      var domStyle = mayRemove[i]
-      if (domStyle.refs === 0) {
-        for (var j = 0; j < domStyle.parts.length; j++) {
-          domStyle.parts[j]()
-        }
-        delete stylesInDom[domStyle.id]
-      }
-    }
-  }
-}
-
-function addStylesToDom (styles /* Array<StyleObject> */) {
-  for (var i = 0; i < styles.length; i++) {
-    var item = styles[i]
-    var domStyle = stylesInDom[item.id]
-    if (domStyle) {
-      domStyle.refs++
-      for (var j = 0; j < domStyle.parts.length; j++) {
-        domStyle.parts[j](item.parts[j])
-      }
-      for (; j < item.parts.length; j++) {
-        domStyle.parts.push(addStyle(item.parts[j]))
-      }
-      if (domStyle.parts.length > item.parts.length) {
-        domStyle.parts.length = item.parts.length
-      }
-    } else {
-      var parts = []
-      for (var j = 0; j < item.parts.length; j++) {
-        parts.push(addStyle(item.parts[j]))
-      }
-      stylesInDom[item.id] = { id: item.id, refs: 1, parts: parts }
-    }
-  }
-}
-
-function createStyleElement () {
-  var styleElement = document.createElement('style')
-  styleElement.type = 'text/css'
-  head.appendChild(styleElement)
-  return styleElement
-}
-
-function addStyle (obj /* StyleObjectPart */) {
-  var update, remove
-  var styleElement = document.querySelector('style[' + ssrIdKey + '~="' + obj.id + '"]')
-
-  if (styleElement) {
-    if (isProduction) {
-      // has SSR styles and in production mode.
-      // simply do nothing.
-      return noop
-    } else {
-      // has SSR styles but in dev mode.
-      // for some reason Chrome can't handle source map in server-rendered
-      // style tags - source maps in <style> only works if the style tag is
-      // created and inserted dynamically. So we remove the server rendered
-      // styles and inject new ones.
-      styleElement.parentNode.removeChild(styleElement)
-    }
-  }
-
-  if (isOldIE) {
-    // use singleton mode for IE9.
-    var styleIndex = singletonCounter++
-    styleElement = singletonElement || (singletonElement = createStyleElement())
-    update = applyToSingletonTag.bind(null, styleElement, styleIndex, false)
-    remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true)
-  } else {
-    // use multi-style-tag mode in all other cases
-    styleElement = createStyleElement()
-    update = applyToTag.bind(null, styleElement)
-    remove = function () {
-      styleElement.parentNode.removeChild(styleElement)
-    }
-  }
-
-  update(obj)
-
-  return function updateStyle (newObj /* StyleObjectPart */) {
-    if (newObj) {
-      if (newObj.css === obj.css &&
-          newObj.media === obj.media &&
-          newObj.sourceMap === obj.sourceMap) {
-        return
-      }
-      update(obj = newObj)
-    } else {
-      remove()
-    }
-  }
-}
-
-var replaceText = (function () {
-  var textStore = []
-
-  return function (index, replacement) {
-    textStore[index] = replacement
-    return textStore.filter(Boolean).join('\n')
-  }
-})()
-
-function applyToSingletonTag (styleElement, index, remove, obj) {
-  var css = remove ? '' : obj.css
-
-  if (styleElement.styleSheet) {
-    styleElement.styleSheet.cssText = replaceText(index, css)
-  } else {
-    var cssNode = document.createTextNode(css)
-    var childNodes = styleElement.childNodes
-    if (childNodes[index]) styleElement.removeChild(childNodes[index])
-    if (childNodes.length) {
-      styleElement.insertBefore(cssNode, childNodes[index])
-    } else {
-      styleElement.appendChild(cssNode)
-    }
-  }
-}
-
-function applyToTag (styleElement, obj) {
-  var css = obj.css
-  var media = obj.media
-  var sourceMap = obj.sourceMap
-
-  if (media) {
-    styleElement.setAttribute('media', media)
-  }
-  if (options.ssrId) {
-    styleElement.setAttribute(ssrIdKey, obj.id)
-  }
-
-  if (sourceMap) {
-    // https://developer.chrome.com/devtools/docs/javascript-debugging
-    // this makes source maps inside style tags work properly in Chrome
-    css += '\n/*# sourceURL=' + sourceMap.sources[0] + ' */'
-    // http://stackoverflow.com/a/26603875
-    css += '\n/*# sourceMappingURL=data:application/json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + ' */'
-  }
-
-  if (styleElement.styleSheet) {
-    styleElement.styleSheet.cssText = css
-  } else {
-    while (styleElement.firstChild) {
-      styleElement.removeChild(styleElement.firstChild)
-    }
-    styleElement.appendChild(document.createTextNode(css))
-  }
-}
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-/* globals __VUE_SSR_CONTEXT__ */
-
-// IMPORTANT: Do NOT use ES2015 features in this file.
-// This module is a runtime utility for cleaner component module output and will
-// be included in the final webpack user bundle.
-
-module.exports = function normalizeComponent (
-  rawScriptExports,
-  compiledTemplate,
-  functionalTemplate,
-  injectStyles,
-  scopeId,
-  moduleIdentifier /* server only */
-) {
-  var esModule
-  var scriptExports = rawScriptExports = rawScriptExports || {}
-
-  // ES6 modules interop
-  var type = typeof rawScriptExports.default
-  if (type === 'object' || type === 'function') {
-    esModule = rawScriptExports
-    scriptExports = rawScriptExports.default
-  }
-
-  // Vue.extend constructor export interop
-  var options = typeof scriptExports === 'function'
-    ? scriptExports.options
-    : scriptExports
-
-  // render functions
-  if (compiledTemplate) {
-    options.render = compiledTemplate.render
-    options.staticRenderFns = compiledTemplate.staticRenderFns
-    options._compiled = true
-  }
-
-  // functional template
-  if (functionalTemplate) {
-    options.functional = true
-  }
-
-  // scopedId
-  if (scopeId) {
-    options._scopeId = scopeId
-  }
-
-  var hook
-  if (moduleIdentifier) { // server build
-    hook = function (context) {
-      // 2.3 injection
-      context =
-        context || // cached call
-        (this.$vnode && this.$vnode.ssrContext) || // stateful
-        (this.parent && this.parent.$vnode && this.parent.$vnode.ssrContext) // functional
-      // 2.2 with runInNewContext: true
-      if (!context && typeof __VUE_SSR_CONTEXT__ !== 'undefined') {
-        context = __VUE_SSR_CONTEXT__
-      }
-      // inject component styles
-      if (injectStyles) {
-        injectStyles.call(this, context)
-      }
-      // register component module identifier for async chunk inferrence
-      if (context && context._registeredComponents) {
-        context._registeredComponents.add(moduleIdentifier)
-      }
-    }
-    // used by ssr in case component is cached and beforeCreate
-    // never gets called
-    options._ssrRegister = hook
-  } else if (injectStyles) {
-    hook = injectStyles
-  }
-
-  if (hook) {
-    var functional = options.functional
-    var existing = functional
-      ? options.render
-      : options.beforeCreate
-
-    if (!functional) {
-      // inject component registration as beforeCreate hook
-      options.beforeCreate = existing
-        ? [].concat(existing, hook)
-        : [hook]
-    } else {
-      // for template-only hot-reload because in that case the render fn doesn't
-      // go through the normalizer
-      options._injectStyles = hook
-      // register for functioal component in vue file
-      options.render = function renderWithStyleInjection (h, context) {
-        hook.call(context)
-        return existing(h, context)
-      }
-    }
-  }
-
-  return {
-    esModule: esModule,
-    exports: scriptExports,
-    options: options
-  }
-}
 
 
 /***/ }),
@@ -11756,7 +11756,7 @@ Vue.compile = compileToFunctions;
 
 module.exports = Vue;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(16).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(17).setImmediate))
 
 /***/ }),
 /* 5 */
@@ -11792,8 +11792,8 @@ module.exports = g;
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
-var utils = __webpack_require__(0);
-var normalizeHeaderName = __webpack_require__(59);
+var utils = __webpack_require__(3);
+var normalizeHeaderName = __webpack_require__(159);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -11809,10 +11809,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(10);
+    adapter = __webpack_require__(11);
   } else if (typeof process !== 'undefined') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(10);
+    adapter = __webpack_require__(11);
   }
   return adapter;
 }
@@ -12083,6 +12083,13 @@ process.umask = function() { return 0; };
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
+module.exports = __webpack_require__(31);
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /*
 	MIT License http://www.opensource.org/licenses/mit-license.php
 	Author Tobias Koppers @sokra
@@ -12126,7 +12133,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(45);
+var	fixUrls = __webpack_require__(145);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -12439,7 +12446,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12457,19 +12464,19 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var settle = __webpack_require__(60);
-var buildURL = __webpack_require__(62);
-var parseHeaders = __webpack_require__(63);
-var isURLSameOrigin = __webpack_require__(64);
-var createError = __webpack_require__(11);
-var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(65);
+var utils = __webpack_require__(3);
+var settle = __webpack_require__(160);
+var buildURL = __webpack_require__(162);
+var parseHeaders = __webpack_require__(163);
+var isURLSameOrigin = __webpack_require__(164);
+var createError = __webpack_require__(12);
+var btoa = (typeof window !== 'undefined' && window.btoa && window.btoa.bind(window)) || __webpack_require__(165);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -12566,7 +12573,7 @@ module.exports = function xhrAdapter(config) {
     // This is only done if running in a standard browser environment.
     // Specifically not if we're in a web worker, or react-native.
     if (utils.isStandardBrowserEnv()) {
-      var cookies = __webpack_require__(66);
+      var cookies = __webpack_require__(166);
 
       // Add xsrf header
       var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -12644,13 +12651,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(61);
+var enhanceError = __webpack_require__(161);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -12669,7 +12676,7 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12681,7 +12688,7 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12707,39 +12714,39 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(15);
-module.exports = __webpack_require__(85);
+__webpack_require__(16);
+module.exports = __webpack_require__(185);
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__router__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__store_index_js__ = __webpack_require__(36);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuex_router_sync__ = __webpack_require__(41);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__router__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__store_index_js__ = __webpack_require__(139);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuex_router_sync__ = __webpack_require__(141);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_vuex_router_sync___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_vuex_router_sync__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify__ = __webpack_require__(42);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify__ = __webpack_require__(142);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_vuetify___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_vuetify__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css__ = __webpack_require__(43);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css__ = __webpack_require__(143);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_vuetify_dist_vuetify_min_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css__ = __webpack_require__(146);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_material_design_icons_iconfont_dist_material_design_icons_css__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors__ = __webpack_require__(153);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_vuetify_es5_util_colors__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__packages_axios_client_client_js__ = __webpack_require__(54);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_tippy__ = __webpack_require__(74);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__packages_axios_client_client_js__ = __webpack_require__(154);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_tippy__ = __webpack_require__(174);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_vue_tippy___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9_vue_tippy__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlLoader__ = __webpack_require__(75);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlLoader__ = __webpack_require__(175);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_stlLoader___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__components_stlLoader__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_stlPageHome__ = __webpack_require__(80);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_stlPageHome__ = __webpack_require__(180);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_stlPageHome___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11__components_stlPageHome__);
 
 /**
@@ -12795,7 +12802,7 @@ var app = new __WEBPACK_IMPORTED_MODULE_0_vue___default.a({
 });
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -12851,7 +12858,7 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(17);
+__webpack_require__(18);
 // On some exotic environments, it's not clear which object `setimmediate` was
 // able to install onto.  Search each possibility in the same order as the
 // `setimmediate` library.
@@ -12865,7 +12872,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -13058,56 +13065,56 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(7)))
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_router__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_stlPageAllotments__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue_router__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_stlPageAllotments__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_stlPageAllotments___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__components_stlPageAllotments__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_stlPageHiDiscipline__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_stlPageHiDiscipline__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_stlPageHiDiscipline___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__components_stlPageHiDiscipline__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components_admin_stlPageAdmin__ = __webpack_require__(92);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components_admin_stlPageAdmin__ = __webpack_require__(39);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__components_admin_stlPageAdmin___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4__components_admin_stlPageAdmin__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_admin_stlPageAdminRole__ = __webpack_require__(97);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_admin_stlPageAdminRole__ = __webpack_require__(44);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_admin_stlPageAdminRole___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__components_admin_stlPageAdminRole__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_admin_stlPageAdminTypeClass__ = __webpack_require__(102);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_admin_stlPageAdminTypeClass__ = __webpack_require__(49);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_admin_stlPageAdminTypeClass___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__components_admin_stlPageAdminTypeClass__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_admin_stlPageAdminQualification__ = __webpack_require__(107);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_admin_stlPageAdminQualification__ = __webpack_require__(54);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_admin_stlPageAdminQualification___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__components_admin_stlPageAdminQualification__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_admin_stlPageAdminPosition__ = __webpack_require__(112);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_admin_stlPageAdminPosition__ = __webpack_require__(59);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_admin_stlPageAdminPosition___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8__components_admin_stlPageAdminPosition__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__components_admin_stlPageAdminFaculty__ = __webpack_require__(117);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__components_admin_stlPageAdminFaculty__ = __webpack_require__(64);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__components_admin_stlPageAdminFaculty___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9__components_admin_stlPageAdminFaculty__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_admin_stlPageAdminDiscipline__ = __webpack_require__(122);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_admin_stlPageAdminDiscipline__ = __webpack_require__(69);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_admin_stlPageAdminDiscipline___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__components_admin_stlPageAdminDiscipline__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_admin_stlPageAdminBuilding__ = __webpack_require__(127);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_admin_stlPageAdminBuilding__ = __webpack_require__(74);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_admin_stlPageAdminBuilding___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11__components_admin_stlPageAdminBuilding__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__components_admin_stlPageAdminClassroom__ = __webpack_require__(132);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__components_admin_stlPageAdminClassroom__ = __webpack_require__(79);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__components_admin_stlPageAdminClassroom___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_12__components_admin_stlPageAdminClassroom__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty__ = __webpack_require__(137);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty__ = __webpack_require__(84);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_13__components_admin_stlPageAdminSpecialty__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos__ = __webpack_require__(142);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos__ = __webpack_require__(89);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_14__components_admin_stlPageAdminRequirementFgos__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup__ = __webpack_require__(147);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup__ = __webpack_require__(94);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_15__components_admin_stlPageAdminGroup__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow__ = __webpack_require__(152);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow__ = __webpack_require__(99);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_16__components_admin_stlPageAdminFlow__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser__ = __webpack_require__(157);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser__ = __webpack_require__(104);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__ = __webpack_require__(165);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__ = __webpack_require__(109);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker__ = __webpack_require__(170);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker__ = __webpack_require__(114);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker__ = __webpack_require__(175);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker__ = __webpack_require__(119);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker__ = __webpack_require__(180);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker__ = __webpack_require__(124);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker__ = __webpack_require__(185);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker__ = __webpack_require__(129);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker__ = __webpack_require__(190);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker__ = __webpack_require__(134);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker__);
 
 
@@ -13143,6 +13150,11 @@ var routes = [{
 }, {
     name: 'homePage',
     path: '/home',
+    redirect: { name: 'pageAllotments' },
+    component: __WEBPACK_IMPORTED_MODULE_2__components_stlPageAllotments___default.a
+}, {
+    name: 'startPage',
+    path: '/',
     redirect: { name: 'pageAllotments' },
     component: __WEBPACK_IMPORTED_MODULE_2__components_stlPageAllotments___default.a
 }, {
@@ -13241,7 +13253,7 @@ var routes = [{
 }));
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -15866,19 +15878,19 @@ if (inBrowser && window.Vue) {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(21)
+  __webpack_require__(22)
 }
-var normalizeComponent = __webpack_require__(3)
+var normalizeComponent = __webpack_require__(2)
 /* script */
-var __vue_script__ = __webpack_require__(24)
+var __vue_script__ = __webpack_require__(25)
 /* template */
-var __vue_template__ = __webpack_require__(25)
+var __vue_template__ = __webpack_require__(26)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -15917,17 +15929,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(22);
+var content = __webpack_require__(23);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(2)("ff360a1e", content, false, {});
+var update = __webpack_require__(1)("ff360a1e", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -15943,10 +15955,10 @@ if(false) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(1)(false);
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
@@ -15957,7 +15969,7 @@ exports.push([module.i, "", ""]);
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports) {
 
 /**
@@ -15990,7 +16002,7 @@ module.exports = function listToStyles (parentId, list) {
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -16283,7 +16295,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 });
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -16300,7 +16312,7 @@ var render = function() {
         [
           _c(
             "v-card",
-            { staticClass: "stl-allotments" },
+            { staticClass: "stl-allotments stl-page__column-card" },
             [
               _c("v-toolbar", { staticClass: "header white--text" }, [
                 _c("div", { staticClass: "subheading" }, [
@@ -16405,7 +16417,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -16799,19 +16811,19 @@ if (false) {
 }
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(27)
+  __webpack_require__(189)
 }
-var normalizeComponent = __webpack_require__(3)
+var normalizeComponent = __webpack_require__(2)
 /* script */
-var __vue_script__ = __webpack_require__(29)
+var __vue_script__ = __webpack_require__(30)
 /* template */
-var __vue_template__ = __webpack_require__(35)
+var __vue_template__ = __webpack_require__(38)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -16850,54 +16862,16 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 27 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(28);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("09b56d3e", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue", function() {
-     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 28 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 29 */
+/* 28 */,
+/* 29 */,
+/* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(37);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__ = __webpack_require__(33);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__);
 
 
@@ -17625,19 +17599,793 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 });
 
 /***/ }),
-/* 30 */
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+// This method of obtaining a reference to the global object needs to be
+// kept identical to the way it is obtained in runtime.js
+var g = (function() { return this })() || Function("return this")();
+
+// Use `getOwnPropertyNames` because not all browsers support calling
+// `hasOwnProperty` on the global `self` object in a worker. See #183.
+var hadRuntime = g.regeneratorRuntime &&
+  Object.getOwnPropertyNames(g).indexOf("regeneratorRuntime") >= 0;
+
+// Save the old regeneratorRuntime in case it needs to be restored later.
+var oldRuntime = hadRuntime && g.regeneratorRuntime;
+
+// Force reevalutation of runtime.js.
+g.regeneratorRuntime = undefined;
+
+module.exports = __webpack_require__(32);
+
+if (hadRuntime) {
+  // Restore the original runtime.
+  g.regeneratorRuntime = oldRuntime;
+} else {
+  // Remove the global property added by runtime.js.
+  try {
+    delete g.regeneratorRuntime;
+  } catch(e) {
+    g.regeneratorRuntime = undefined;
+  }
+}
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports) {
+
+/**
+ * Copyright (c) 2014-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+!(function(global) {
+  "use strict";
+
+  var Op = Object.prototype;
+  var hasOwn = Op.hasOwnProperty;
+  var undefined; // More compressible than void 0.
+  var $Symbol = typeof Symbol === "function" ? Symbol : {};
+  var iteratorSymbol = $Symbol.iterator || "@@iterator";
+  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
+  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
+
+  var inModule = typeof module === "object";
+  var runtime = global.regeneratorRuntime;
+  if (runtime) {
+    if (inModule) {
+      // If regeneratorRuntime is defined globally and we're in a module,
+      // make the exports object identical to regeneratorRuntime.
+      module.exports = runtime;
+    }
+    // Don't bother evaluating the rest of this file if the runtime was
+    // already defined globally.
+    return;
+  }
+
+  // Define the runtime globally (as expected by generated code) as either
+  // module.exports (if we're in a module) or a new, empty object.
+  runtime = global.regeneratorRuntime = inModule ? module.exports : {};
+
+  function wrap(innerFn, outerFn, self, tryLocsList) {
+    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
+    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
+    var generator = Object.create(protoGenerator.prototype);
+    var context = new Context(tryLocsList || []);
+
+    // The ._invoke method unifies the implementations of the .next,
+    // .throw, and .return methods.
+    generator._invoke = makeInvokeMethod(innerFn, self, context);
+
+    return generator;
+  }
+  runtime.wrap = wrap;
+
+  // Try/catch helper to minimize deoptimizations. Returns a completion
+  // record like context.tryEntries[i].completion. This interface could
+  // have been (and was previously) designed to take a closure to be
+  // invoked without arguments, but in all the cases we care about we
+  // already have an existing method we want to call, so there's no need
+  // to create a new function object. We can even get away with assuming
+  // the method takes exactly one argument, since that happens to be true
+  // in every case, so we don't have to touch the arguments object. The
+  // only additional allocation required is the completion record, which
+  // has a stable shape and so hopefully should be cheap to allocate.
+  function tryCatch(fn, obj, arg) {
+    try {
+      return { type: "normal", arg: fn.call(obj, arg) };
+    } catch (err) {
+      return { type: "throw", arg: err };
+    }
+  }
+
+  var GenStateSuspendedStart = "suspendedStart";
+  var GenStateSuspendedYield = "suspendedYield";
+  var GenStateExecuting = "executing";
+  var GenStateCompleted = "completed";
+
+  // Returning this object from the innerFn has the same effect as
+  // breaking out of the dispatch switch statement.
+  var ContinueSentinel = {};
+
+  // Dummy constructor functions that we use as the .constructor and
+  // .constructor.prototype properties for functions that return Generator
+  // objects. For full spec compliance, you may wish to configure your
+  // minifier not to mangle the names of these two functions.
+  function Generator() {}
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+
+  // This is a polyfill for %IteratorPrototype% for environments that
+  // don't natively support it.
+  var IteratorPrototype = {};
+  IteratorPrototype[iteratorSymbol] = function () {
+    return this;
+  };
+
+  var getProto = Object.getPrototypeOf;
+  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
+  if (NativeIteratorPrototype &&
+      NativeIteratorPrototype !== Op &&
+      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
+    // This environment has a native %IteratorPrototype%; use it instead
+    // of the polyfill.
+    IteratorPrototype = NativeIteratorPrototype;
+  }
+
+  var Gp = GeneratorFunctionPrototype.prototype =
+    Generator.prototype = Object.create(IteratorPrototype);
+  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
+  GeneratorFunctionPrototype.constructor = GeneratorFunction;
+  GeneratorFunctionPrototype[toStringTagSymbol] =
+    GeneratorFunction.displayName = "GeneratorFunction";
+
+  // Helper for defining the .next, .throw, and .return methods of the
+  // Iterator interface in terms of a single ._invoke method.
+  function defineIteratorMethods(prototype) {
+    ["next", "throw", "return"].forEach(function(method) {
+      prototype[method] = function(arg) {
+        return this._invoke(method, arg);
+      };
+    });
+  }
+
+  runtime.isGeneratorFunction = function(genFun) {
+    var ctor = typeof genFun === "function" && genFun.constructor;
+    return ctor
+      ? ctor === GeneratorFunction ||
+        // For the native GeneratorFunction constructor, the best we can
+        // do is to check its .name property.
+        (ctor.displayName || ctor.name) === "GeneratorFunction"
+      : false;
+  };
+
+  runtime.mark = function(genFun) {
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
+    } else {
+      genFun.__proto__ = GeneratorFunctionPrototype;
+      if (!(toStringTagSymbol in genFun)) {
+        genFun[toStringTagSymbol] = "GeneratorFunction";
+      }
+    }
+    genFun.prototype = Object.create(Gp);
+    return genFun;
+  };
+
+  // Within the body of any async function, `await x` is transformed to
+  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
+  // `hasOwn.call(value, "__await")` to determine if the yielded value is
+  // meant to be awaited.
+  runtime.awrap = function(arg) {
+    return { __await: arg };
+  };
+
+  function AsyncIterator(generator) {
+    function invoke(method, arg, resolve, reject) {
+      var record = tryCatch(generator[method], generator, arg);
+      if (record.type === "throw") {
+        reject(record.arg);
+      } else {
+        var result = record.arg;
+        var value = result.value;
+        if (value &&
+            typeof value === "object" &&
+            hasOwn.call(value, "__await")) {
+          return Promise.resolve(value.__await).then(function(value) {
+            invoke("next", value, resolve, reject);
+          }, function(err) {
+            invoke("throw", err, resolve, reject);
+          });
+        }
+
+        return Promise.resolve(value).then(function(unwrapped) {
+          // When a yielded Promise is resolved, its final value becomes
+          // the .value of the Promise<{value,done}> result for the
+          // current iteration. If the Promise is rejected, however, the
+          // result for this iteration will be rejected with the same
+          // reason. Note that rejections of yielded Promises are not
+          // thrown back into the generator function, as is the case
+          // when an awaited Promise is rejected. This difference in
+          // behavior between yield and await is important, because it
+          // allows the consumer to decide what to do with the yielded
+          // rejection (swallow it and continue, manually .throw it back
+          // into the generator, abandon iteration, whatever). With
+          // await, by contrast, there is no opportunity to examine the
+          // rejection reason outside the generator function, so the
+          // only option is to throw it from the await expression, and
+          // let the generator function handle the exception.
+          result.value = unwrapped;
+          resolve(result);
+        }, reject);
+      }
+    }
+
+    var previousPromise;
+
+    function enqueue(method, arg) {
+      function callInvokeWithMethodAndArg() {
+        return new Promise(function(resolve, reject) {
+          invoke(method, arg, resolve, reject);
+        });
+      }
+
+      return previousPromise =
+        // If enqueue has been called before, then we want to wait until
+        // all previous Promises have been resolved before calling invoke,
+        // so that results are always delivered in the correct order. If
+        // enqueue has not been called before, then it is important to
+        // call invoke immediately, without waiting on a callback to fire,
+        // so that the async generator function has the opportunity to do
+        // any necessary setup in a predictable way. This predictability
+        // is why the Promise constructor synchronously invokes its
+        // executor callback, and why async functions synchronously
+        // execute code before the first await. Since we implement simple
+        // async functions in terms of async generators, it is especially
+        // important to get this right, even though it requires care.
+        previousPromise ? previousPromise.then(
+          callInvokeWithMethodAndArg,
+          // Avoid propagating failures to Promises returned by later
+          // invocations of the iterator.
+          callInvokeWithMethodAndArg
+        ) : callInvokeWithMethodAndArg();
+    }
+
+    // Define the unified helper method that is used to implement .next,
+    // .throw, and .return (see defineIteratorMethods).
+    this._invoke = enqueue;
+  }
+
+  defineIteratorMethods(AsyncIterator.prototype);
+  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
+    return this;
+  };
+  runtime.AsyncIterator = AsyncIterator;
+
+  // Note that simple async functions are implemented on top of
+  // AsyncIterator objects; they just return a Promise for the value of
+  // the final result produced by the iterator.
+  runtime.async = function(innerFn, outerFn, self, tryLocsList) {
+    var iter = new AsyncIterator(
+      wrap(innerFn, outerFn, self, tryLocsList)
+    );
+
+    return runtime.isGeneratorFunction(outerFn)
+      ? iter // If outerFn is a generator, return the full iterator.
+      : iter.next().then(function(result) {
+          return result.done ? result.value : iter.next();
+        });
+  };
+
+  function makeInvokeMethod(innerFn, self, context) {
+    var state = GenStateSuspendedStart;
+
+    return function invoke(method, arg) {
+      if (state === GenStateExecuting) {
+        throw new Error("Generator is already running");
+      }
+
+      if (state === GenStateCompleted) {
+        if (method === "throw") {
+          throw arg;
+        }
+
+        // Be forgiving, per 25.3.3.3.3 of the spec:
+        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
+        return doneResult();
+      }
+
+      context.method = method;
+      context.arg = arg;
+
+      while (true) {
+        var delegate = context.delegate;
+        if (delegate) {
+          var delegateResult = maybeInvokeDelegate(delegate, context);
+          if (delegateResult) {
+            if (delegateResult === ContinueSentinel) continue;
+            return delegateResult;
+          }
+        }
+
+        if (context.method === "next") {
+          // Setting context._sent for legacy support of Babel's
+          // function.sent implementation.
+          context.sent = context._sent = context.arg;
+
+        } else if (context.method === "throw") {
+          if (state === GenStateSuspendedStart) {
+            state = GenStateCompleted;
+            throw context.arg;
+          }
+
+          context.dispatchException(context.arg);
+
+        } else if (context.method === "return") {
+          context.abrupt("return", context.arg);
+        }
+
+        state = GenStateExecuting;
+
+        var record = tryCatch(innerFn, self, context);
+        if (record.type === "normal") {
+          // If an exception is thrown from innerFn, we leave state ===
+          // GenStateExecuting and loop back for another invocation.
+          state = context.done
+            ? GenStateCompleted
+            : GenStateSuspendedYield;
+
+          if (record.arg === ContinueSentinel) {
+            continue;
+          }
+
+          return {
+            value: record.arg,
+            done: context.done
+          };
+
+        } else if (record.type === "throw") {
+          state = GenStateCompleted;
+          // Dispatch the exception by looping back around to the
+          // context.dispatchException(context.arg) call above.
+          context.method = "throw";
+          context.arg = record.arg;
+        }
+      }
+    };
+  }
+
+  // Call delegate.iterator[context.method](context.arg) and handle the
+  // result, either by returning a { value, done } result from the
+  // delegate iterator, or by modifying context.method and context.arg,
+  // setting context.delegate to null, and returning the ContinueSentinel.
+  function maybeInvokeDelegate(delegate, context) {
+    var method = delegate.iterator[context.method];
+    if (method === undefined) {
+      // A .throw or .return when the delegate iterator has no .throw
+      // method always terminates the yield* loop.
+      context.delegate = null;
+
+      if (context.method === "throw") {
+        if (delegate.iterator.return) {
+          // If the delegate iterator has a return method, give it a
+          // chance to clean up.
+          context.method = "return";
+          context.arg = undefined;
+          maybeInvokeDelegate(delegate, context);
+
+          if (context.method === "throw") {
+            // If maybeInvokeDelegate(context) changed context.method from
+            // "return" to "throw", let that override the TypeError below.
+            return ContinueSentinel;
+          }
+        }
+
+        context.method = "throw";
+        context.arg = new TypeError(
+          "The iterator does not provide a 'throw' method");
+      }
+
+      return ContinueSentinel;
+    }
+
+    var record = tryCatch(method, delegate.iterator, context.arg);
+
+    if (record.type === "throw") {
+      context.method = "throw";
+      context.arg = record.arg;
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    var info = record.arg;
+
+    if (! info) {
+      context.method = "throw";
+      context.arg = new TypeError("iterator result is not an object");
+      context.delegate = null;
+      return ContinueSentinel;
+    }
+
+    if (info.done) {
+      // Assign the result of the finished delegate to the temporary
+      // variable specified by delegate.resultName (see delegateYield).
+      context[delegate.resultName] = info.value;
+
+      // Resume execution at the desired location (see delegateYield).
+      context.next = delegate.nextLoc;
+
+      // If context.method was "throw" but the delegate handled the
+      // exception, let the outer generator proceed normally. If
+      // context.method was "next", forget context.arg since it has been
+      // "consumed" by the delegate iterator. If context.method was
+      // "return", allow the original .return call to continue in the
+      // outer generator.
+      if (context.method !== "return") {
+        context.method = "next";
+        context.arg = undefined;
+      }
+
+    } else {
+      // Re-yield the result returned by the delegate method.
+      return info;
+    }
+
+    // The delegate iterator is finished, so forget it and continue with
+    // the outer generator.
+    context.delegate = null;
+    return ContinueSentinel;
+  }
+
+  // Define Generator.prototype.{next,throw,return} in terms of the
+  // unified ._invoke helper method.
+  defineIteratorMethods(Gp);
+
+  Gp[toStringTagSymbol] = "Generator";
+
+  // A Generator should always return itself as the iterator object when the
+  // @@iterator function is called on it. Some browsers' implementations of the
+  // iterator prototype chain incorrectly implement this, causing the Generator
+  // object to not be returned from this call. This ensures that doesn't happen.
+  // See https://github.com/facebook/regenerator/issues/274 for more details.
+  Gp[iteratorSymbol] = function() {
+    return this;
+  };
+
+  Gp.toString = function() {
+    return "[object Generator]";
+  };
+
+  function pushTryEntry(locs) {
+    var entry = { tryLoc: locs[0] };
+
+    if (1 in locs) {
+      entry.catchLoc = locs[1];
+    }
+
+    if (2 in locs) {
+      entry.finallyLoc = locs[2];
+      entry.afterLoc = locs[3];
+    }
+
+    this.tryEntries.push(entry);
+  }
+
+  function resetTryEntry(entry) {
+    var record = entry.completion || {};
+    record.type = "normal";
+    delete record.arg;
+    entry.completion = record;
+  }
+
+  function Context(tryLocsList) {
+    // The root entry object (effectively a try statement without a catch
+    // or a finally block) gives us a place to store values thrown from
+    // locations where there is no enclosing try statement.
+    this.tryEntries = [{ tryLoc: "root" }];
+    tryLocsList.forEach(pushTryEntry, this);
+    this.reset(true);
+  }
+
+  runtime.keys = function(object) {
+    var keys = [];
+    for (var key in object) {
+      keys.push(key);
+    }
+    keys.reverse();
+
+    // Rather than returning an object with a next method, we keep
+    // things simple and return the next function itself.
+    return function next() {
+      while (keys.length) {
+        var key = keys.pop();
+        if (key in object) {
+          next.value = key;
+          next.done = false;
+          return next;
+        }
+      }
+
+      // To avoid creating an additional object, we just hang the .value
+      // and .done properties off the next function object itself. This
+      // also ensures that the minifier will not anonymize the function.
+      next.done = true;
+      return next;
+    };
+  };
+
+  function values(iterable) {
+    if (iterable) {
+      var iteratorMethod = iterable[iteratorSymbol];
+      if (iteratorMethod) {
+        return iteratorMethod.call(iterable);
+      }
+
+      if (typeof iterable.next === "function") {
+        return iterable;
+      }
+
+      if (!isNaN(iterable.length)) {
+        var i = -1, next = function next() {
+          while (++i < iterable.length) {
+            if (hasOwn.call(iterable, i)) {
+              next.value = iterable[i];
+              next.done = false;
+              return next;
+            }
+          }
+
+          next.value = undefined;
+          next.done = true;
+
+          return next;
+        };
+
+        return next.next = next;
+      }
+    }
+
+    // Return an iterator with no values.
+    return { next: doneResult };
+  }
+  runtime.values = values;
+
+  function doneResult() {
+    return { value: undefined, done: true };
+  }
+
+  Context.prototype = {
+    constructor: Context,
+
+    reset: function(skipTempReset) {
+      this.prev = 0;
+      this.next = 0;
+      // Resetting context._sent for legacy support of Babel's
+      // function.sent implementation.
+      this.sent = this._sent = undefined;
+      this.done = false;
+      this.delegate = null;
+
+      this.method = "next";
+      this.arg = undefined;
+
+      this.tryEntries.forEach(resetTryEntry);
+
+      if (!skipTempReset) {
+        for (var name in this) {
+          // Not sure about the optimal order of these conditions:
+          if (name.charAt(0) === "t" &&
+              hasOwn.call(this, name) &&
+              !isNaN(+name.slice(1))) {
+            this[name] = undefined;
+          }
+        }
+      }
+    },
+
+    stop: function() {
+      this.done = true;
+
+      var rootEntry = this.tryEntries[0];
+      var rootRecord = rootEntry.completion;
+      if (rootRecord.type === "throw") {
+        throw rootRecord.arg;
+      }
+
+      return this.rval;
+    },
+
+    dispatchException: function(exception) {
+      if (this.done) {
+        throw exception;
+      }
+
+      var context = this;
+      function handle(loc, caught) {
+        record.type = "throw";
+        record.arg = exception;
+        context.next = loc;
+
+        if (caught) {
+          // If the dispatched exception was caught by a catch block,
+          // then let that catch block handle the exception normally.
+          context.method = "next";
+          context.arg = undefined;
+        }
+
+        return !! caught;
+      }
+
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        var record = entry.completion;
+
+        if (entry.tryLoc === "root") {
+          // Exception thrown outside of any try block that could handle
+          // it, so set the completion value of the entire function to
+          // throw the exception.
+          return handle("end");
+        }
+
+        if (entry.tryLoc <= this.prev) {
+          var hasCatch = hasOwn.call(entry, "catchLoc");
+          var hasFinally = hasOwn.call(entry, "finallyLoc");
+
+          if (hasCatch && hasFinally) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            } else if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else if (hasCatch) {
+            if (this.prev < entry.catchLoc) {
+              return handle(entry.catchLoc, true);
+            }
+
+          } else if (hasFinally) {
+            if (this.prev < entry.finallyLoc) {
+              return handle(entry.finallyLoc);
+            }
+
+          } else {
+            throw new Error("try statement without catch or finally");
+          }
+        }
+      }
+    },
+
+    abrupt: function(type, arg) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc <= this.prev &&
+            hasOwn.call(entry, "finallyLoc") &&
+            this.prev < entry.finallyLoc) {
+          var finallyEntry = entry;
+          break;
+        }
+      }
+
+      if (finallyEntry &&
+          (type === "break" ||
+           type === "continue") &&
+          finallyEntry.tryLoc <= arg &&
+          arg <= finallyEntry.finallyLoc) {
+        // Ignore the finally entry if control is not jumping to a
+        // location outside the try/catch block.
+        finallyEntry = null;
+      }
+
+      var record = finallyEntry ? finallyEntry.completion : {};
+      record.type = type;
+      record.arg = arg;
+
+      if (finallyEntry) {
+        this.method = "next";
+        this.next = finallyEntry.finallyLoc;
+        return ContinueSentinel;
+      }
+
+      return this.complete(record);
+    },
+
+    complete: function(record, afterLoc) {
+      if (record.type === "throw") {
+        throw record.arg;
+      }
+
+      if (record.type === "break" ||
+          record.type === "continue") {
+        this.next = record.arg;
+      } else if (record.type === "return") {
+        this.rval = this.arg = record.arg;
+        this.method = "return";
+        this.next = "end";
+      } else if (record.type === "normal" && afterLoc) {
+        this.next = afterLoc;
+      }
+
+      return ContinueSentinel;
+    },
+
+    finish: function(finallyLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.finallyLoc === finallyLoc) {
+          this.complete(entry.completion, entry.afterLoc);
+          resetTryEntry(entry);
+          return ContinueSentinel;
+        }
+      }
+    },
+
+    "catch": function(tryLoc) {
+      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
+        var entry = this.tryEntries[i];
+        if (entry.tryLoc === tryLoc) {
+          var record = entry.completion;
+          if (record.type === "throw") {
+            var thrown = record.arg;
+            resetTryEntry(entry);
+          }
+          return thrown;
+        }
+      }
+
+      // The context.catch method must only be called with a location
+      // argument that corresponds to a known catch block.
+      throw new Error("illegal catch attempt");
+    },
+
+    delegateYield: function(iterable, resultName, nextLoc) {
+      this.delegate = {
+        iterator: values(iterable),
+        resultName: resultName,
+        nextLoc: nextLoc
+      };
+
+      if (this.method === "next") {
+        // Deliberately forget the last sent value so that we don't
+        // accidentally pass it on to the delegate.
+        this.arg = undefined;
+      }
+
+      return ContinueSentinel;
+    }
+  };
+})(
+  // In sloppy mode, unbound `this` refers to the global object, fallback to
+  // Function constructor if we're in global strict mode. That is sadly a form
+  // of indirect eval which violates Content Security Policy.
+  (function() { return this })() || Function("return this")()
+);
+
+
+/***/ }),
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(31)
+  __webpack_require__(187)
 }
-var normalizeComponent = __webpack_require__(3)
+var normalizeComponent = __webpack_require__(2)
 /* script */
-var __vue_script__ = __webpack_require__(33)
+var __vue_script__ = __webpack_require__(36)
 /* template */
-var __vue_template__ = __webpack_require__(34)
+var __vue_template__ = __webpack_require__(37)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -17676,51 +18424,64 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 31 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(32);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("d1a054a6", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue", function() {
-     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 32 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 33 */
+/* 34 */,
+/* 35 */,
+/* 36 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -17839,6 +18600,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     data: function data() {
         return {
             showLoadInFile: false,
+            showDownloadInFile: false,
             selectSemester: 3,
             updateWorkers: false
         };
@@ -17883,7 +18645,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 34 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -17996,15 +18758,169 @@ var render = function() {
         { staticClass: "allotment_toolbox__element" },
         [
           _c(
-            "v-btn",
+            "v-dialog",
             {
-              attrs: {
-                outline: "",
-                color: "primary",
-                title: "Выгрузить в файл"
+              attrs: { width: "500" },
+              model: {
+                value: _vm.showDownloadInFile,
+                callback: function($$v) {
+                  _vm.showDownloadInFile = $$v
+                },
+                expression: "showDownloadInFile"
               }
             },
-            [_c("v-icon", [_vm._v("cloud_download")])],
+            [
+              _c(
+                "v-btn",
+                {
+                  attrs: {
+                    slot: "activator",
+                    outline: "",
+                    color: "primary",
+                    title: "Выгрузить в файл"
+                  },
+                  slot: "activator"
+                },
+                [_c("v-icon", [_vm._v("cloud_download")])],
+                1
+              ),
+              _vm._v(" "),
+              _c("v-card", [
+                _c(
+                  "form",
+                  {
+                    attrs: {
+                      method: "post",
+                      action: "/allotments/download_allotment",
+                      enctype: "multipart/form-data"
+                    }
+                  },
+                  [
+                    _c(
+                      "v-card-title",
+                      {
+                        staticClass: "headline grey lighten-2",
+                        attrs: { "primary-title": "" }
+                      },
+                      [
+                        _vm._v(
+                          "\n                        Выберите файл\n                    "
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "v-card-text",
+                      [
+                        _c("input", {
+                          attrs: { type: "hidden", name: "_token" },
+                          domProps: { value: _vm.$store.getters.csrf }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: {
+                            type: "hidden",
+                            name: "allotment_id",
+                            required: ""
+                          },
+                          domProps: {
+                            value: _vm.$store.state.currentAllotment.id
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: { type: "file", name: "file", required: "" }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: {
+                            type: "hidden",
+                            name: "semester",
+                            required: ""
+                          },
+                          domProps: { value: _vm.selectSemester }
+                        }),
+                        _vm._v(" "),
+                        _c("v-select", {
+                          attrs: {
+                            color: "primary",
+                            items: _vm.$store.state.semesters,
+                            label: "Семестр"
+                          },
+                          model: {
+                            value: _vm.selectSemester,
+                            callback: function($$v) {
+                              _vm.selectSemester = $$v
+                            },
+                            expression: "selectSemester"
+                          }
+                        }),
+                        _vm._v(" "),
+                        _c("input", {
+                          attrs: { type: "hidden", name: "update_workers" },
+                          domProps: { value: _vm.updateWorkers }
+                        }),
+                        _vm._v(" "),
+                        _c("v-checkbox", {
+                          attrs: {
+                            label:
+                              "Добавить недостающих преподавателей (максимум 10)"
+                          },
+                          model: {
+                            value: _vm.updateWorkers,
+                            callback: function($$v) {
+                              _vm.updateWorkers = $$v
+                            },
+                            expression: "updateWorkers"
+                          }
+                        })
+                      ],
+                      1
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "v-card-actions",
+                      [
+                        _c(
+                          "v-btn",
+                          {
+                            attrs: {
+                              color: "success",
+                              flat: "",
+                              type: "submit"
+                            }
+                          },
+                          [
+                            _vm._v(
+                              "\n                            Загрузить\n                        "
+                            )
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c(
+                          "v-btn",
+                          {
+                            attrs: { color: "", flat: "" },
+                            on: {
+                              click: function($event) {
+                                _vm.showDownloadInFile = false
+                              }
+                            }
+                          },
+                          [
+                            _vm._v(
+                              "\n                            Отмена\n                        "
+                            )
+                          ]
+                        )
+                      ],
+                      1
+                    )
+                  ],
+                  1
+                )
+              ])
+            ],
             1
           )
         ],
@@ -18232,7 +19148,7 @@ if (false) {
 }
 
 /***/ }),
-/* 35 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -18247,6 +19163,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "div",
+        { staticClass: "page-hi__nav" },
         [
           _c(
             "v-breadcrumbs",
@@ -18292,7 +19209,7 @@ var render = function() {
               _vm.isNotSetings
                 ? _c(
                     "v-card",
-                    { staticClass: "disciplines" },
+                    { staticClass: "disciplines page-hi__column" },
                     [
                       _c("v-toolbar", { staticClass: "header white--text" }, [
                         _c("div", { staticClass: "subheading" }, [
@@ -18361,7 +19278,7 @@ var render = function() {
               _vm.isDisciplineSetings
                 ? _c(
                     "v-card",
-                    { staticClass: "groups" },
+                    { staticClass: "groups page-hi__column" },
                     [
                       _c("v-toolbar", { staticClass: "header white--text" }, [
                         _c("div", { staticClass: "subheading" }, [
@@ -18430,7 +19347,7 @@ var render = function() {
               _vm.isGroupSetings || _vm.isLoadElementSetings
                 ? _c(
                     "v-card",
-                    { staticClass: "jobs" },
+                    { staticClass: "jobs page-hi__column" },
                     [
                       _c("v-toolbar", { staticClass: "header white--text" }, [
                         _c("div", { staticClass: "subheading" }, [
@@ -18529,7 +19446,7 @@ var render = function() {
             [
               _c(
                 "v-card",
-                { staticClass: "settings" },
+                { staticClass: "settings page-hi__column" },
                 [
                   _c("v-toolbar", { staticClass: "header white--text" }, [
                     _c("div", { staticClass: "subheading" }, [
@@ -19265,15 +20182,11428 @@ if (false) {
 }
 
 /***/ }),
-/* 36 */
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(191)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(42)
+/* template */
+var __vue_template__ = __webpack_require__(43)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdmin.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-0f6b25e0", Component.options)
+  } else {
+    hotAPI.reload("data-v-0f6b25e0", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 40 */,
+/* 41 */,
+/* 42 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(37);
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdmin",
+    components: {},
+    data: function data() {
+        return {
+
+            paths: [{ 'name': 'Пользователи', 'path': '/admin/user' }, //
+            { 'name': 'Корпуса', 'path': '/admin/building' }, //
+            { 'name': 'Аудитории', 'path': '/admin/classroom' }, //
+            { 'name': 'Преподаватели', 'path': '/admin/worker' }, //
+            { 'name': 'Дисциплины', 'path': '/admin/discipline' }, //
+            { 'name': 'Факультеты', 'path': '/admin/faculty' }, //
+            { 'name': 'Потоки', 'path': '/admin/flow' }, //
+            { 'name': 'Группы', 'path': '/admin/group' }, //
+            { 'name': 'Должности', 'path': '/admin/position' }, //
+            { 'name': 'Квалификации', 'path': '/admin/qualification' }, //
+            { 'name': 'Требования ФГОС', 'path': '/admin/requirement_fgos' }, //
+            { 'name': 'Роли', 'path': '/admin/roles' }, //
+            { 'name': 'Направления подготовки', 'path': '/admin/specialty' }, //
+            { 'name': 'Типы занятий', 'path': '/admin/type_class' }, //
+            { 'name': 'Остепенеённость преподавателей', 'path': '/admin/degrees_worker' }, { 'name': 'Должности преподавателей', 'path': '/admin/position_worker' }, { 'name': 'Ставка преподавателей', 'path': '/admin/rate_worker' }, { 'name': 'Штатность преподавателей', 'path': '/admin/staff_worker' }, { 'name': 'Базовое образование преподавателей', 'path': '/admin/trained_worker' }]
+        };
+    },
+
+    computed: {},
+    methods: {},
+
+    beforeMount: function beforeMount() {}
+});
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-admin page-admin__column" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Разделы")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-admin__list" },
+                [
+                  _vm._l(_vm.paths, function(item, index) {
+                    return [
+                      _c(
+                        "router-link",
+                        { attrs: { to: item.path } },
+                        [
+                          _c(
+                            "v-list-tile",
+                            { attrs: { ripple: "" } },
+                            [
+                              _c(
+                                "v-list-tile-content",
+                                [
+                                  _c("v-list-tile-title", [
+                                    _vm._v(_vm._s(item.name))
+                                  ])
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-0f6b25e0", module.exports)
+  }
+}
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(45)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(47)
+/* template */
+var __vue_template__ = __webpack_require__(48)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminRole.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-dc820914", Component.options)
+  } else {
+    hotAPI.reload("data-v-dc820914", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(46);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("709b1aec", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc820914\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRole.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc820914\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRole.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 47 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminRole",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            public_name: ''
+        };
+    },
+
+    computed: {
+        currentRoleModel: {
+            get: function get() {
+                return this.$store.state.currentRole;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentRole', value: value });
+            }
+        },
+        roleNameModel: {
+            get: function get() {
+                return this.$store.state.currentRole.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRole, { name: value });
+                this.$store.commit('setData', { path: 'currentRole', value: value });
+            }
+        },
+        rolePublicNameModel: {
+            get: function get() {
+                return this.$store.state.currentRole.public_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRole, { public_name: value });
+                this.$store.commit('setData', { path: 'currentRole', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateRoles');
+        },
+        updateRole: function updateRole() {
+            this.$store.dispatch('editRole');
+        },
+        createRole: function createRole() {
+            var params = {
+                'name': this.name,
+                'public_name': this.public_name
+            };
+            this.$store.dispatch('createRole', params);
+        },
+        deleteRole: function deleteRole() {
+            this.$store.dispatch('removeRole');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-roles stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Роли")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-roles__list", attrs: { "two-line": "" } },
+                [
+                  _vm._l(_vm.$store.state.roles, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentRoleModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.public_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [_vm._v("Системное имя: " + _vm._s(item.name))]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры роли")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentRole).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Системное имя",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.roleNameModel,
+                                              callback: function($$v) {
+                                                _vm.roleNameModel = $$v
+                                              },
+                                              expression: "roleNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Публичное имя",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.rolePublicNameModel,
+                                              callback: function($$v) {
+                                                _vm.rolePublicNameModel = $$v
+                                              },
+                                              expression: "rolePublicNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateRole }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteRole }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите роль...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_role" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая роль")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Системное имя", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "Публичное имя", required: "" },
+                                model: {
+                                  value: _vm.public_name,
+                                  callback: function($$v) {
+                                    _vm.public_name = $$v
+                                  },
+                                  expression: "public_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createRole }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-dc820914", module.exports)
+  }
+}
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(50)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(52)
+/* template */
+var __vue_template__ = __webpack_require__(53)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminTypeClass.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-f92240e4", Component.options)
+  } else {
+    hotAPI.reload("data-v-f92240e4", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(51);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("4113ce3e", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-f92240e4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTypeClass.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-f92240e4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTypeClass.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 52 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminTypeClass",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            full_name: ''
+        };
+    },
+
+    computed: {
+        currentTypeClassModel: {
+            get: function get() {
+                return this.$store.state.currentTypeClass;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentTypeClass', value: value });
+            }
+        },
+        typeClassNameModel: {
+            get: function get() {
+                return this.$store.state.currentTypeClass.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentTypeClass, { name: value });
+                this.$store.commit('setData', { path: 'currentTypeClass', value: value });
+            }
+        },
+        typeClassFullNameModel: {
+            get: function get() {
+                return this.$store.state.currentTypeClass.full_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentTypeClass, { full_name: value });
+                this.$store.commit('setData', { path: 'currentTypeClass', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateTypeClass');
+        },
+        updateTypeClass: function updateTypeClass() {
+            this.$store.dispatch('editTypeClass');
+        },
+        createTypeClass: function createTypeClass() {
+            var params = {
+                'name': this.name,
+                'full_name': this.full_name
+            };
+            this.$store.dispatch('createTypeClass', params);
+        },
+        deleteTypeClass: function deleteTypeClass() {
+            this.$store.dispatch('removeTypeClass');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 53 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-type-class stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Виды занятий")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-type-class__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.typeClass, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentTypeClassModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.full_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Краткое название: " + _vm._s(item.name)
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры типа занятия")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentTypeClass).length !==
+                      0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "краткое название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.typeClassNameModel,
+                                              callback: function($$v) {
+                                                _vm.typeClassNameModel = $$v
+                                              },
+                                              expression: "typeClassNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Полное название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.typeClassFullNameModel,
+                                              callback: function($$v) {
+                                                _vm.typeClassFullNameModel = $$v
+                                              },
+                                              expression:
+                                                "typeClassFullNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateTypeClass }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteTypeClass }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите тип занятия...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_type-class" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый тип занятия")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Краткое название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Полное название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.full_name,
+                                  callback: function($$v) {
+                                    _vm.full_name = $$v
+                                  },
+                                  expression: "full_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createTypeClass }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-f92240e4", module.exports)
+  }
+}
+
+/***/ }),
+/* 54 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(55)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(57)
+/* template */
+var __vue_template__ = __webpack_require__(58)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminQualification.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-8e2bbac2", Component.options)
+  } else {
+    hotAPI.reload("data-v-8e2bbac2", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(56);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("c075cdd4", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-8e2bbac2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminQualification.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-8e2bbac2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminQualification.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 56 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 57 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminQualification",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            literal: ''
+        };
+    },
+
+    computed: {
+        currentQualificationModel: {
+            get: function get() {
+                return this.$store.state.currentQualification;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentQualification', value: value });
+            }
+        },
+        qualificationNameModel: {
+            get: function get() {
+                return this.$store.state.currentQualification.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentQualification, { name: value });
+                this.$store.commit('setData', { path: 'currentQualification', value: value });
+            }
+        },
+        qualificationLiteralModel: {
+            get: function get() {
+                return this.$store.state.currentQualification.literal;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentQualification, { literal: value });
+                this.$store.commit('setData', { path: 'currentQualification', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateQualification');
+        },
+        updateQualification: function updateQualification() {
+            this.$store.dispatch('editQualification');
+        },
+        createQualification: function createQualification() {
+            var params = {
+                'name': this.name,
+                'literal': this.literal
+            };
+            this.$store.dispatch('createQualification', params);
+        },
+        deleteQualification: function deleteQualification() {
+            this.$store.dispatch('removeQualification');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 58 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-qualification stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Квалификации")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-qualification__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.qualifications, function(
+                    item,
+                    index
+                  ) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentQualificationModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [_vm._v("Обозначение: " + _vm._s(item.literal))]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры квалификации")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentQualification)
+                        .length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.qualificationNameModel,
+                                              callback: function($$v) {
+                                                _vm.qualificationNameModel = $$v
+                                              },
+                                              expression:
+                                                "qualificationNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Обозначение",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.qualificationLiteralModel,
+                                              callback: function($$v) {
+                                                _vm.qualificationLiteralModel = $$v
+                                              },
+                                              expression:
+                                                "qualificationLiteralModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: {
+                                                click: _vm.updateQualification
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: {
+                                                click: _vm.deleteQualification
+                                              }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите квалификацию...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_type-class" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая квалификация")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Название", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "Обозначение", required: "" },
+                                model: {
+                                  value: _vm.literal,
+                                  callback: function($$v) {
+                                    _vm.literal = $$v
+                                  },
+                                  expression: "literal"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createQualification }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-8e2bbac2", module.exports)
+  }
+}
+
+/***/ }),
+/* 59 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(60)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(62)
+/* template */
+var __vue_template__ = __webpack_require__(63)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminPosition.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-0f9ae2ae", Component.options)
+  } else {
+    hotAPI.reload("data-v-0f9ae2ae", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(61);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("4a6c9300", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f9ae2ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPosition.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f9ae2ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPosition.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 61 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 62 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminPosition",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            full_name: ''
+        };
+    },
+
+    computed: {
+        currentPositionModel: {
+            get: function get() {
+                return this.$store.state.currentPosition;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentPosition', value: value });
+            }
+        },
+        positionNameModel: {
+            get: function get() {
+                return this.$store.state.currentPosition.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentPosition, { name: value });
+                this.$store.commit('setData', { path: 'currentPosition', value: value });
+            }
+        },
+        positionFullNameModel: {
+            get: function get() {
+                return this.$store.state.currentPosition.full_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentPosition, { full_name: value });
+                this.$store.commit('setData', { path: 'currentPosition', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updatePosition');
+        },
+        updatePosition: function updatePosition() {
+            this.$store.dispatch('editPosition');
+        },
+        createPosition: function createPosition() {
+            var params = {
+                'name': this.name,
+                'full_name': this.full_name
+            };
+            this.$store.dispatch('createPosition', params);
+        },
+        deletePosition: function deletePosition() {
+            this.$store.dispatch('removePosition');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 63 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-position stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Должности")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-position__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.positions, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentPositionModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.full_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Краткое название: " + _vm._s(item.name)
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры должности")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentPosition).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "краткое название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.positionNameModel,
+                                              callback: function($$v) {
+                                                _vm.positionNameModel = $$v
+                                              },
+                                              expression: "positionNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Полное название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.positionFullNameModel,
+                                              callback: function($$v) {
+                                                _vm.positionFullNameModel = $$v
+                                              },
+                                              expression:
+                                                "positionFullNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updatePosition }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deletePosition }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите должность...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_position" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая должность")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Краткое название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Полное название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.full_name,
+                                  callback: function($$v) {
+                                    _vm.full_name = $$v
+                                  },
+                                  expression: "full_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createPosition }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-0f9ae2ae", module.exports)
+  }
+}
+
+/***/ }),
+/* 64 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(65)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(67)
+/* template */
+var __vue_template__ = __webpack_require__(68)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminFaculty.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-5d38ee94", Component.options)
+  } else {
+    hotAPI.reload("data-v-5d38ee94", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 65 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(66);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("5dc9261c", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-5d38ee94\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFaculty.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-5d38ee94\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFaculty.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 66 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 67 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminFaculty",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            full_name: ''
+        };
+    },
+
+    computed: {
+        currentFacultyModel: {
+            get: function get() {
+                return this.$store.state.currentFaculty;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentFaculty', value: value });
+            }
+        },
+        facultyNameModel: {
+            get: function get() {
+                return this.$store.state.currentFaculty.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentFaculty, { name: value });
+                this.$store.commit('setData', { path: 'currentFaculty', value: value });
+            }
+        },
+        facultyFullNameModel: {
+            get: function get() {
+                return this.$store.state.currentFaculty.full_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentFaculty, { full_name: value });
+                this.$store.commit('setData', { path: 'currentFaculty', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateFaculty');
+        },
+        updateFaculty: function updateFaculty() {
+            this.$store.dispatch('editFaculty');
+        },
+        createFaculty: function createFaculty() {
+            var params = {
+                'name': this.name,
+                'full_name': this.full_name
+            };
+            this.$store.dispatch('createFaculty', params);
+        },
+        deleteFaculty: function deleteFaculty() {
+            this.$store.dispatch('removeFaculty');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 68 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-faculty stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Факультеты")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-faculty__list", attrs: { "two-line": "" } },
+                [
+                  _vm._l(_vm.$store.state.faculties, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentFacultyModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.full_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Краткое название: " + _vm._s(item.name)
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры факультета")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentFaculty).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Краткое название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.facultyNameModel,
+                                              callback: function($$v) {
+                                                _vm.facultyNameModel = $$v
+                                              },
+                                              expression: "facultyNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Полное название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.facultyFullNameModel,
+                                              callback: function($$v) {
+                                                _vm.facultyFullNameModel = $$v
+                                              },
+                                              expression: "facultyFullNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateFaculty }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteFaculty }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите факультет...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_faculty" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый факультет")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Краткое название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Полное название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.full_name,
+                                  callback: function($$v) {
+                                    _vm.full_name = $$v
+                                  },
+                                  expression: "full_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createFaculty }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-5d38ee94", module.exports)
+  }
+}
+
+/***/ }),
+/* 69 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(70)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(72)
+/* template */
+var __vue_template__ = __webpack_require__(73)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminDiscipline.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-749e4920", Component.options)
+  } else {
+    hotAPI.reload("data-v-749e4920", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 70 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(71);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("c487c93a", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-749e4920\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDiscipline.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-749e4920\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDiscipline.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 71 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 72 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminDiscipline",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            full_name: ''
+        };
+    },
+
+    computed: {
+        currentDisciplineModel: {
+            get: function get() {
+                return this.$store.state.currentDiscipline;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentDiscipline', value: value });
+            }
+        },
+        disciplineNameModel: {
+            get: function get() {
+                return this.$store.state.currentDiscipline.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentDiscipline, { name: value });
+                this.$store.commit('setData', { path: 'currentDiscipline', value: value });
+            }
+        },
+        disciplineFullNameModel: {
+            get: function get() {
+                return this.$store.state.currentDiscipline.full_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentDiscipline, { full_name: value });
+                this.$store.commit('setData', { path: 'currentDiscipline', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateDiscipline');
+        },
+        updateDiscipline: function updateDiscipline() {
+            this.$store.dispatch('editDiscipline');
+        },
+        createDiscipline: function createDiscipline() {
+            var params = {
+                'name': this.name,
+                'full_name': this.full_name
+            };
+            this.$store.dispatch('createDiscipline', params);
+        },
+        deleteDiscipline: function deleteDiscipline() {
+            this.$store.dispatch('removeDiscipline');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 73 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-discipline stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Дисциплины")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-discipline__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.disciplines, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentDisciplineModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.full_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Краткое название: " + _vm._s(item.name)
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры дисциплины")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentDiscipline).length !==
+                      0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Краткое название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.disciplineNameModel,
+                                              callback: function($$v) {
+                                                _vm.disciplineNameModel = $$v
+                                              },
+                                              expression: "disciplineNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Полное название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.disciplineFullNameModel,
+                                              callback: function($$v) {
+                                                _vm.disciplineFullNameModel = $$v
+                                              },
+                                              expression:
+                                                "disciplineFullNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: {
+                                                click: _vm.updateDiscipline
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: {
+                                                click: _vm.deleteDiscipline
+                                              }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите дисциплину...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_discipline" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая дисциплина")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Краткое название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Полное название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.full_name,
+                                  callback: function($$v) {
+                                    _vm.full_name = $$v
+                                  },
+                                  expression: "full_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createDiscipline }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-749e4920", module.exports)
+  }
+}
+
+/***/ }),
+/* 74 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(75)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(77)
+/* template */
+var __vue_template__ = __webpack_require__(78)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminBuilding.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-88c76a98", Component.options)
+  } else {
+    hotAPI.reload("data-v-88c76a98", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 75 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(76);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("6c3ef091", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-88c76a98\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminBuilding.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-88c76a98\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminBuilding.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 76 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 77 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminBuilding",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            full_name: '',
+            address: ''
+        };
+    },
+
+    computed: {
+        currentBuildingModel: {
+            get: function get() {
+                return this.$store.state.currentBuilding;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentBuilding', value: value });
+            }
+        },
+        buildingNameModel: {
+            get: function get() {
+                return this.$store.state.currentBuilding.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentBuilding, { name: value });
+                this.$store.commit('setData', { path: 'currentBuilding', value: value });
+            }
+        },
+        buildingFullNameModel: {
+            get: function get() {
+                return this.$store.state.currentBuilding.full_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentBuilding, { full_name: value });
+                this.$store.commit('setData', { path: 'currentBuilding', value: value });
+            }
+        },
+        buildingAddressModel: {
+            get: function get() {
+                return this.$store.state.currentBuilding.address;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentBuilding, { address: value });
+                this.$store.commit('setData', { path: 'currentBuilding', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateBuilding');
+        },
+        updateBuilding: function updateBuilding() {
+            this.$store.dispatch('editBuilding');
+        },
+        createBuilding: function createBuilding() {
+            var params = {
+                'name': this.name,
+                'full_name': this.full_name,
+                'address': this.address
+            };
+            this.$store.dispatch('createBuilding', params);
+        },
+        deleteBuilding: function deleteBuilding() {
+            this.$store.dispatch('removeBuilding');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 78 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-building stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Учебные корпуса")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-building__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.buildings, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentBuildingModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.full_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Краткое название: " + _vm._s(item.name)
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры корпуса")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentBuilding).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Краткое название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.buildingNameModel,
+                                              callback: function($$v) {
+                                                _vm.buildingNameModel = $$v
+                                              },
+                                              expression: "buildingNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Полное название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.buildingFullNameModel,
+                                              callback: function($$v) {
+                                                _vm.buildingFullNameModel = $$v
+                                              },
+                                              expression:
+                                                "buildingFullNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-textarea", {
+                                            attrs: { label: "Адрес" },
+                                            model: {
+                                              value: _vm.buildingAddressModel,
+                                              callback: function($$v) {
+                                                _vm.buildingAddressModel = $$v
+                                              },
+                                              expression: "buildingAddressModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateBuilding }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteBuilding }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите корпус...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_building" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый учебный корпус")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Краткое название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Полное название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.full_name,
+                                  callback: function($$v) {
+                                    _vm.full_name = $$v
+                                  },
+                                  expression: "full_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-textarea", {
+                                attrs: { label: "Адрес" },
+                                model: {
+                                  value: _vm.address,
+                                  callback: function($$v) {
+                                    _vm.address = $$v
+                                  },
+                                  expression: "address"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createBuilding }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-88c76a98", module.exports)
+  }
+}
+
+/***/ }),
+/* 79 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(80)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(82)
+/* template */
+var __vue_template__ = __webpack_require__(83)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminClassroom.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-04deed03", Component.options)
+  } else {
+    hotAPI.reload("data-v-04deed03", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 80 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(81);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("33e886fc", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-04deed03\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminClassroom.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-04deed03\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminClassroom.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 81 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 82 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminClassroom",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentClassroomModel: {
+            get: function get() {
+                return this.$store.state.currentClassroom;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentClassroom', value: value });
+            }
+        },
+        classroomNameModel: {
+            get: function get() {
+                return this.$store.state.currentClassroom.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentClassroom, { name: value });
+                this.$store.commit('setData', { path: 'currentClassroom', value: value });
+            }
+        },
+        classroomBuildingModel: {
+            get: function get() {
+                var _this = this;
+
+                var building = this.$store.state.buildings.find(function (c) {
+                    return c.id == _this.$store.state.currentClassroom.building_id;
+                }) || null;
+                return building;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentClassroom, { building_id: value.id });
+                this.$store.commit('setData', { path: 'currentClassroom', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getBuildingName: function getBuildingName(id) {
+            var building = this.$store.state.buildings.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(building).length !== 0 ? building.full_name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateClassroom');
+        },
+        updateClassroom: function updateClassroom() {
+            this.$store.dispatch('editClassroom');
+        },
+        createClassroom: function createClassroom() {
+            var params = {
+                'name': this.name,
+                'building_id': this.building.id
+            };
+            this.$store.dispatch('createClassroom', params);
+        },
+        deleteClassroom: function deleteClassroom() {
+            this.$store.dispatch('removeClassroom');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 83 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-classroom stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Аудитории")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-classroom__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.classrooms, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentClassroomModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Корпус: " +
+                                      _vm._s(
+                                        _vm.getBuildingName(item.building_id)
+                                      )
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры аудитории")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentClassroom).length !==
+                      0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.classroomNameModel,
+                                              callback: function($$v) {
+                                                _vm.classroomNameModel = $$v
+                                              },
+                                              expression: "classroomNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.buildings,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Корпус",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.classroomBuildingModel,
+                                              callback: function($$v) {
+                                                _vm.classroomBuildingModel = $$v
+                                              },
+                                              expression:
+                                                "classroomBuildingModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateClassroom }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteClassroom }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите аудиторию...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_classroom" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая аудитория")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Название", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.buildings,
+                                  "item-value": "id",
+                                  "item-text": "full_name",
+                                  label: "Корпус",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.building,
+                                  callback: function($$v) {
+                                    _vm.building = $$v
+                                  },
+                                  expression: "building"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createClassroom }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-04deed03", module.exports)
+  }
+}
+
+/***/ }),
+/* 84 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(85)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(87)
+/* template */
+var __vue_template__ = __webpack_require__(88)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminSpecialty.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-56a013a4", Component.options)
+  } else {
+    hotAPI.reload("data-v-56a013a4", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 85 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(86);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("7e9a7fda", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-56a013a4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminSpecialty.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-56a013a4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminSpecialty.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 86 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 87 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminSpecialty",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            full_name: '',
+            faculty: null,
+            qualification: null
+        };
+    },
+
+    computed: {
+        currentSpecialtyModel: {
+            get: function get() {
+                return this.$store.state.currentSpecialty;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
+            }
+        },
+        specialtyNameModel: {
+            get: function get() {
+                return this.$store.state.currentSpecialty.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentSpecialty, { name: value });
+                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
+            }
+        },
+        specialtyFullNameModel: {
+            get: function get() {
+                return this.$store.state.currentSpecialty.full_name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentSpecialty, { full_name: value });
+                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
+            }
+        },
+        specialtyFacultyModel: {
+            get: function get() {
+                var _this = this;
+
+                var faculty = this.$store.state.faculties.find(function (c) {
+                    return c.id == _this.$store.state.currentSpecialty.faculty_id;
+                }) || null;
+                return faculty;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentSpecialty, { faculty_id: value.id });
+                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
+            }
+        },
+        specialtyQualificationModel: {
+            get: function get() {
+                var _this2 = this;
+
+                var qualification = this.$store.state.qualifications.find(function (c) {
+                    return c.id == _this2.$store.state.currentSpecialty.qualification_id;
+                }) || null;
+                return qualification;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentSpecialty, { qualification_id: value.id });
+                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getFacultyName: function getFacultyName(id) {
+            var faculty = this.$store.state.faculties.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(faculty).length !== 0 ? faculty.full_name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateSpecialty');
+        },
+        updateSpecialty: function updateSpecialty() {
+            this.$store.dispatch('editSpecialty');
+        },
+        createSpecialty: function createSpecialty() {
+            var params = {
+                'name': this.name,
+                'full_name': this.full_name,
+                'faculty_id': this.faculty.id,
+                'qualification_id': this.qualification.id
+            };
+            this.$store.dispatch('createSpecialty', params);
+        },
+        deleteSpecialty: function deleteSpecialty() {
+            this.$store.dispatch('removeSpecialty');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 88 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-specialty stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Направления подготовки")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-specialty__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.specialties, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentSpecialtyModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.full_name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Корпус: " +
+                                      _vm._s(
+                                        _vm.getFacultyName(item.faculty_id)
+                                      )
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры направления подготовки")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentSpecialty).length !==
+                      0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Краткое название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.specialtyNameModel,
+                                              callback: function($$v) {
+                                                _vm.specialtyNameModel = $$v
+                                              },
+                                              expression: "specialtyNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Полное название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.specialtyFullNameModel,
+                                              callback: function($$v) {
+                                                _vm.specialtyFullNameModel = $$v
+                                              },
+                                              expression:
+                                                "specialtyFullNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.faculties,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Факультет",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.specialtyFacultyModel,
+                                              callback: function($$v) {
+                                                _vm.specialtyFacultyModel = $$v
+                                              },
+                                              expression:
+                                                "specialtyFacultyModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.qualifications,
+                                              "item-value": "id",
+                                              "item-text": "name",
+                                              label: "Квалификация",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.specialtyQualificationModel,
+                                              callback: function($$v) {
+                                                _vm.specialtyQualificationModel = $$v
+                                              },
+                                              expression:
+                                                "specialtyQualificationModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateSpecialty }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteSpecialty }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите направление подготовки...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_specialty" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новое направление подготовки")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Краткое название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  label: "Полное название",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.full_name,
+                                  callback: function($$v) {
+                                    _vm.full_name = $$v
+                                  },
+                                  expression: "full_name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.faculties,
+                                  "item-value": "id",
+                                  "item-text": "full_name",
+                                  label: "Факультет",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.faculty,
+                                  callback: function($$v) {
+                                    _vm.faculty = $$v
+                                  },
+                                  expression: "faculty"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.qualifications,
+                                  "item-value": "id",
+                                  "item-text": "name",
+                                  label: "Квалификация",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.qualification,
+                                  callback: function($$v) {
+                                    _vm.qualification = $$v
+                                  },
+                                  expression: "qualification"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createSpecialty }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-56a013a4", module.exports)
+  }
+}
+
+/***/ }),
+/* 89 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(90)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(92)
+/* template */
+var __vue_template__ = __webpack_require__(93)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminRequirementFgos.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-1f908f78", Component.options)
+  } else {
+    hotAPI.reload("data-v-1f908f78", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 90 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(91);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("04d85a50", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1f908f78\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRequirementFgos.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1f908f78\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRequirementFgos.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 91 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 92 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminRequirementFgos",
+    components: {},
+    data: function data() {
+        return {
+            specialty: '',
+            out_workers: '',
+            degrees: '',
+            inner_workers: '',
+            trained_worker: '',
+            year_begin: '',
+            year_end: '',
+            yearRules: [function (v) {
+                return !!v || 'Введите учебный год';
+            }, function (v) {
+                return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг-гггг'
+                );
+            }]
+        };
+    },
+
+    computed: {
+        currentRequirementFgosModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosOutWorkersModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.out_workers;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { out_workers: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosDegreesModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.degrees;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { degrees: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosInnerWorkersModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.inner_workers;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { inner_workers: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosTrainedWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.trained_worker;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { trained_worker: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosYearBeginModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.year_begin;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { year_begin: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosYearEndModel: {
+            get: function get() {
+                return this.$store.state.currentRequirementFgos.year_end;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { year_end: value });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        },
+        requirementFgosSpecialtyModel: {
+            get: function get() {
+                var _this = this;
+
+                var specialty = this.$store.state.specialties.find(function (c) {
+                    return c.id == _this.$store.state.currentRequirementFgos.specialty_id;
+                }) || null;
+                return specialty;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentRequirementFgos, { specialty_id: value.id });
+                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getSpecialtyName: function getSpecialtyName(id) {
+            var specialty = this.$store.state.specialties.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(specialty).length !== 0 ? specialty.full_name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateRequirementFgos');
+        },
+        updateRequirementFgos: function updateRequirementFgos() {
+            this.$store.dispatch('editRequirementFgos');
+        },
+        createRequirementFgos: function createRequirementFgos() {
+            var params = {
+                'specialty_id': this.specialty.id,
+                'out_workers': this.out_workers,
+                'degrees': this.degrees,
+                'inner_workers': this.inner_workers,
+                'trained_worker': this.trained_worker,
+                'year_begin': this.year_begin,
+                'year_end': this.year_end
+            };
+            this.$store.dispatch('createRequirementFgos', params);
+        },
+        deleteRequirementFgos: function deleteRequirementFgos() {
+            this.$store.dispatch('removeRequirementFgos');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 93 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-requirement-fgos stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Требования ФГОС")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {
+                  staticClass: "stl-requirement-fgos__list",
+                  attrs: { "two-line": "" }
+                },
+                [
+                  _vm._l(_vm.$store.state.requirementFgos, function(
+                    item,
+                    index
+                  ) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentRequirementFgosModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(
+                                  _vm._s(item.year_begin) +
+                                    "-" +
+                                    _vm._s(item.year_end)
+                                )
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Специальность: " +
+                                      _vm._s(
+                                        _vm.getSpecialtyName(item.specialty_id)
+                                      )
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры ФГОС")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentRequirementFgos)
+                        .length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.specialties,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Специальность",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosSpecialtyModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosSpecialtyModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosSpecialtyModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label:
+                                                "% работников сторонней профильной организации",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosOutWorkersModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosOutWorkersModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosOutWorkersModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label: "% остепенённости",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosDegreesModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosDegreesModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosDegreesModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label: "% штатных ППС",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosInnerWorkersModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosInnerWorkersModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosInnerWorkersModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label:
+                                                "% работников с наличием базового образования",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosTrainedWorkerModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosTrainedWorkerModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosTrainedWorkerModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              rules: _vm.yearRules,
+                                              counter: 4,
+                                              label: "Год начала",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosYearBeginModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosYearBeginModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosYearBeginModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              rules: _vm.yearRules,
+                                              counter: 4,
+                                              label: "Год окончания",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.requirementFgosYearEndModel,
+                                              callback: function($$v) {
+                                                _vm.requirementFgosYearEndModel = $$v
+                                              },
+                                              expression:
+                                                "requirementFgosYearEndModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: {
+                                                click: _vm.updateRequirementFgos
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: {
+                                                click: _vm.deleteRequirementFgos
+                                              }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите ФГОС...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_requirement-fgos" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый ФГОС")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.specialties,
+                                  "item-value": "id",
+                                  "item-text": "full_name",
+                                  label: "Специальность",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.specialty,
+                                  callback: function($$v) {
+                                    _vm.specialty = $$v
+                                  },
+                                  expression: "specialty"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label:
+                                    "% работников сторонней профильной организации",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.out_workers,
+                                  callback: function($$v) {
+                                    _vm.out_workers = $$v
+                                  },
+                                  expression: "out_workers"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label: "% остепенённости",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.degrees,
+                                  callback: function($$v) {
+                                    _vm.degrees = $$v
+                                  },
+                                  expression: "degrees"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label: "% штатных ППС",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.inner_workers,
+                                  callback: function($$v) {
+                                    _vm.inner_workers = $$v
+                                  },
+                                  expression: "inner_workers"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  label:
+                                    "% работников с наличием базового образования",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.trained_worker,
+                                  callback: function($$v) {
+                                    _vm.trained_worker = $$v
+                                  },
+                                  expression: "trained_worker"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  rules: _vm.yearRules,
+                                  counter: 4,
+                                  label: "Год начала",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.year_begin,
+                                  callback: function($$v) {
+                                    _vm.year_begin = $$v
+                                  },
+                                  expression: "year_begin"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  rules: _vm.yearRules,
+                                  counter: 4,
+                                  label: "Год окончания",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.year_end,
+                                  callback: function($$v) {
+                                    _vm.year_end = $$v
+                                  },
+                                  expression: "year_end"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createRequirementFgos }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-1f908f78", module.exports)
+  }
+}
+
+/***/ }),
+/* 94 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(95)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(97)
+/* template */
+var __vue_template__ = __webpack_require__(98)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminGroup.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-3c54cb2f", Component.options)
+  } else {
+    hotAPI.reload("data-v-3c54cb2f", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 95 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(96);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("3028fb1f", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-3c54cb2f\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminGroup.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-3c54cb2f\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminGroup.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 96 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 97 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminGroup",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            specialty: '',
+            year_begin: '',
+            is_full_time: true,
+            is_accelerated: false,
+            number_students: null,
+
+            yearRules: [function (v) {
+                return !!v || 'Введите учебный год';
+            }, function (v) {
+                return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг'
+                );
+            }]
+        };
+    },
+
+    computed: {
+        currentGroupModel: {
+            get: function get() {
+                return this.$store.state.currentGroup;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupNameModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { name: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupYearBeginModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.year_begin;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { year_begin: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupIsFullTimeModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.is_full_time;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { is_full_time: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupIsAcceleratedModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.is_accelerated;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { is_accelerated: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupNumberStudentsModel: {
+            get: function get() {
+                return this.$store.state.currentGroup.number_students;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { number_students: value });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        },
+        groupSpecialtyModel: {
+            get: function get() {
+                var _this = this;
+
+                var specialty = this.$store.state.specialties.find(function (c) {
+                    return c.id == _this.$store.state.currentGroup.specialty_id;
+                }) || null;
+                return specialty;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentGroup, { specialty_id: value.id });
+                this.$store.commit('setData', { path: 'currentGroup', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateGroup');
+        },
+        updateGroup: function updateGroup() {
+            this.$store.dispatch('editGroup');
+        },
+        createGroup: function createGroup() {
+            var params = {
+                'name': this.name,
+                'specialty_id': this.specialty.id,
+                'year_begin': this.year_begin,
+                'is_full_time': this.is_full_time,
+                'is_accelerated': this.is_accelerated,
+                'number_students': this.number_students
+            };
+            this.$store.dispatch('createGroup', params);
+        },
+        deleteGroup: function deleteGroup() {
+            this.$store.dispatch('removeGroup');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 98 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-group stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Группы")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-group__list" },
+                [
+                  _vm._l(_vm.$store.state.groups, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentGroupModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.name))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры группы")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentGroup).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.groupNameModel,
+                                              callback: function($$v) {
+                                                _vm.groupNameModel = $$v
+                                              },
+                                              expression: "groupNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.specialties,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Специальность",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.groupSpecialtyModel,
+                                              callback: function($$v) {
+                                                _vm.groupSpecialtyModel = $$v
+                                              },
+                                              expression: "groupSpecialtyModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              rules: _vm.yearRules,
+                                              counter: 4,
+                                              label: "Год поступления",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.groupYearBeginModel,
+                                              callback: function($$v) {
+                                                _vm.groupYearBeginModel = $$v
+                                              },
+                                              expression: "groupYearBeginModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Очная" },
+                                            model: {
+                                              value: _vm.groupIsFullTimeModel,
+                                              callback: function($$v) {
+                                                _vm.groupIsFullTimeModel = $$v
+                                              },
+                                              expression: "groupIsFullTimeModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Ускоренная" },
+                                            model: {
+                                              value:
+                                                _vm.groupIsAcceleratedModel,
+                                              callback: function($$v) {
+                                                _vm.groupIsAcceleratedModel = $$v
+                                              },
+                                              expression:
+                                                "groupIsAcceleratedModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              counter: 2,
+                                              label: "Количество студентов",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value:
+                                                _vm.groupNumberStudentsModel,
+                                              callback: function($$v) {
+                                                _vm.groupNumberStudentsModel = $$v
+                                              },
+                                              expression:
+                                                "groupNumberStudentsModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateGroup }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteGroup }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите группу...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_пroup" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новая группа")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Название", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.specialties,
+                                  "item-value": "id",
+                                  "item-text": "full_name",
+                                  label: "Специальность",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.specialty,
+                                  callback: function($$v) {
+                                    _vm.specialty = $$v
+                                  },
+                                  expression: "specialty"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  rules: _vm.yearRules,
+                                  counter: 4,
+                                  label: "Год поступления",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.year_begin,
+                                  callback: function($$v) {
+                                    _vm.year_begin = $$v
+                                  },
+                                  expression: "year_begin"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-checkbox", {
+                                attrs: { label: "Очная" },
+                                model: {
+                                  value: _vm.is_full_time,
+                                  callback: function($$v) {
+                                    _vm.is_full_time = $$v
+                                  },
+                                  expression: "is_full_time"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-checkbox", {
+                                attrs: { label: "Ускоренная" },
+                                model: {
+                                  value: _vm.is_accelerated,
+                                  callback: function($$v) {
+                                    _vm.is_accelerated = $$v
+                                  },
+                                  expression: "is_accelerated"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: {
+                                  type: "number",
+                                  counter: 2,
+                                  label: "Количество студентов",
+                                  required: ""
+                                },
+                                model: {
+                                  value: _vm.number_students,
+                                  callback: function($$v) {
+                                    _vm.number_students = $$v
+                                  },
+                                  expression: "number_students"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createGroup }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-3c54cb2f", module.exports)
+  }
+}
+
+/***/ }),
+/* 99 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(100)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(102)
+/* template */
+var __vue_template__ = __webpack_require__(103)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminFlow.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-1a9a602e", Component.options)
+  } else {
+    hotAPI.reload("data-v-1a9a602e", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 100 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(101);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("69f52a6a", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1a9a602e\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFlow.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1a9a602e\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFlow.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 101 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 102 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminFlow",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            allotment: ''
+        };
+    },
+
+    computed: {
+        currentFlowModel: {
+            get: function get() {
+                return this.$store.state.currentFlow;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentFlow', value: value });
+            }
+        },
+        flowNameModel: {
+            get: function get() {
+                return this.$store.state.currentFlow.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentFlow, { name: value });
+                this.$store.commit('setData', { path: 'currentFlow', value: value });
+            }
+        },
+        flowAllotmentModel: {
+            get: function get() {
+                var _this = this;
+
+                var allotment = this.$store.state.allotments.find(function (c) {
+                    return c.id == _this.$store.state.currentFlow.allotment_id;
+                }) || null;
+                return allotment;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentFlow, { allotment_id: value.id });
+                this.$store.commit('setData', { path: 'currentFlow', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getAllotmentName: function getAllotmentName(id) {
+            var allotment = this.$store.state.allotments.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(allotment).length !== 0 ? allotment.name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateFlow');
+        },
+        updateFlow: function updateFlow() {
+            this.$store.dispatch('editFlow');
+        },
+        createFlow: function createFlow() {
+            var params = {
+                'name': this.name,
+                'allotment_id': this.allotment.id
+            };
+            this.$store.dispatch('createFlow', params);
+        },
+        deleteFlow: function deleteFlow() {
+            this.$store.dispatch('removeFlow');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 103 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-flow stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("Потоки")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-flow__list", attrs: { "two-line": "" } },
+                [
+                  _vm._l(_vm.$store.state.flows, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentFlowModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.name))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [
+                                  _vm._v(
+                                    "Распределение: " +
+                                      _vm._s(
+                                        _vm.getAllotmentName(item.allotment_id)
+                                      )
+                                  )
+                                ]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры потока")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentFlow).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Название",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.flowNameModel,
+                                              callback: function($$v) {
+                                                _vm.flowNameModel = $$v
+                                              },
+                                              expression: "flowNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items:
+                                                _vm.$store.state.allotments,
+                                              "item-value": "id",
+                                              "item-text": "name",
+                                              label: "Распределение",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.flowAllotmentModel,
+                                              callback: function($$v) {
+                                                _vm.flowAllotmentModel = $$v
+                                              },
+                                              expression: "flowAllotmentModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateFlow }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteFlow }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите поток...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_flow" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый поток")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Название", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-combobox", {
+                                attrs: {
+                                  items: _vm.$store.state.allotments,
+                                  "item-value": "id",
+                                  "item-text": "name",
+                                  label: "Распределение",
+                                  chips: ""
+                                },
+                                model: {
+                                  value: _vm.allotment,
+                                  callback: function($$v) {
+                                    _vm.allotment = $$v
+                                  },
+                                  expression: "allotment"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createFlow }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-1a9a602e", module.exports)
+  }
+}
+
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(105)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(107)
+/* template */
+var __vue_template__ = __webpack_require__(108)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminUser.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-dc7e976a", Component.options)
+  } else {
+    hotAPI.reload("data-v-dc7e976a", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 105 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(106);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("1d072fce", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc7e976a\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminUser.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc7e976a\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminUser.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 106 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 107 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminUser",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentUserModel: {
+            get: function get() {
+                return this.$store.state.currentUser;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentUser', value: value });
+            }
+        },
+        userWorkerIdModel: {
+            get: function get() {
+                var _this = this;
+
+                var worker = this.$store.state.workers.find(function (c) {
+                    return c.id == _this.$store.state.currentUser.worker_id;
+                }) || null;
+                return worker;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentUser, { worker_id: value.id });
+                this.$store.commit('setData', { path: 'currentUser', value: value });
+            }
+        },
+        userRolesModel: {
+            get: function get() {
+                var _this2 = this;
+
+                var roles = [];
+
+                var _loop = function _loop(role_index) {
+                    var role = _this2.$store.state.roles.find(function (c) {
+                        return c.id == _this2.$store.state.currentUser.roles[role_index];
+                    });
+                    if (role) roles.push(role);
+                };
+
+                for (var role_index in this.$store.state.currentUser.roles) {
+                    _loop(role_index);
+                }
+                return roles;
+            },
+            set: function set(value) {
+                var roles = [];
+                for (var role_index in value) {
+                    roles.push(value[role_index].id);
+                }
+                value = _extends({}, this.$store.state.currentUser, { roles: roles });
+                this.$store.commit('setData', { path: 'currentUser', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateUser');
+        },
+        updateUser: function updateUser() {
+            this.$store.dispatch('editUser');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-user stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [
+                  _vm._v("Пользователи")
+                ])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-user__list", attrs: { "two-line": "" } },
+                [
+                  _vm._l(_vm.$store.state.users, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentUserModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.email))
+                              ]),
+                              _vm._v(" "),
+                              _c(
+                                "v-list-tile-sub-title",
+                                { staticClass: "text--primary" },
+                                [_vm._v("ФИО: " + _vm._s(item.name))]
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры пользователя")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentUser).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Email: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentUser.email
+                                        ) + "\n                                "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentUser.name
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.workers,
+                                              "item-value": "id",
+                                              "item-text": "fio",
+                                              label: "Преподаватель",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.userWorkerIdModel,
+                                              callback: function($$v) {
+                                                _vm.userWorkerIdModel = $$v
+                                              },
+                                              expression: "userWorkerIdModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.roles,
+                                              "item-value": "id",
+                                              "item-text": "public_name",
+                                              label: "Роли",
+                                              multiple: "",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.userRolesModel,
+                                              callback: function($$v) {
+                                                _vm.userRolesModel = $$v
+                                              },
+                                              expression: "userRolesModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateUser }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите пользователя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-dc7e976a", module.exports)
+  }
+}
+
+/***/ }),
+/* 109 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(110)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(112)
+/* template */
+var __vue_template__ = __webpack_require__(113)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-24e85f04", Component.options)
+  } else {
+    hotAPI.reload("data-v-24e85f04", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 110 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(111);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("bf1fd3f6", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-24e85f04\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-24e85f04\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 111 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 112 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminWorker",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            fio: '',
+            surname: '',
+            patronymic: ''
+        };
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerNameModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.name;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { name: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerSurnameModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.surname;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { surname: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerPatronymicModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.patronymic;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { patronymic: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerFioModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.fio;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { fio: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerNotActiveModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.not_active;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { not_active: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editWorker');
+        },
+        createWorker: function createWorker() {
+            var params = {
+                'name': this.name,
+                'surname': this.surname,
+                'patronymic': this.patronymic,
+                'fio': this.fio
+            };
+            this.$store.dispatch('createWorker', params);
+        },
+        deleteWorker: function deleteWorker() {
+            this.$store.dispatch('removeWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 113 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-worker stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                { staticClass: "stl-worker__list" },
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры преподавателя")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Имя",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerNameModel,
+                                              callback: function($$v) {
+                                                _vm.workerNameModel = $$v
+                                              },
+                                              expression: "workerNameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "Фамилия",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerSurnameModel,
+                                              callback: function($$v) {
+                                                _vm.workerSurnameModel = $$v
+                                              },
+                                              expression: "workerSurnameModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: { label: "Отчество" },
+                                            model: {
+                                              value: _vm.workerPatronymicModel,
+                                              callback: function($$v) {
+                                                _vm.workerPatronymicModel = $$v
+                                              },
+                                              expression:
+                                                "workerPatronymicModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              label: "ФИО",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerFioModel,
+                                              callback: function($$v) {
+                                                _vm.workerFioModel = $$v
+                                              },
+                                              expression: "workerFioModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Архивный" },
+                                            model: {
+                                              value: _vm.workerNotActiveModel,
+                                              callback: function($$v) {
+                                                _vm.workerNotActiveModel = $$v
+                                              },
+                                              expression: "workerNotActiveModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "error",
+                                              on: { click: _vm.deleteWorker }
+                                            },
+                                            [_vm._v("Удалить")]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    { staticClass: "new_worker" },
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Новый преподаватель")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      _c(
+                        "v-card-text",
+                        [
+                          _c(
+                            "v-form",
+                            [
+                              _c("v-text-field", {
+                                attrs: { label: "Имя", required: "" },
+                                model: {
+                                  value: _vm.name,
+                                  callback: function($$v) {
+                                    _vm.name = $$v
+                                  },
+                                  expression: "name"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "Фамилия", required: "" },
+                                model: {
+                                  value: _vm.surname,
+                                  callback: function($$v) {
+                                    _vm.surname = $$v
+                                  },
+                                  expression: "surname"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "Отчество" },
+                                model: {
+                                  value: _vm.patronymic,
+                                  callback: function($$v) {
+                                    _vm.patronymic = $$v
+                                  },
+                                  expression: "patronymic"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("v-text-field", {
+                                attrs: { label: "ФИО", required: "" },
+                                model: {
+                                  value: _vm.fio,
+                                  callback: function($$v) {
+                                    _vm.fio = $$v
+                                  },
+                                  expression: "fio"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-btn",
+                                {
+                                  staticClass: "success",
+                                  on: { click: _vm.createWorker }
+                                },
+                                [
+                                  _c("v-icon", { attrs: { left: "" } }, [
+                                    _vm._v("add")
+                                  ]),
+                                  _vm._v(
+                                    "\n                                Создать\n                            "
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-24e85f04", module.exports)
+  }
+}
+
+/***/ }),
+/* 114 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(115)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(117)
+/* template */
+var __vue_template__ = __webpack_require__(118)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminDegreesWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-2e333b35", Component.options)
+  } else {
+    hotAPI.reload("data-v-2e333b35", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 115 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(116);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("42e40d2e", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-2e333b35\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDegreesWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-2e333b35\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDegreesWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 116 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 117 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminDegreesWorker",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerStatusModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.status;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { status: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateDegreesWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editDegreesWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 118 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры остепенённости")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-checkbox", {
+                                            attrs: {
+                                              label: "Есть научная степень"
+                                            },
+                                            model: {
+                                              value: _vm.workerStatusModel,
+                                              callback: function($$v) {
+                                                _vm.workerStatusModel = $$v
+                                              },
+                                              expression: "workerStatusModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Статус: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          item.status
+                                            ? "Остепенён"
+                                            : "Не остепенён"
+                                        ) + "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-2e333b35", module.exports)
+  }
+}
+
+/***/ }),
+/* 119 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(120)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(122)
+/* template */
+var __vue_template__ = __webpack_require__(123)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminPositionWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-142c82f2", Component.options)
+  } else {
+    hotAPI.reload("data-v-142c82f2", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(121);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("5e3c9a56", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-142c82f2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPositionWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-142c82f2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPositionWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 121 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 122 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminPositionWorker",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerPositionModel: {
+            get: function get() {
+                var _this = this;
+
+                var position = this.$store.state.positions.find(function (c) {
+                    return c.id == _this.$store.state.currentWorker.position_id;
+                }) || null;
+                return position;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { position_id: value.id });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getPositionName: function getPositionName(id) {
+            var position = this.$store.state.positions.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(position).length !== 0 ? position.full_name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updatePositionWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editPositionWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 123 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column-card", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры должности")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.positions,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Специальность",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerPositionModel,
+                                              callback: function($$v) {
+                                                _vm.workerPositionModel = $$v
+                                              },
+                                              expression: "workerPositionModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Должность: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.getPositionName(item.position_id)
+                                        ) + "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-142c82f2", module.exports)
+  }
+}
+
+/***/ }),
+/* 124 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(125)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(127)
+/* template */
+var __vue_template__ = __webpack_require__(128)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminRateWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-33952504", Component.options)
+  } else {
+    hotAPI.reload("data-v-33952504", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 125 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(126);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("a7090d28", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-33952504\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRateWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-33952504\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRateWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 127 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminRateWorker",
+    components: {},
+    data: function data() {
+        return {};
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerHoursModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.hours;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { hours: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateRateWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editRateWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 128 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры ставки")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label: "Ставка (часов)",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerHoursModel,
+                                              callback: function($$v) {
+                                                _vm.workerHoursModel = $$v
+                                              },
+                                              expression: "workerHoursModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [
+                                        _vm._v("Ставка (часов): ")
+                                      ]),
+                                      _vm._v(
+                                        _vm._s(item.hours) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-33952504", module.exports)
+  }
+}
+
+/***/ }),
+/* 129 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(130)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(132)
+/* template */
+var __vue_template__ = __webpack_require__(133)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminStaffWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-697485ae", Component.options)
+  } else {
+    hotAPI.reload("data-v-697485ae", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 130 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(131);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("49dddc7e", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-697485ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminStaffWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-697485ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminStaffWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 131 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 132 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminStaffWorker",
+    components: {},
+    data: function data() {
+        return {};
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerStatusModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.status;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { status: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateStaffWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editStaffWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры штатности")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Не штатный" },
+                                            model: {
+                                              value: _vm.workerStatusModel,
+                                              callback: function($$v) {
+                                                _vm.workerStatusModel = $$v
+                                              },
+                                              expression: "workerStatusModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Штатный: ")]),
+                                      _vm._v(
+                                        _vm._s(item.status ? "нет" : "да") +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-697485ae", module.exports)
+  }
+}
+
+/***/ }),
+/* 134 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(135)
+}
+var normalizeComponent = __webpack_require__(2)
+/* script */
+var __vue_script__ = __webpack_require__(137)
+/* template */
+var __vue_template__ = __webpack_require__(138)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminTrainedWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-4a7d8cb5", Component.options)
+  } else {
+    hotAPI.reload("data-v-4a7d8cb5", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 135 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(136);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("1494c3b5", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-4a7d8cb5\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTrainedWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-4a7d8cb5\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTrainedWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 136 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 137 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminTrainedWorker",
+    components: {},
+    data: function data() {
+        return {};
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerStatusModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.status;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { status: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateTrainedWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editTrainedWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 138 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            { staticClass: "stl-page__column-card" },
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры образования")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-checkbox", {
+                                            attrs: {
+                                              label:
+                                                "Не имеет нужное образование"
+                                            },
+                                            model: {
+                                              value: _vm.workerStatusModel,
+                                              callback: function($$v) {
+                                                _vm.workerStatusModel = $$v
+                                              },
+                                              expression: "workerStatusModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [
+                                        _vm._v("Имеет нужное образование: ")
+                                      ]),
+                                      _vm._v(
+                                        _vm._s(item.status ? "нет" : "да") +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-4a7d8cb5", module.exports)
+  }
+}
+
+/***/ }),
+/* 139 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_vuex__ = __webpack_require__(40);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_vuex__ = __webpack_require__(140);
 
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
@@ -23537,788 +35867,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
 /* harmony default export */ __webpack_exports__["a"] = (store);
 
 /***/ }),
-/* 37 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(38);
-
-
-/***/ }),
-/* 38 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Copyright (c) 2014-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-// This method of obtaining a reference to the global object needs to be
-// kept identical to the way it is obtained in runtime.js
-var g = (function() { return this })() || Function("return this")();
-
-// Use `getOwnPropertyNames` because not all browsers support calling
-// `hasOwnProperty` on the global `self` object in a worker. See #183.
-var hadRuntime = g.regeneratorRuntime &&
-  Object.getOwnPropertyNames(g).indexOf("regeneratorRuntime") >= 0;
-
-// Save the old regeneratorRuntime in case it needs to be restored later.
-var oldRuntime = hadRuntime && g.regeneratorRuntime;
-
-// Force reevalutation of runtime.js.
-g.regeneratorRuntime = undefined;
-
-module.exports = __webpack_require__(39);
-
-if (hadRuntime) {
-  // Restore the original runtime.
-  g.regeneratorRuntime = oldRuntime;
-} else {
-  // Remove the global property added by runtime.js.
-  try {
-    delete g.regeneratorRuntime;
-  } catch(e) {
-    g.regeneratorRuntime = undefined;
-  }
-}
-
-
-/***/ }),
-/* 39 */
-/***/ (function(module, exports) {
-
-/**
- * Copyright (c) 2014-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-!(function(global) {
-  "use strict";
-
-  var Op = Object.prototype;
-  var hasOwn = Op.hasOwnProperty;
-  var undefined; // More compressible than void 0.
-  var $Symbol = typeof Symbol === "function" ? Symbol : {};
-  var iteratorSymbol = $Symbol.iterator || "@@iterator";
-  var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
-  var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-  var inModule = typeof module === "object";
-  var runtime = global.regeneratorRuntime;
-  if (runtime) {
-    if (inModule) {
-      // If regeneratorRuntime is defined globally and we're in a module,
-      // make the exports object identical to regeneratorRuntime.
-      module.exports = runtime;
-    }
-    // Don't bother evaluating the rest of this file if the runtime was
-    // already defined globally.
-    return;
-  }
-
-  // Define the runtime globally (as expected by generated code) as either
-  // module.exports (if we're in a module) or a new, empty object.
-  runtime = global.regeneratorRuntime = inModule ? module.exports : {};
-
-  function wrap(innerFn, outerFn, self, tryLocsList) {
-    // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
-    var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator;
-    var generator = Object.create(protoGenerator.prototype);
-    var context = new Context(tryLocsList || []);
-
-    // The ._invoke method unifies the implementations of the .next,
-    // .throw, and .return methods.
-    generator._invoke = makeInvokeMethod(innerFn, self, context);
-
-    return generator;
-  }
-  runtime.wrap = wrap;
-
-  // Try/catch helper to minimize deoptimizations. Returns a completion
-  // record like context.tryEntries[i].completion. This interface could
-  // have been (and was previously) designed to take a closure to be
-  // invoked without arguments, but in all the cases we care about we
-  // already have an existing method we want to call, so there's no need
-  // to create a new function object. We can even get away with assuming
-  // the method takes exactly one argument, since that happens to be true
-  // in every case, so we don't have to touch the arguments object. The
-  // only additional allocation required is the completion record, which
-  // has a stable shape and so hopefully should be cheap to allocate.
-  function tryCatch(fn, obj, arg) {
-    try {
-      return { type: "normal", arg: fn.call(obj, arg) };
-    } catch (err) {
-      return { type: "throw", arg: err };
-    }
-  }
-
-  var GenStateSuspendedStart = "suspendedStart";
-  var GenStateSuspendedYield = "suspendedYield";
-  var GenStateExecuting = "executing";
-  var GenStateCompleted = "completed";
-
-  // Returning this object from the innerFn has the same effect as
-  // breaking out of the dispatch switch statement.
-  var ContinueSentinel = {};
-
-  // Dummy constructor functions that we use as the .constructor and
-  // .constructor.prototype properties for functions that return Generator
-  // objects. For full spec compliance, you may wish to configure your
-  // minifier not to mangle the names of these two functions.
-  function Generator() {}
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-
-  // This is a polyfill for %IteratorPrototype% for environments that
-  // don't natively support it.
-  var IteratorPrototype = {};
-  IteratorPrototype[iteratorSymbol] = function () {
-    return this;
-  };
-
-  var getProto = Object.getPrototypeOf;
-  var NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-  if (NativeIteratorPrototype &&
-      NativeIteratorPrototype !== Op &&
-      hasOwn.call(NativeIteratorPrototype, iteratorSymbol)) {
-    // This environment has a native %IteratorPrototype%; use it instead
-    // of the polyfill.
-    IteratorPrototype = NativeIteratorPrototype;
-  }
-
-  var Gp = GeneratorFunctionPrototype.prototype =
-    Generator.prototype = Object.create(IteratorPrototype);
-  GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
-  GeneratorFunctionPrototype.constructor = GeneratorFunction;
-  GeneratorFunctionPrototype[toStringTagSymbol] =
-    GeneratorFunction.displayName = "GeneratorFunction";
-
-  // Helper for defining the .next, .throw, and .return methods of the
-  // Iterator interface in terms of a single ._invoke method.
-  function defineIteratorMethods(prototype) {
-    ["next", "throw", "return"].forEach(function(method) {
-      prototype[method] = function(arg) {
-        return this._invoke(method, arg);
-      };
-    });
-  }
-
-  runtime.isGeneratorFunction = function(genFun) {
-    var ctor = typeof genFun === "function" && genFun.constructor;
-    return ctor
-      ? ctor === GeneratorFunction ||
-        // For the native GeneratorFunction constructor, the best we can
-        // do is to check its .name property.
-        (ctor.displayName || ctor.name) === "GeneratorFunction"
-      : false;
-  };
-
-  runtime.mark = function(genFun) {
-    if (Object.setPrototypeOf) {
-      Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
-    } else {
-      genFun.__proto__ = GeneratorFunctionPrototype;
-      if (!(toStringTagSymbol in genFun)) {
-        genFun[toStringTagSymbol] = "GeneratorFunction";
-      }
-    }
-    genFun.prototype = Object.create(Gp);
-    return genFun;
-  };
-
-  // Within the body of any async function, `await x` is transformed to
-  // `yield regeneratorRuntime.awrap(x)`, so that the runtime can test
-  // `hasOwn.call(value, "__await")` to determine if the yielded value is
-  // meant to be awaited.
-  runtime.awrap = function(arg) {
-    return { __await: arg };
-  };
-
-  function AsyncIterator(generator) {
-    function invoke(method, arg, resolve, reject) {
-      var record = tryCatch(generator[method], generator, arg);
-      if (record.type === "throw") {
-        reject(record.arg);
-      } else {
-        var result = record.arg;
-        var value = result.value;
-        if (value &&
-            typeof value === "object" &&
-            hasOwn.call(value, "__await")) {
-          return Promise.resolve(value.__await).then(function(value) {
-            invoke("next", value, resolve, reject);
-          }, function(err) {
-            invoke("throw", err, resolve, reject);
-          });
-        }
-
-        return Promise.resolve(value).then(function(unwrapped) {
-          // When a yielded Promise is resolved, its final value becomes
-          // the .value of the Promise<{value,done}> result for the
-          // current iteration. If the Promise is rejected, however, the
-          // result for this iteration will be rejected with the same
-          // reason. Note that rejections of yielded Promises are not
-          // thrown back into the generator function, as is the case
-          // when an awaited Promise is rejected. This difference in
-          // behavior between yield and await is important, because it
-          // allows the consumer to decide what to do with the yielded
-          // rejection (swallow it and continue, manually .throw it back
-          // into the generator, abandon iteration, whatever). With
-          // await, by contrast, there is no opportunity to examine the
-          // rejection reason outside the generator function, so the
-          // only option is to throw it from the await expression, and
-          // let the generator function handle the exception.
-          result.value = unwrapped;
-          resolve(result);
-        }, reject);
-      }
-    }
-
-    var previousPromise;
-
-    function enqueue(method, arg) {
-      function callInvokeWithMethodAndArg() {
-        return new Promise(function(resolve, reject) {
-          invoke(method, arg, resolve, reject);
-        });
-      }
-
-      return previousPromise =
-        // If enqueue has been called before, then we want to wait until
-        // all previous Promises have been resolved before calling invoke,
-        // so that results are always delivered in the correct order. If
-        // enqueue has not been called before, then it is important to
-        // call invoke immediately, without waiting on a callback to fire,
-        // so that the async generator function has the opportunity to do
-        // any necessary setup in a predictable way. This predictability
-        // is why the Promise constructor synchronously invokes its
-        // executor callback, and why async functions synchronously
-        // execute code before the first await. Since we implement simple
-        // async functions in terms of async generators, it is especially
-        // important to get this right, even though it requires care.
-        previousPromise ? previousPromise.then(
-          callInvokeWithMethodAndArg,
-          // Avoid propagating failures to Promises returned by later
-          // invocations of the iterator.
-          callInvokeWithMethodAndArg
-        ) : callInvokeWithMethodAndArg();
-    }
-
-    // Define the unified helper method that is used to implement .next,
-    // .throw, and .return (see defineIteratorMethods).
-    this._invoke = enqueue;
-  }
-
-  defineIteratorMethods(AsyncIterator.prototype);
-  AsyncIterator.prototype[asyncIteratorSymbol] = function () {
-    return this;
-  };
-  runtime.AsyncIterator = AsyncIterator;
-
-  // Note that simple async functions are implemented on top of
-  // AsyncIterator objects; they just return a Promise for the value of
-  // the final result produced by the iterator.
-  runtime.async = function(innerFn, outerFn, self, tryLocsList) {
-    var iter = new AsyncIterator(
-      wrap(innerFn, outerFn, self, tryLocsList)
-    );
-
-    return runtime.isGeneratorFunction(outerFn)
-      ? iter // If outerFn is a generator, return the full iterator.
-      : iter.next().then(function(result) {
-          return result.done ? result.value : iter.next();
-        });
-  };
-
-  function makeInvokeMethod(innerFn, self, context) {
-    var state = GenStateSuspendedStart;
-
-    return function invoke(method, arg) {
-      if (state === GenStateExecuting) {
-        throw new Error("Generator is already running");
-      }
-
-      if (state === GenStateCompleted) {
-        if (method === "throw") {
-          throw arg;
-        }
-
-        // Be forgiving, per 25.3.3.3.3 of the spec:
-        // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-generatorresume
-        return doneResult();
-      }
-
-      context.method = method;
-      context.arg = arg;
-
-      while (true) {
-        var delegate = context.delegate;
-        if (delegate) {
-          var delegateResult = maybeInvokeDelegate(delegate, context);
-          if (delegateResult) {
-            if (delegateResult === ContinueSentinel) continue;
-            return delegateResult;
-          }
-        }
-
-        if (context.method === "next") {
-          // Setting context._sent for legacy support of Babel's
-          // function.sent implementation.
-          context.sent = context._sent = context.arg;
-
-        } else if (context.method === "throw") {
-          if (state === GenStateSuspendedStart) {
-            state = GenStateCompleted;
-            throw context.arg;
-          }
-
-          context.dispatchException(context.arg);
-
-        } else if (context.method === "return") {
-          context.abrupt("return", context.arg);
-        }
-
-        state = GenStateExecuting;
-
-        var record = tryCatch(innerFn, self, context);
-        if (record.type === "normal") {
-          // If an exception is thrown from innerFn, we leave state ===
-          // GenStateExecuting and loop back for another invocation.
-          state = context.done
-            ? GenStateCompleted
-            : GenStateSuspendedYield;
-
-          if (record.arg === ContinueSentinel) {
-            continue;
-          }
-
-          return {
-            value: record.arg,
-            done: context.done
-          };
-
-        } else if (record.type === "throw") {
-          state = GenStateCompleted;
-          // Dispatch the exception by looping back around to the
-          // context.dispatchException(context.arg) call above.
-          context.method = "throw";
-          context.arg = record.arg;
-        }
-      }
-    };
-  }
-
-  // Call delegate.iterator[context.method](context.arg) and handle the
-  // result, either by returning a { value, done } result from the
-  // delegate iterator, or by modifying context.method and context.arg,
-  // setting context.delegate to null, and returning the ContinueSentinel.
-  function maybeInvokeDelegate(delegate, context) {
-    var method = delegate.iterator[context.method];
-    if (method === undefined) {
-      // A .throw or .return when the delegate iterator has no .throw
-      // method always terminates the yield* loop.
-      context.delegate = null;
-
-      if (context.method === "throw") {
-        if (delegate.iterator.return) {
-          // If the delegate iterator has a return method, give it a
-          // chance to clean up.
-          context.method = "return";
-          context.arg = undefined;
-          maybeInvokeDelegate(delegate, context);
-
-          if (context.method === "throw") {
-            // If maybeInvokeDelegate(context) changed context.method from
-            // "return" to "throw", let that override the TypeError below.
-            return ContinueSentinel;
-          }
-        }
-
-        context.method = "throw";
-        context.arg = new TypeError(
-          "The iterator does not provide a 'throw' method");
-      }
-
-      return ContinueSentinel;
-    }
-
-    var record = tryCatch(method, delegate.iterator, context.arg);
-
-    if (record.type === "throw") {
-      context.method = "throw";
-      context.arg = record.arg;
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    var info = record.arg;
-
-    if (! info) {
-      context.method = "throw";
-      context.arg = new TypeError("iterator result is not an object");
-      context.delegate = null;
-      return ContinueSentinel;
-    }
-
-    if (info.done) {
-      // Assign the result of the finished delegate to the temporary
-      // variable specified by delegate.resultName (see delegateYield).
-      context[delegate.resultName] = info.value;
-
-      // Resume execution at the desired location (see delegateYield).
-      context.next = delegate.nextLoc;
-
-      // If context.method was "throw" but the delegate handled the
-      // exception, let the outer generator proceed normally. If
-      // context.method was "next", forget context.arg since it has been
-      // "consumed" by the delegate iterator. If context.method was
-      // "return", allow the original .return call to continue in the
-      // outer generator.
-      if (context.method !== "return") {
-        context.method = "next";
-        context.arg = undefined;
-      }
-
-    } else {
-      // Re-yield the result returned by the delegate method.
-      return info;
-    }
-
-    // The delegate iterator is finished, so forget it and continue with
-    // the outer generator.
-    context.delegate = null;
-    return ContinueSentinel;
-  }
-
-  // Define Generator.prototype.{next,throw,return} in terms of the
-  // unified ._invoke helper method.
-  defineIteratorMethods(Gp);
-
-  Gp[toStringTagSymbol] = "Generator";
-
-  // A Generator should always return itself as the iterator object when the
-  // @@iterator function is called on it. Some browsers' implementations of the
-  // iterator prototype chain incorrectly implement this, causing the Generator
-  // object to not be returned from this call. This ensures that doesn't happen.
-  // See https://github.com/facebook/regenerator/issues/274 for more details.
-  Gp[iteratorSymbol] = function() {
-    return this;
-  };
-
-  Gp.toString = function() {
-    return "[object Generator]";
-  };
-
-  function pushTryEntry(locs) {
-    var entry = { tryLoc: locs[0] };
-
-    if (1 in locs) {
-      entry.catchLoc = locs[1];
-    }
-
-    if (2 in locs) {
-      entry.finallyLoc = locs[2];
-      entry.afterLoc = locs[3];
-    }
-
-    this.tryEntries.push(entry);
-  }
-
-  function resetTryEntry(entry) {
-    var record = entry.completion || {};
-    record.type = "normal";
-    delete record.arg;
-    entry.completion = record;
-  }
-
-  function Context(tryLocsList) {
-    // The root entry object (effectively a try statement without a catch
-    // or a finally block) gives us a place to store values thrown from
-    // locations where there is no enclosing try statement.
-    this.tryEntries = [{ tryLoc: "root" }];
-    tryLocsList.forEach(pushTryEntry, this);
-    this.reset(true);
-  }
-
-  runtime.keys = function(object) {
-    var keys = [];
-    for (var key in object) {
-      keys.push(key);
-    }
-    keys.reverse();
-
-    // Rather than returning an object with a next method, we keep
-    // things simple and return the next function itself.
-    return function next() {
-      while (keys.length) {
-        var key = keys.pop();
-        if (key in object) {
-          next.value = key;
-          next.done = false;
-          return next;
-        }
-      }
-
-      // To avoid creating an additional object, we just hang the .value
-      // and .done properties off the next function object itself. This
-      // also ensures that the minifier will not anonymize the function.
-      next.done = true;
-      return next;
-    };
-  };
-
-  function values(iterable) {
-    if (iterable) {
-      var iteratorMethod = iterable[iteratorSymbol];
-      if (iteratorMethod) {
-        return iteratorMethod.call(iterable);
-      }
-
-      if (typeof iterable.next === "function") {
-        return iterable;
-      }
-
-      if (!isNaN(iterable.length)) {
-        var i = -1, next = function next() {
-          while (++i < iterable.length) {
-            if (hasOwn.call(iterable, i)) {
-              next.value = iterable[i];
-              next.done = false;
-              return next;
-            }
-          }
-
-          next.value = undefined;
-          next.done = true;
-
-          return next;
-        };
-
-        return next.next = next;
-      }
-    }
-
-    // Return an iterator with no values.
-    return { next: doneResult };
-  }
-  runtime.values = values;
-
-  function doneResult() {
-    return { value: undefined, done: true };
-  }
-
-  Context.prototype = {
-    constructor: Context,
-
-    reset: function(skipTempReset) {
-      this.prev = 0;
-      this.next = 0;
-      // Resetting context._sent for legacy support of Babel's
-      // function.sent implementation.
-      this.sent = this._sent = undefined;
-      this.done = false;
-      this.delegate = null;
-
-      this.method = "next";
-      this.arg = undefined;
-
-      this.tryEntries.forEach(resetTryEntry);
-
-      if (!skipTempReset) {
-        for (var name in this) {
-          // Not sure about the optimal order of these conditions:
-          if (name.charAt(0) === "t" &&
-              hasOwn.call(this, name) &&
-              !isNaN(+name.slice(1))) {
-            this[name] = undefined;
-          }
-        }
-      }
-    },
-
-    stop: function() {
-      this.done = true;
-
-      var rootEntry = this.tryEntries[0];
-      var rootRecord = rootEntry.completion;
-      if (rootRecord.type === "throw") {
-        throw rootRecord.arg;
-      }
-
-      return this.rval;
-    },
-
-    dispatchException: function(exception) {
-      if (this.done) {
-        throw exception;
-      }
-
-      var context = this;
-      function handle(loc, caught) {
-        record.type = "throw";
-        record.arg = exception;
-        context.next = loc;
-
-        if (caught) {
-          // If the dispatched exception was caught by a catch block,
-          // then let that catch block handle the exception normally.
-          context.method = "next";
-          context.arg = undefined;
-        }
-
-        return !! caught;
-      }
-
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        var record = entry.completion;
-
-        if (entry.tryLoc === "root") {
-          // Exception thrown outside of any try block that could handle
-          // it, so set the completion value of the entire function to
-          // throw the exception.
-          return handle("end");
-        }
-
-        if (entry.tryLoc <= this.prev) {
-          var hasCatch = hasOwn.call(entry, "catchLoc");
-          var hasFinally = hasOwn.call(entry, "finallyLoc");
-
-          if (hasCatch && hasFinally) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            } else if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else if (hasCatch) {
-            if (this.prev < entry.catchLoc) {
-              return handle(entry.catchLoc, true);
-            }
-
-          } else if (hasFinally) {
-            if (this.prev < entry.finallyLoc) {
-              return handle(entry.finallyLoc);
-            }
-
-          } else {
-            throw new Error("try statement without catch or finally");
-          }
-        }
-      }
-    },
-
-    abrupt: function(type, arg) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc <= this.prev &&
-            hasOwn.call(entry, "finallyLoc") &&
-            this.prev < entry.finallyLoc) {
-          var finallyEntry = entry;
-          break;
-        }
-      }
-
-      if (finallyEntry &&
-          (type === "break" ||
-           type === "continue") &&
-          finallyEntry.tryLoc <= arg &&
-          arg <= finallyEntry.finallyLoc) {
-        // Ignore the finally entry if control is not jumping to a
-        // location outside the try/catch block.
-        finallyEntry = null;
-      }
-
-      var record = finallyEntry ? finallyEntry.completion : {};
-      record.type = type;
-      record.arg = arg;
-
-      if (finallyEntry) {
-        this.method = "next";
-        this.next = finallyEntry.finallyLoc;
-        return ContinueSentinel;
-      }
-
-      return this.complete(record);
-    },
-
-    complete: function(record, afterLoc) {
-      if (record.type === "throw") {
-        throw record.arg;
-      }
-
-      if (record.type === "break" ||
-          record.type === "continue") {
-        this.next = record.arg;
-      } else if (record.type === "return") {
-        this.rval = this.arg = record.arg;
-        this.method = "return";
-        this.next = "end";
-      } else if (record.type === "normal" && afterLoc) {
-        this.next = afterLoc;
-      }
-
-      return ContinueSentinel;
-    },
-
-    finish: function(finallyLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.finallyLoc === finallyLoc) {
-          this.complete(entry.completion, entry.afterLoc);
-          resetTryEntry(entry);
-          return ContinueSentinel;
-        }
-      }
-    },
-
-    "catch": function(tryLoc) {
-      for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-        var entry = this.tryEntries[i];
-        if (entry.tryLoc === tryLoc) {
-          var record = entry.completion;
-          if (record.type === "throw") {
-            var thrown = record.arg;
-            resetTryEntry(entry);
-          }
-          return thrown;
-        }
-      }
-
-      // The context.catch method must only be called with a location
-      // argument that corresponds to a known catch block.
-      throw new Error("illegal catch attempt");
-    },
-
-    delegateYield: function(iterable, resultName, nextLoc) {
-      this.delegate = {
-        iterator: values(iterable),
-        resultName: resultName,
-        nextLoc: nextLoc
-      };
-
-      if (this.method === "next") {
-        // Deliberately forget the last sent value so that we don't
-        // accidentally pass it on to the delegate.
-        this.arg = undefined;
-      }
-
-      return ContinueSentinel;
-    }
-  };
-})(
-  // In sloppy mode, unbound `this` refers to the global object, fallback to
-  // Function constructor if we're in global strict mode. That is sadly a form
-  // of indirect eval which violates Content Security Policy.
-  (function() { return this })() || Function("return this")()
-);
-
-
-/***/ }),
-/* 40 */
+/* 140 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -25263,7 +36812,7 @@ var index_esm = {
 
 
 /***/ }),
-/* 41 */
+/* 141 */
 /***/ (function(module, exports) {
 
 exports.sync = function (store, router, options) {
@@ -25344,7 +36893,7 @@ function cloneRoute (to, from) {
 
 
 /***/ }),
-/* 42 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -48204,13 +59753,13 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_vue__;
 //# sourceMappingURL=vuetify.js.map
 
 /***/ }),
-/* 43 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(44);
+var content = __webpack_require__(144);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -48218,7 +59767,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(8)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -48235,10 +59784,10 @@ if(false) {
 }
 
 /***/ }),
-/* 44 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(1)(false);
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
@@ -48249,7 +59798,7 @@ exports.push([module.i, "/*!\n* Vuetify v1.3.12\n* Forged by John Leider\n* Rele
 
 
 /***/ }),
-/* 45 */
+/* 145 */
 /***/ (function(module, exports) {
 
 
@@ -48344,13 +59893,13 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 46 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(47);
+var content = __webpack_require__(147);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -48358,7 +59907,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(8)(content, options);
+var update = __webpack_require__(9)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -48375,22 +59924,22 @@ if(false) {
 }
 
 /***/ }),
-/* 47 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var escape = __webpack_require__(48);
-exports = module.exports = __webpack_require__(1)(false);
+var escape = __webpack_require__(148);
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
 // module
-exports.push([module.i, "@font-face {\n  font-family: 'Material Icons';\n  font-style: normal;\n  font-weight: 400;\n  src: url(" + escape(__webpack_require__(49)) + ");\n  /* For IE6-8 */\n  src: local(\"Material Icons\"), local(\"MaterialIcons-Regular\"), url(" + escape(__webpack_require__(50)) + ") format(\"woff2\"), url(" + escape(__webpack_require__(51)) + ") format(\"woff\"), url(" + escape(__webpack_require__(52)) + ") format(\"truetype\"); }\n\n.material-icons {\n  font-family: 'Material Icons';\n  font-weight: normal;\n  font-style: normal;\n  font-size: 24px;\n  /* Preferred icon size */\n  display: inline-block;\n  line-height: 1;\n  text-transform: none;\n  letter-spacing: normal;\n  word-wrap: normal;\n  white-space: nowrap;\n  direction: ltr;\n  /* Support for all WebKit browsers. */\n  -webkit-font-smoothing: antialiased;\n  /* Support for Safari and Chrome. */\n  text-rendering: optimizeLegibility;\n  /* Support for Firefox. */\n  -moz-osx-font-smoothing: grayscale;\n  /* Support for IE. */\n  font-feature-settings: 'liga';\n  font-display: block; }\n", ""]);
+exports.push([module.i, "@font-face {\n  font-family: 'Material Icons';\n  font-style: normal;\n  font-weight: 400;\n  src: url(" + escape(__webpack_require__(149)) + ");\n  /* For IE6-8 */\n  src: local(\"Material Icons\"), local(\"MaterialIcons-Regular\"), url(" + escape(__webpack_require__(150)) + ") format(\"woff2\"), url(" + escape(__webpack_require__(151)) + ") format(\"woff\"), url(" + escape(__webpack_require__(152)) + ") format(\"truetype\"); }\n\n.material-icons {\n  font-family: 'Material Icons';\n  font-weight: normal;\n  font-style: normal;\n  font-size: 24px;\n  /* Preferred icon size */\n  display: inline-block;\n  line-height: 1;\n  text-transform: none;\n  letter-spacing: normal;\n  word-wrap: normal;\n  white-space: nowrap;\n  direction: ltr;\n  /* Support for all WebKit browsers. */\n  -webkit-font-smoothing: antialiased;\n  /* Support for Safari and Chrome. */\n  text-rendering: optimizeLegibility;\n  /* Support for Firefox. */\n  -moz-osx-font-smoothing: grayscale;\n  /* Support for IE. */\n  font-feature-settings: 'liga';\n  font-display: block; }\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 48 */
+/* 148 */
 /***/ (function(module, exports) {
 
 module.exports = function escape(url) {
@@ -48412,31 +59961,31 @@ module.exports = function escape(url) {
 
 
 /***/ }),
-/* 49 */
+/* 149 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.eot?016c14adad95a0e21a2ae4fbc36955c6";
 
 /***/ }),
-/* 50 */
+/* 150 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.woff2?8a9a261c8b8dfe90db11f1817a9d22e1";
 
 /***/ }),
-/* 51 */
+/* 151 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.woff?c38ebd3cd38c98fbd16bf31d1d24ce64";
 
 /***/ }),
-/* 52 */
+/* 152 */
 /***/ (function(module, exports) {
 
 module.exports = "/fonts/vendor/material-design-icons-icondist/MaterialIcons-Regular.ttf?55242ea5c378da626cab5b4aaf9c2255";
 
 /***/ }),
-/* 53 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48767,11 +60316,11 @@ exports.default = Object.freeze({
 //# sourceMappingURL=colors.js.map
 
 /***/ }),
-/* 54 */
+/* 154 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios__ = __webpack_require__(155);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_axios___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_axios__);
 
 
@@ -48868,21 +60417,21 @@ var client = __WEBPACK_IMPORTED_MODULE_0_axios___default.a.create();
 });
 
 /***/ }),
-/* 55 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(56);
+module.exports = __webpack_require__(156);
 
 /***/ }),
-/* 56 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var bind = __webpack_require__(9);
-var Axios = __webpack_require__(58);
+var utils = __webpack_require__(3);
+var bind = __webpack_require__(10);
+var Axios = __webpack_require__(158);
 var defaults = __webpack_require__(6);
 
 /**
@@ -48916,15 +60465,15 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(13);
-axios.CancelToken = __webpack_require__(72);
-axios.isCancel = __webpack_require__(12);
+axios.Cancel = __webpack_require__(14);
+axios.CancelToken = __webpack_require__(172);
+axios.isCancel = __webpack_require__(13);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(73);
+axios.spread = __webpack_require__(173);
 
 module.exports = axios;
 
@@ -48933,7 +60482,7 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 57 */
+/* 157 */
 /***/ (function(module, exports) {
 
 /*!
@@ -48960,16 +60509,16 @@ function isSlowBuffer (obj) {
 
 
 /***/ }),
-/* 58 */
+/* 158 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var defaults = __webpack_require__(6);
-var utils = __webpack_require__(0);
-var InterceptorManager = __webpack_require__(67);
-var dispatchRequest = __webpack_require__(68);
+var utils = __webpack_require__(3);
+var InterceptorManager = __webpack_require__(167);
+var dispatchRequest = __webpack_require__(168);
 
 /**
  * Create a new instance of Axios
@@ -49046,13 +60595,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 59 */
+/* 159 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -49065,13 +60614,13 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 60 */
+/* 160 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var createError = __webpack_require__(11);
+var createError = __webpack_require__(12);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -49098,7 +60647,7 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 61 */
+/* 161 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49126,13 +60675,13 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 62 */
+/* 162 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -49199,13 +60748,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 63 */
+/* 163 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -49259,13 +60808,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 64 */
+/* 164 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -49334,7 +60883,7 @@ module.exports = (
 
 
 /***/ }),
-/* 65 */
+/* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49377,13 +60926,13 @@ module.exports = btoa;
 
 
 /***/ }),
-/* 66 */
+/* 166 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -49437,13 +60986,13 @@ module.exports = (
 
 
 /***/ }),
-/* 67 */
+/* 167 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -49496,18 +61045,18 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 68 */
+/* 168 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
-var transformData = __webpack_require__(69);
-var isCancel = __webpack_require__(12);
+var utils = __webpack_require__(3);
+var transformData = __webpack_require__(169);
+var isCancel = __webpack_require__(13);
 var defaults = __webpack_require__(6);
-var isAbsoluteURL = __webpack_require__(70);
-var combineURLs = __webpack_require__(71);
+var isAbsoluteURL = __webpack_require__(170);
+var combineURLs = __webpack_require__(171);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -49589,13 +61138,13 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 69 */
+/* 169 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils = __webpack_require__(0);
+var utils = __webpack_require__(3);
 
 /**
  * Transform the data for a request or a response
@@ -49616,7 +61165,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 70 */
+/* 170 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49637,7 +61186,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 71 */
+/* 171 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49658,13 +61207,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 72 */
+/* 172 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(13);
+var Cancel = __webpack_require__(14);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -49722,7 +61271,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 73 */
+/* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -49756,7 +61305,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 74 */
+/* 174 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -55087,19 +66636,19 @@ module.exports = g;
 });
 
 /***/ }),
-/* 75 */
+/* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(76)
+  __webpack_require__(176)
 }
-var normalizeComponent = __webpack_require__(3)
+var normalizeComponent = __webpack_require__(2)
 /* script */
-var __vue_script__ = __webpack_require__(78)
+var __vue_script__ = __webpack_require__(178)
 /* template */
-var __vue_template__ = __webpack_require__(79)
+var __vue_template__ = __webpack_require__(179)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -55138,17 +66687,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 76 */
+/* 176 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(77);
+var content = __webpack_require__(177);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(2)("60b36f82", content, false, {});
+var update = __webpack_require__(1)("60b36f82", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -55164,10 +66713,10 @@ if(false) {
 }
 
 /***/ }),
-/* 77 */
+/* 177 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(1)(false);
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
@@ -55178,7 +66727,7 @@ exports.push([module.i, "\n.stl-loader {\n  position: fixed;\n  left: 0;\n  top:
 
 
 /***/ }),
-/* 78 */
+/* 178 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -55204,7 +66753,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 79 */
+/* 179 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -55237,19 +66786,19 @@ if (false) {
 }
 
 /***/ }),
-/* 80 */
+/* 180 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(81)
+  __webpack_require__(181)
 }
-var normalizeComponent = __webpack_require__(3)
+var normalizeComponent = __webpack_require__(2)
 /* script */
-var __vue_script__ = __webpack_require__(83)
+var __vue_script__ = __webpack_require__(183)
 /* template */
-var __vue_template__ = __webpack_require__(84)
+var __vue_template__ = __webpack_require__(184)
 /* template functional */
 var __vue_template_functional__ = false
 /* styles */
@@ -55288,17 +66837,17 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 81 */
+/* 181 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(82);
+var content = __webpack_require__(182);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(2)("b780c8ca", content, false, {});
+var update = __webpack_require__(1)("b780c8ca", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
@@ -55314,10 +66863,10 @@ if(false) {
 }
 
 /***/ }),
-/* 82 */
+/* 182 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(1)(false);
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
@@ -55328,7 +66877,7 @@ exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 
 /***/ }),
-/* 83 */
+/* 183 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -55351,7 +66900,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 });
 
 /***/ }),
-/* 84 */
+/* 184 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var render = function() {
@@ -55375,11034 +66924,90 @@ if (false) {
 }
 
 /***/ }),
-/* 85 */
+/* 185 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 86 */,
-/* 87 */,
-/* 88 */,
-/* 89 */,
-/* 90 */,
-/* 91 */,
-/* 92 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(93)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(95)
-/* template */
-var __vue_template__ = __webpack_require__(96)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdmin.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-0f6b25e0", Component.options)
-  } else {
-    hotAPI.reload("data-v-0f6b25e0", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 93 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(94);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("61ee2d82", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 94 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 95 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdmin",
-    components: {},
-    data: function data() {
-        return {
-
-            paths: [{ 'name': 'Пользователи', 'path': '/admin/user' }, //
-            { 'name': 'Корпуса', 'path': '/admin/building' }, //
-            { 'name': 'Аудитории', 'path': '/admin/classroom' }, //
-            { 'name': 'Преподаватели', 'path': '/admin/worker' }, //
-            { 'name': 'Дисциплины', 'path': '/admin/discipline' }, //
-            { 'name': 'Факультеты', 'path': '/admin/faculty' }, //
-            { 'name': 'Потоки', 'path': '/admin/flow' }, //
-            { 'name': 'Группы', 'path': '/admin/group' }, //
-            { 'name': 'Должности', 'path': '/admin/position' }, //
-            { 'name': 'Квалификации', 'path': '/admin/qualification' }, //
-            { 'name': 'Требования ФГОС', 'path': '/admin/requirement_fgos' }, //
-            { 'name': 'Роли', 'path': '/admin/roles' }, //
-            { 'name': 'Направления подготовки', 'path': '/admin/specialty' }, //
-            { 'name': 'Типы занятий', 'path': '/admin/type_class' }, //
-            { 'name': 'Остепенеённость преподавателей', 'path': '/admin/degrees_worker' }, { 'name': 'Должности преподавателей', 'path': '/admin/position_worker' }, { 'name': 'Ставка преподавателей', 'path': '/admin/rate_worker' }, { 'name': 'Штатность преподавателей', 'path': '/admin/staff_worker' }, { 'name': 'Базовое образование преподавателей', 'path': '/admin/trained_worker' }]
-        };
-    },
-
-    computed: {},
-    methods: {},
-
-    beforeMount: function beforeMount() {}
-});
-
-/***/ }),
-/* 96 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-admin" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Разделы")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-admin__list" },
-                [
-                  _vm._l(_vm.paths, function(item, index) {
-                    return [
-                      _c(
-                        "router-link",
-                        { attrs: { to: item.path } },
-                        [
-                          _c(
-                            "v-list-tile",
-                            { attrs: { ripple: "" } },
-                            [
-                              _c(
-                                "v-list-tile-content",
-                                [
-                                  _c("v-list-tile-title", [
-                                    _vm._v(_vm._s(item.name))
-                                  ])
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-0f6b25e0", module.exports)
-  }
-}
-
-/***/ }),
-/* 97 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(98)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(100)
-/* template */
-var __vue_template__ = __webpack_require__(101)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminRole.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-dc820914", Component.options)
-  } else {
-    hotAPI.reload("data-v-dc820914", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 98 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(99);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("709b1aec", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc820914\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRole.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc820914\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRole.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 99 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 100 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminRole",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            public_name: ''
-        };
-    },
-
-    computed: {
-        currentRoleModel: {
-            get: function get() {
-                return this.$store.state.currentRole;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentRole', value: value });
-            }
-        },
-        roleNameModel: {
-            get: function get() {
-                return this.$store.state.currentRole.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRole, { name: value });
-                this.$store.commit('setData', { path: 'currentRole', value: value });
-            }
-        },
-        rolePublicNameModel: {
-            get: function get() {
-                return this.$store.state.currentRole.public_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRole, { public_name: value });
-                this.$store.commit('setData', { path: 'currentRole', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateRoles');
-        },
-        updateRole: function updateRole() {
-            this.$store.dispatch('editRole');
-        },
-        createRole: function createRole() {
-            var params = {
-                'name': this.name,
-                'public_name': this.public_name
-            };
-            this.$store.dispatch('createRole', params);
-        },
-        deleteRole: function deleteRole() {
-            this.$store.dispatch('removeRole');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 101 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-roles" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Роли")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-roles__list", attrs: { "two-line": "" } },
-                [
-                  _vm._l(_vm.$store.state.roles, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentRoleModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.public_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [_vm._v("Системное имя: " + _vm._s(item.name))]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры роли")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentRole).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Системное имя",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.roleNameModel,
-                                              callback: function($$v) {
-                                                _vm.roleNameModel = $$v
-                                              },
-                                              expression: "roleNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Публичное имя",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.rolePublicNameModel,
-                                              callback: function($$v) {
-                                                _vm.rolePublicNameModel = $$v
-                                              },
-                                              expression: "rolePublicNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateRole }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteRole }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите роль...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_role" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новая роль")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: { label: "Системное имя", required: "" },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: { label: "Публичное имя", required: "" },
-                                model: {
-                                  value: _vm.public_name,
-                                  callback: function($$v) {
-                                    _vm.public_name = $$v
-                                  },
-                                  expression: "public_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createRole }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-dc820914", module.exports)
-  }
-}
-
-/***/ }),
-/* 102 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(103)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(105)
-/* template */
-var __vue_template__ = __webpack_require__(106)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminTypeClass.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-f92240e4", Component.options)
-  } else {
-    hotAPI.reload("data-v-f92240e4", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 103 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(104);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("4113ce3e", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-f92240e4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTypeClass.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-f92240e4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTypeClass.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 104 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 105 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminTypeClass",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            full_name: ''
-        };
-    },
-
-    computed: {
-        currentTypeClassModel: {
-            get: function get() {
-                return this.$store.state.currentTypeClass;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentTypeClass', value: value });
-            }
-        },
-        typeClassNameModel: {
-            get: function get() {
-                return this.$store.state.currentTypeClass.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentTypeClass, { name: value });
-                this.$store.commit('setData', { path: 'currentTypeClass', value: value });
-            }
-        },
-        typeClassFullNameModel: {
-            get: function get() {
-                return this.$store.state.currentTypeClass.full_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentTypeClass, { full_name: value });
-                this.$store.commit('setData', { path: 'currentTypeClass', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateTypeClass');
-        },
-        updateTypeClass: function updateTypeClass() {
-            this.$store.dispatch('editTypeClass');
-        },
-        createTypeClass: function createTypeClass() {
-            var params = {
-                'name': this.name,
-                'full_name': this.full_name
-            };
-            this.$store.dispatch('createTypeClass', params);
-        },
-        deleteTypeClass: function deleteTypeClass() {
-            this.$store.dispatch('removeTypeClass');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 106 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-type-class" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [
-                  _vm._v("Виды занятий")
-                ])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-type-class__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.typeClass, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentTypeClassModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.full_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Краткое название: " + _vm._s(item.name)
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры типа занятия")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentTypeClass).length !==
-                      0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "краткое название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.typeClassNameModel,
-                                              callback: function($$v) {
-                                                _vm.typeClassNameModel = $$v
-                                              },
-                                              expression: "typeClassNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Полное название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.typeClassFullNameModel,
-                                              callback: function($$v) {
-                                                _vm.typeClassFullNameModel = $$v
-                                              },
-                                              expression:
-                                                "typeClassFullNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateTypeClass }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteTypeClass }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите тип занятия...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_type-class" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новый тип занятия")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Краткое название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Полное название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.full_name,
-                                  callback: function($$v) {
-                                    _vm.full_name = $$v
-                                  },
-                                  expression: "full_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createTypeClass }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-f92240e4", module.exports)
-  }
-}
-
-/***/ }),
-/* 107 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(108)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(110)
-/* template */
-var __vue_template__ = __webpack_require__(111)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminQualification.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-8e2bbac2", Component.options)
-  } else {
-    hotAPI.reload("data-v-8e2bbac2", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 108 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(109);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("c075cdd4", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-8e2bbac2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminQualification.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-8e2bbac2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminQualification.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 109 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 110 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminQualification",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            literal: ''
-        };
-    },
-
-    computed: {
-        currentQualificationModel: {
-            get: function get() {
-                return this.$store.state.currentQualification;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentQualification', value: value });
-            }
-        },
-        qualificationNameModel: {
-            get: function get() {
-                return this.$store.state.currentQualification.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentQualification, { name: value });
-                this.$store.commit('setData', { path: 'currentQualification', value: value });
-            }
-        },
-        qualificationLiteralModel: {
-            get: function get() {
-                return this.$store.state.currentQualification.literal;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentQualification, { literal: value });
-                this.$store.commit('setData', { path: 'currentQualification', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateQualification');
-        },
-        updateQualification: function updateQualification() {
-            this.$store.dispatch('editQualification');
-        },
-        createQualification: function createQualification() {
-            var params = {
-                'name': this.name,
-                'literal': this.literal
-            };
-            this.$store.dispatch('createQualification', params);
-        },
-        deleteQualification: function deleteQualification() {
-            this.$store.dispatch('removeQualification');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 111 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-qualification" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [
-                  _vm._v("Квалификации")
-                ])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-qualification__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.qualifications, function(
-                    item,
-                    index
-                  ) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentQualificationModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [_vm._v("Обозначение: " + _vm._s(item.literal))]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры квалификации")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentQualification)
-                        .length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.qualificationNameModel,
-                                              callback: function($$v) {
-                                                _vm.qualificationNameModel = $$v
-                                              },
-                                              expression:
-                                                "qualificationNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Обозначение",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.qualificationLiteralModel,
-                                              callback: function($$v) {
-                                                _vm.qualificationLiteralModel = $$v
-                                              },
-                                              expression:
-                                                "qualificationLiteralModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: {
-                                                click: _vm.updateQualification
-                                              }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: {
-                                                click: _vm.deleteQualification
-                                              }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите квалификацию...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_type-class" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новая квалификация")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: { label: "Название", required: "" },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: { label: "Обозначение", required: "" },
-                                model: {
-                                  value: _vm.literal,
-                                  callback: function($$v) {
-                                    _vm.literal = $$v
-                                  },
-                                  expression: "literal"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createQualification }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-8e2bbac2", module.exports)
-  }
-}
-
-/***/ }),
-/* 112 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(113)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(115)
-/* template */
-var __vue_template__ = __webpack_require__(116)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminPosition.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-0f9ae2ae", Component.options)
-  } else {
-    hotAPI.reload("data-v-0f9ae2ae", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 113 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(114);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("4a6c9300", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f9ae2ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPosition.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f9ae2ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPosition.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 114 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 115 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminPosition",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            full_name: ''
-        };
-    },
-
-    computed: {
-        currentPositionModel: {
-            get: function get() {
-                return this.$store.state.currentPosition;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentPosition', value: value });
-            }
-        },
-        positionNameModel: {
-            get: function get() {
-                return this.$store.state.currentPosition.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentPosition, { name: value });
-                this.$store.commit('setData', { path: 'currentPosition', value: value });
-            }
-        },
-        positionFullNameModel: {
-            get: function get() {
-                return this.$store.state.currentPosition.full_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentPosition, { full_name: value });
-                this.$store.commit('setData', { path: 'currentPosition', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updatePosition');
-        },
-        updatePosition: function updatePosition() {
-            this.$store.dispatch('editPosition');
-        },
-        createPosition: function createPosition() {
-            var params = {
-                'name': this.name,
-                'full_name': this.full_name
-            };
-            this.$store.dispatch('createPosition', params);
-        },
-        deletePosition: function deletePosition() {
-            this.$store.dispatch('removePosition');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 116 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-position" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Должности")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-position__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.positions, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentPositionModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.full_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Краткое название: " + _vm._s(item.name)
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры должности")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentPosition).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "краткое название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.positionNameModel,
-                                              callback: function($$v) {
-                                                _vm.positionNameModel = $$v
-                                              },
-                                              expression: "positionNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Полное название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.positionFullNameModel,
-                                              callback: function($$v) {
-                                                _vm.positionFullNameModel = $$v
-                                              },
-                                              expression:
-                                                "positionFullNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updatePosition }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deletePosition }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите должность...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_position" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новая должность")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Краткое название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Полное название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.full_name,
-                                  callback: function($$v) {
-                                    _vm.full_name = $$v
-                                  },
-                                  expression: "full_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createPosition }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-0f9ae2ae", module.exports)
-  }
-}
-
-/***/ }),
-/* 117 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(118)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(120)
-/* template */
-var __vue_template__ = __webpack_require__(121)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminFaculty.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-5d38ee94", Component.options)
-  } else {
-    hotAPI.reload("data-v-5d38ee94", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 118 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(119);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("5dc9261c", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-5d38ee94\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFaculty.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-5d38ee94\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFaculty.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 119 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 120 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminFaculty",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            full_name: ''
-        };
-    },
-
-    computed: {
-        currentFacultyModel: {
-            get: function get() {
-                return this.$store.state.currentFaculty;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentFaculty', value: value });
-            }
-        },
-        facultyNameModel: {
-            get: function get() {
-                return this.$store.state.currentFaculty.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentFaculty, { name: value });
-                this.$store.commit('setData', { path: 'currentFaculty', value: value });
-            }
-        },
-        facultyFullNameModel: {
-            get: function get() {
-                return this.$store.state.currentFaculty.full_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentFaculty, { full_name: value });
-                this.$store.commit('setData', { path: 'currentFaculty', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateFaculty');
-        },
-        updateFaculty: function updateFaculty() {
-            this.$store.dispatch('editFaculty');
-        },
-        createFaculty: function createFaculty() {
-            var params = {
-                'name': this.name,
-                'full_name': this.full_name
-            };
-            this.$store.dispatch('createFaculty', params);
-        },
-        deleteFaculty: function deleteFaculty() {
-            this.$store.dispatch('removeFaculty');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 121 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-faculty" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Факультеты")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-faculty__list", attrs: { "two-line": "" } },
-                [
-                  _vm._l(_vm.$store.state.faculties, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentFacultyModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.full_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Краткое название: " + _vm._s(item.name)
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры факультета")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentFaculty).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Краткое название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.facultyNameModel,
-                                              callback: function($$v) {
-                                                _vm.facultyNameModel = $$v
-                                              },
-                                              expression: "facultyNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Полное название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.facultyFullNameModel,
-                                              callback: function($$v) {
-                                                _vm.facultyFullNameModel = $$v
-                                              },
-                                              expression: "facultyFullNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateFaculty }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteFaculty }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите факультет...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_faculty" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новый факультет")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Краткое название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Полное название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.full_name,
-                                  callback: function($$v) {
-                                    _vm.full_name = $$v
-                                  },
-                                  expression: "full_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createFaculty }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-5d38ee94", module.exports)
-  }
-}
-
-/***/ }),
-/* 122 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(123)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(125)
-/* template */
-var __vue_template__ = __webpack_require__(126)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminDiscipline.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-749e4920", Component.options)
-  } else {
-    hotAPI.reload("data-v-749e4920", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 123 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(124);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("c487c93a", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-749e4920\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDiscipline.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-749e4920\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDiscipline.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 124 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 125 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminDiscipline",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            full_name: ''
-        };
-    },
-
-    computed: {
-        currentDisciplineModel: {
-            get: function get() {
-                return this.$store.state.currentDiscipline;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentDiscipline', value: value });
-            }
-        },
-        disciplineNameModel: {
-            get: function get() {
-                return this.$store.state.currentDiscipline.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentDiscipline, { name: value });
-                this.$store.commit('setData', { path: 'currentDiscipline', value: value });
-            }
-        },
-        disciplineFullNameModel: {
-            get: function get() {
-                return this.$store.state.currentDiscipline.full_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentDiscipline, { full_name: value });
-                this.$store.commit('setData', { path: 'currentDiscipline', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateDiscipline');
-        },
-        updateDiscipline: function updateDiscipline() {
-            this.$store.dispatch('editDiscipline');
-        },
-        createDiscipline: function createDiscipline() {
-            var params = {
-                'name': this.name,
-                'full_name': this.full_name
-            };
-            this.$store.dispatch('createDiscipline', params);
-        },
-        deleteDiscipline: function deleteDiscipline() {
-            this.$store.dispatch('removeDiscipline');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 126 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-discipline" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Дисциплины")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-discipline__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.disciplines, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentDisciplineModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.full_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Краткое название: " + _vm._s(item.name)
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры дисциплины")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentDiscipline).length !==
-                      0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Краткое название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.disciplineNameModel,
-                                              callback: function($$v) {
-                                                _vm.disciplineNameModel = $$v
-                                              },
-                                              expression: "disciplineNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Полное название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.disciplineFullNameModel,
-                                              callback: function($$v) {
-                                                _vm.disciplineFullNameModel = $$v
-                                              },
-                                              expression:
-                                                "disciplineFullNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: {
-                                                click: _vm.updateDiscipline
-                                              }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: {
-                                                click: _vm.deleteDiscipline
-                                              }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите дисциплину...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_discipline" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новая дисциплина")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Краткое название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Полное название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.full_name,
-                                  callback: function($$v) {
-                                    _vm.full_name = $$v
-                                  },
-                                  expression: "full_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createDiscipline }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-749e4920", module.exports)
-  }
-}
-
-/***/ }),
-/* 127 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(128)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(130)
-/* template */
-var __vue_template__ = __webpack_require__(131)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminBuilding.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-88c76a98", Component.options)
-  } else {
-    hotAPI.reload("data-v-88c76a98", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 128 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(129);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("6c3ef091", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-88c76a98\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminBuilding.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-88c76a98\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminBuilding.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 129 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 130 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminBuilding",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            full_name: '',
-            address: ''
-        };
-    },
-
-    computed: {
-        currentBuildingModel: {
-            get: function get() {
-                return this.$store.state.currentBuilding;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentBuilding', value: value });
-            }
-        },
-        buildingNameModel: {
-            get: function get() {
-                return this.$store.state.currentBuilding.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentBuilding, { name: value });
-                this.$store.commit('setData', { path: 'currentBuilding', value: value });
-            }
-        },
-        buildingFullNameModel: {
-            get: function get() {
-                return this.$store.state.currentBuilding.full_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentBuilding, { full_name: value });
-                this.$store.commit('setData', { path: 'currentBuilding', value: value });
-            }
-        },
-        buildingAddressModel: {
-            get: function get() {
-                return this.$store.state.currentBuilding.address;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentBuilding, { address: value });
-                this.$store.commit('setData', { path: 'currentBuilding', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateBuilding');
-        },
-        updateBuilding: function updateBuilding() {
-            this.$store.dispatch('editBuilding');
-        },
-        createBuilding: function createBuilding() {
-            var params = {
-                'name': this.name,
-                'full_name': this.full_name,
-                'address': this.address
-            };
-            this.$store.dispatch('createBuilding', params);
-        },
-        deleteBuilding: function deleteBuilding() {
-            this.$store.dispatch('removeBuilding');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 131 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-building" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [
-                  _vm._v("Учебные корпуса")
-                ])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-building__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.buildings, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentBuildingModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.full_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Краткое название: " + _vm._s(item.name)
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры корпуса")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentBuilding).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Краткое название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.buildingNameModel,
-                                              callback: function($$v) {
-                                                _vm.buildingNameModel = $$v
-                                              },
-                                              expression: "buildingNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Полное название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.buildingFullNameModel,
-                                              callback: function($$v) {
-                                                _vm.buildingFullNameModel = $$v
-                                              },
-                                              expression:
-                                                "buildingFullNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-textarea", {
-                                            attrs: { label: "Адрес" },
-                                            model: {
-                                              value: _vm.buildingAddressModel,
-                                              callback: function($$v) {
-                                                _vm.buildingAddressModel = $$v
-                                              },
-                                              expression: "buildingAddressModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateBuilding }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteBuilding }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите корпус...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_building" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новый учебный корпус")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Краткое название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Полное название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.full_name,
-                                  callback: function($$v) {
-                                    _vm.full_name = $$v
-                                  },
-                                  expression: "full_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-textarea", {
-                                attrs: { label: "Адрес" },
-                                model: {
-                                  value: _vm.address,
-                                  callback: function($$v) {
-                                    _vm.address = $$v
-                                  },
-                                  expression: "address"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createBuilding }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-88c76a98", module.exports)
-  }
-}
-
-/***/ }),
-/* 132 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(133)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(135)
-/* template */
-var __vue_template__ = __webpack_require__(136)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminClassroom.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-04deed03", Component.options)
-  } else {
-    hotAPI.reload("data-v-04deed03", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 133 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(134);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("33e886fc", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-04deed03\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminClassroom.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-04deed03\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminClassroom.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 134 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 135 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminClassroom",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            building: ''
-        };
-    },
-
-    computed: {
-        currentClassroomModel: {
-            get: function get() {
-                return this.$store.state.currentClassroom;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentClassroom', value: value });
-            }
-        },
-        classroomNameModel: {
-            get: function get() {
-                return this.$store.state.currentClassroom.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentClassroom, { name: value });
-                this.$store.commit('setData', { path: 'currentClassroom', value: value });
-            }
-        },
-        classroomBuildingModel: {
-            get: function get() {
-                var _this = this;
-
-                var building = this.$store.state.buildings.find(function (c) {
-                    return c.id == _this.$store.state.currentClassroom.building_id;
-                }) || null;
-                return building;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentClassroom, { building_id: value.id });
-                this.$store.commit('setData', { path: 'currentClassroom', value: value });
-            }
-        }
-
-    },
-    methods: {
-        getBuildingName: function getBuildingName(id) {
-            var building = this.$store.state.buildings.find(function (c) {
-                return c.id == id;
-            }) || {};
-            return Object.keys(building).length !== 0 ? building.full_name : '';
-        },
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateClassroom');
-        },
-        updateClassroom: function updateClassroom() {
-            this.$store.dispatch('editClassroom');
-        },
-        createClassroom: function createClassroom() {
-            var params = {
-                'name': this.name,
-                'building_id': this.building.id
-            };
-            this.$store.dispatch('createClassroom', params);
-        },
-        deleteClassroom: function deleteClassroom() {
-            this.$store.dispatch('removeClassroom');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 136 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-classroom" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Аудитории")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-classroom__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.classrooms, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentClassroomModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Корпус: " +
-                                      _vm._s(
-                                        _vm.getBuildingName(item.building_id)
-                                      )
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры аудитории")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentClassroom).length !==
-                      0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.classroomNameModel,
-                                              callback: function($$v) {
-                                                _vm.classroomNameModel = $$v
-                                              },
-                                              expression: "classroomNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items: _vm.$store.state.buildings,
-                                              "item-value": "id",
-                                              "item-text": "full_name",
-                                              label: "Корпус",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.classroomBuildingModel,
-                                              callback: function($$v) {
-                                                _vm.classroomBuildingModel = $$v
-                                              },
-                                              expression:
-                                                "classroomBuildingModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateClassroom }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteClassroom }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите аудиторию...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_classroom" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новая аудитория")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: { label: "Название", required: "" },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-combobox", {
-                                attrs: {
-                                  items: _vm.$store.state.buildings,
-                                  "item-value": "id",
-                                  "item-text": "full_name",
-                                  label: "Корпус",
-                                  chips: ""
-                                },
-                                model: {
-                                  value: _vm.building,
-                                  callback: function($$v) {
-                                    _vm.building = $$v
-                                  },
-                                  expression: "building"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createClassroom }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-04deed03", module.exports)
-  }
-}
-
-/***/ }),
-/* 137 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(138)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(140)
-/* template */
-var __vue_template__ = __webpack_require__(141)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminSpecialty.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-56a013a4", Component.options)
-  } else {
-    hotAPI.reload("data-v-56a013a4", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 138 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(139);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("7e9a7fda", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-56a013a4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminSpecialty.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-56a013a4\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminSpecialty.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 139 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 140 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminSpecialty",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            full_name: '',
-            faculty: null,
-            qualification: null
-        };
-    },
-
-    computed: {
-        currentSpecialtyModel: {
-            get: function get() {
-                return this.$store.state.currentSpecialty;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
-            }
-        },
-        specialtyNameModel: {
-            get: function get() {
-                return this.$store.state.currentSpecialty.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentSpecialty, { name: value });
-                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
-            }
-        },
-        specialtyFullNameModel: {
-            get: function get() {
-                return this.$store.state.currentSpecialty.full_name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentSpecialty, { full_name: value });
-                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
-            }
-        },
-        specialtyFacultyModel: {
-            get: function get() {
-                var _this = this;
-
-                var faculty = this.$store.state.faculties.find(function (c) {
-                    return c.id == _this.$store.state.currentSpecialty.faculty_id;
-                }) || null;
-                return faculty;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentSpecialty, { faculty_id: value.id });
-                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
-            }
-        },
-        specialtyQualificationModel: {
-            get: function get() {
-                var _this2 = this;
-
-                var qualification = this.$store.state.qualifications.find(function (c) {
-                    return c.id == _this2.$store.state.currentSpecialty.qualification_id;
-                }) || null;
-                return qualification;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentSpecialty, { qualification_id: value.id });
-                this.$store.commit('setData', { path: 'currentSpecialty', value: value });
-            }
-        }
-
-    },
-    methods: {
-        getFacultyName: function getFacultyName(id) {
-            var faculty = this.$store.state.faculties.find(function (c) {
-                return c.id == id;
-            }) || {};
-            return Object.keys(faculty).length !== 0 ? faculty.full_name : '';
-        },
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateSpecialty');
-        },
-        updateSpecialty: function updateSpecialty() {
-            this.$store.dispatch('editSpecialty');
-        },
-        createSpecialty: function createSpecialty() {
-            var params = {
-                'name': this.name,
-                'full_name': this.full_name,
-                'faculty_id': this.faculty.id,
-                'qualification_id': this.qualification.id
-            };
-            this.$store.dispatch('createSpecialty', params);
-        },
-        deleteSpecialty: function deleteSpecialty() {
-            this.$store.dispatch('removeSpecialty');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 141 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-specialty" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [
-                  _vm._v("Направления подготовки")
-                ])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-specialty__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.specialties, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentSpecialtyModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.full_name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Корпус: " +
-                                      _vm._s(
-                                        _vm.getFacultyName(item.faculty_id)
-                                      )
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры направления подготовки")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentSpecialty).length !==
-                      0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Краткое название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.specialtyNameModel,
-                                              callback: function($$v) {
-                                                _vm.specialtyNameModel = $$v
-                                              },
-                                              expression: "specialtyNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Полное название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.specialtyFullNameModel,
-                                              callback: function($$v) {
-                                                _vm.specialtyFullNameModel = $$v
-                                              },
-                                              expression:
-                                                "specialtyFullNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items: _vm.$store.state.faculties,
-                                              "item-value": "id",
-                                              "item-text": "full_name",
-                                              label: "Факультет",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.specialtyFacultyModel,
-                                              callback: function($$v) {
-                                                _vm.specialtyFacultyModel = $$v
-                                              },
-                                              expression:
-                                                "specialtyFacultyModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items:
-                                                _vm.$store.state.qualifications,
-                                              "item-value": "id",
-                                              "item-text": "name",
-                                              label: "Квалификация",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.specialtyQualificationModel,
-                                              callback: function($$v) {
-                                                _vm.specialtyQualificationModel = $$v
-                                              },
-                                              expression:
-                                                "specialtyQualificationModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateSpecialty }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteSpecialty }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите направление подготовки...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_specialty" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новое направление подготовки")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Краткое название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  label: "Полное название",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.full_name,
-                                  callback: function($$v) {
-                                    _vm.full_name = $$v
-                                  },
-                                  expression: "full_name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-combobox", {
-                                attrs: {
-                                  items: _vm.$store.state.faculties,
-                                  "item-value": "id",
-                                  "item-text": "full_name",
-                                  label: "Факультет",
-                                  chips: ""
-                                },
-                                model: {
-                                  value: _vm.faculty,
-                                  callback: function($$v) {
-                                    _vm.faculty = $$v
-                                  },
-                                  expression: "faculty"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-combobox", {
-                                attrs: {
-                                  items: _vm.$store.state.qualifications,
-                                  "item-value": "id",
-                                  "item-text": "name",
-                                  label: "Квалификация",
-                                  chips: ""
-                                },
-                                model: {
-                                  value: _vm.qualification,
-                                  callback: function($$v) {
-                                    _vm.qualification = $$v
-                                  },
-                                  expression: "qualification"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createSpecialty }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-56a013a4", module.exports)
-  }
-}
-
-/***/ }),
-/* 142 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(143)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(145)
-/* template */
-var __vue_template__ = __webpack_require__(146)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminRequirementFgos.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-1f908f78", Component.options)
-  } else {
-    hotAPI.reload("data-v-1f908f78", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 143 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(144);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("04d85a50", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1f908f78\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRequirementFgos.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1f908f78\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRequirementFgos.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 144 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 145 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminRequirementFgos",
-    components: {},
-    data: function data() {
-        return {
-            specialty: '',
-            out_workers: '',
-            degrees: '',
-            inner_workers: '',
-            trained_worker: '',
-            year_begin: '',
-            year_end: '',
-            yearRules: [function (v) {
-                return !!v || 'Введите учебный год';
-            }, function (v) {
-                return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг-гггг'
-                );
-            }]
-        };
-    },
-
-    computed: {
-        currentRequirementFgosModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosOutWorkersModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos.out_workers;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { out_workers: value });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosDegreesModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos.degrees;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { degrees: value });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosInnerWorkersModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos.inner_workers;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { inner_workers: value });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosTrainedWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos.trained_worker;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { trained_worker: value });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosYearBeginModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos.year_begin;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { year_begin: value });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosYearEndModel: {
-            get: function get() {
-                return this.$store.state.currentRequirementFgos.year_end;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { year_end: value });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        },
-        requirementFgosSpecialtyModel: {
-            get: function get() {
-                var _this = this;
-
-                var specialty = this.$store.state.specialties.find(function (c) {
-                    return c.id == _this.$store.state.currentRequirementFgos.specialty_id;
-                }) || null;
-                return specialty;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentRequirementFgos, { specialty_id: value.id });
-                this.$store.commit('setData', { path: 'currentRequirementFgos', value: value });
-            }
-        }
-
-    },
-    methods: {
-        getSpecialtyName: function getSpecialtyName(id) {
-            var specialty = this.$store.state.specialties.find(function (c) {
-                return c.id == id;
-            }) || {};
-            return Object.keys(specialty).length !== 0 ? specialty.full_name : '';
-        },
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateRequirementFgos');
-        },
-        updateRequirementFgos: function updateRequirementFgos() {
-            this.$store.dispatch('editRequirementFgos');
-        },
-        createRequirementFgos: function createRequirementFgos() {
-            var params = {
-                'specialty_id': this.specialty.id,
-                'out_workers': this.out_workers,
-                'degrees': this.degrees,
-                'inner_workers': this.inner_workers,
-                'trained_worker': this.trained_worker,
-                'year_begin': this.year_begin,
-                'year_end': this.year_end
-            };
-            this.$store.dispatch('createRequirementFgos', params);
-        },
-        deleteRequirementFgos: function deleteRequirementFgos() {
-            this.$store.dispatch('removeRequirementFgos');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 146 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-requirement-fgos" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [
-                  _vm._v("Требования ФГОС")
-                ])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {
-                  staticClass: "stl-requirement-fgos__list",
-                  attrs: { "two-line": "" }
-                },
-                [
-                  _vm._l(_vm.$store.state.requirementFgos, function(
-                    item,
-                    index
-                  ) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentRequirementFgosModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(
-                                  _vm._s(item.year_begin) +
-                                    "-" +
-                                    _vm._s(item.year_end)
-                                )
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Специальность: " +
-                                      _vm._s(
-                                        _vm.getSpecialtyName(item.specialty_id)
-                                      )
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры ФГОС")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentRequirementFgos)
-                        .length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items:
-                                                _vm.$store.state.specialties,
-                                              "item-value": "id",
-                                              "item-text": "full_name",
-                                              label: "Специальность",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosSpecialtyModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosSpecialtyModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosSpecialtyModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              label:
-                                                "% работников сторонней профильной организации",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosOutWorkersModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosOutWorkersModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosOutWorkersModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              label: "% остепенённости",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosDegreesModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosDegreesModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosDegreesModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              label: "% штатных ППС",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosInnerWorkersModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosInnerWorkersModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosInnerWorkersModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              label:
-                                                "% работников с наличием базового образования",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosTrainedWorkerModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosTrainedWorkerModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosTrainedWorkerModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              rules: _vm.yearRules,
-                                              counter: 4,
-                                              label: "Год начала",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosYearBeginModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosYearBeginModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosYearBeginModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              rules: _vm.yearRules,
-                                              counter: 4,
-                                              label: "Год окончания",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.requirementFgosYearEndModel,
-                                              callback: function($$v) {
-                                                _vm.requirementFgosYearEndModel = $$v
-                                              },
-                                              expression:
-                                                "requirementFgosYearEndModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: {
-                                                click: _vm.updateRequirementFgos
-                                              }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: {
-                                                click: _vm.deleteRequirementFgos
-                                              }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите ФГОС...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_requirement-fgos" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новый ФГОС")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-combobox", {
-                                attrs: {
-                                  items: _vm.$store.state.specialties,
-                                  "item-value": "id",
-                                  "item-text": "full_name",
-                                  label: "Специальность",
-                                  chips: ""
-                                },
-                                model: {
-                                  value: _vm.specialty,
-                                  callback: function($$v) {
-                                    _vm.specialty = $$v
-                                  },
-                                  expression: "specialty"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  label:
-                                    "% работников сторонней профильной организации",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.out_workers,
-                                  callback: function($$v) {
-                                    _vm.out_workers = $$v
-                                  },
-                                  expression: "out_workers"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  label: "% остепенённости",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.degrees,
-                                  callback: function($$v) {
-                                    _vm.degrees = $$v
-                                  },
-                                  expression: "degrees"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  label: "% штатных ППС",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.inner_workers,
-                                  callback: function($$v) {
-                                    _vm.inner_workers = $$v
-                                  },
-                                  expression: "inner_workers"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  label:
-                                    "% работников с наличием базового образования",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.trained_worker,
-                                  callback: function($$v) {
-                                    _vm.trained_worker = $$v
-                                  },
-                                  expression: "trained_worker"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  rules: _vm.yearRules,
-                                  counter: 4,
-                                  label: "Год начала",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.year_begin,
-                                  callback: function($$v) {
-                                    _vm.year_begin = $$v
-                                  },
-                                  expression: "year_begin"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  rules: _vm.yearRules,
-                                  counter: 4,
-                                  label: "Год окончания",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.year_end,
-                                  callback: function($$v) {
-                                    _vm.year_end = $$v
-                                  },
-                                  expression: "year_end"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createRequirementFgos }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-1f908f78", module.exports)
-  }
-}
-
-/***/ }),
-/* 147 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(148)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(150)
-/* template */
-var __vue_template__ = __webpack_require__(151)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminGroup.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-3c54cb2f", Component.options)
-  } else {
-    hotAPI.reload("data-v-3c54cb2f", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 148 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(149);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("3028fb1f", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-3c54cb2f\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminGroup.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-3c54cb2f\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminGroup.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 149 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 150 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminGroup",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            specialty: '',
-            year_begin: '',
-            is_full_time: true,
-            is_accelerated: false,
-            number_students: null,
-
-            yearRules: [function (v) {
-                return !!v || 'Введите учебный год';
-            }, function (v) {
-                return (/^(19|20)[0-9]{2}$/.test(v) || 'Год должен быть записан в виде гггг'
-                );
-            }]
-        };
-    },
-
-    computed: {
-        currentGroupModel: {
-            get: function get() {
-                return this.$store.state.currentGroup;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        },
-        groupNameModel: {
-            get: function get() {
-                return this.$store.state.currentGroup.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentGroup, { name: value });
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        },
-        groupYearBeginModel: {
-            get: function get() {
-                return this.$store.state.currentGroup.year_begin;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentGroup, { year_begin: value });
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        },
-        groupIsFullTimeModel: {
-            get: function get() {
-                return this.$store.state.currentGroup.is_full_time;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentGroup, { is_full_time: value });
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        },
-        groupIsAcceleratedModel: {
-            get: function get() {
-                return this.$store.state.currentGroup.is_accelerated;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentGroup, { is_accelerated: value });
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        },
-        groupNumberStudentsModel: {
-            get: function get() {
-                return this.$store.state.currentGroup.number_students;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentGroup, { number_students: value });
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        },
-        groupSpecialtyModel: {
-            get: function get() {
-                var _this = this;
-
-                var specialty = this.$store.state.specialties.find(function (c) {
-                    return c.id == _this.$store.state.currentGroup.specialty_id;
-                }) || null;
-                return specialty;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentGroup, { specialty_id: value.id });
-                this.$store.commit('setData', { path: 'currentGroup', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateGroup');
-        },
-        updateGroup: function updateGroup() {
-            this.$store.dispatch('editGroup');
-        },
-        createGroup: function createGroup() {
-            var params = {
-                'name': this.name,
-                'specialty_id': this.specialty.id,
-                'year_begin': this.year_begin,
-                'is_full_time': this.is_full_time,
-                'is_accelerated': this.is_accelerated,
-                'number_students': this.number_students
-            };
-            this.$store.dispatch('createGroup', params);
-        },
-        deleteGroup: function deleteGroup() {
-            this.$store.dispatch('removeGroup');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 151 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-group" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Группы")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-group__list" },
-                [
-                  _vm._l(_vm.$store.state.groups, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentGroupModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.name))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры группы")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentGroup).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.groupNameModel,
-                                              callback: function($$v) {
-                                                _vm.groupNameModel = $$v
-                                              },
-                                              expression: "groupNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items:
-                                                _vm.$store.state.specialties,
-                                              "item-value": "id",
-                                              "item-text": "full_name",
-                                              label: "Специальность",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.groupSpecialtyModel,
-                                              callback: function($$v) {
-                                                _vm.groupSpecialtyModel = $$v
-                                              },
-                                              expression: "groupSpecialtyModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              rules: _vm.yearRules,
-                                              counter: 4,
-                                              label: "Год поступления",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.groupYearBeginModel,
-                                              callback: function($$v) {
-                                                _vm.groupYearBeginModel = $$v
-                                              },
-                                              expression: "groupYearBeginModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-checkbox", {
-                                            attrs: { label: "Очная" },
-                                            model: {
-                                              value: _vm.groupIsFullTimeModel,
-                                              callback: function($$v) {
-                                                _vm.groupIsFullTimeModel = $$v
-                                              },
-                                              expression: "groupIsFullTimeModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-checkbox", {
-                                            attrs: { label: "Ускоренная" },
-                                            model: {
-                                              value:
-                                                _vm.groupIsAcceleratedModel,
-                                              callback: function($$v) {
-                                                _vm.groupIsAcceleratedModel = $$v
-                                              },
-                                              expression:
-                                                "groupIsAcceleratedModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              counter: 2,
-                                              label: "Количество студентов",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value:
-                                                _vm.groupNumberStudentsModel,
-                                              callback: function($$v) {
-                                                _vm.groupNumberStudentsModel = $$v
-                                              },
-                                              expression:
-                                                "groupNumberStudentsModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateGroup }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteGroup }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите группу...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_пroup" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новая группа")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: { label: "Название", required: "" },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-combobox", {
-                                attrs: {
-                                  items: _vm.$store.state.specialties,
-                                  "item-value": "id",
-                                  "item-text": "full_name",
-                                  label: "Специальность",
-                                  chips: ""
-                                },
-                                model: {
-                                  value: _vm.specialty,
-                                  callback: function($$v) {
-                                    _vm.specialty = $$v
-                                  },
-                                  expression: "specialty"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  rules: _vm.yearRules,
-                                  counter: 4,
-                                  label: "Год поступления",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.year_begin,
-                                  callback: function($$v) {
-                                    _vm.year_begin = $$v
-                                  },
-                                  expression: "year_begin"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-checkbox", {
-                                attrs: { label: "Очная" },
-                                model: {
-                                  value: _vm.is_full_time,
-                                  callback: function($$v) {
-                                    _vm.is_full_time = $$v
-                                  },
-                                  expression: "is_full_time"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-checkbox", {
-                                attrs: { label: "Ускоренная" },
-                                model: {
-                                  value: _vm.is_accelerated,
-                                  callback: function($$v) {
-                                    _vm.is_accelerated = $$v
-                                  },
-                                  expression: "is_accelerated"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: {
-                                  type: "number",
-                                  counter: 2,
-                                  label: "Количество студентов",
-                                  required: ""
-                                },
-                                model: {
-                                  value: _vm.number_students,
-                                  callback: function($$v) {
-                                    _vm.number_students = $$v
-                                  },
-                                  expression: "number_students"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createGroup }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-3c54cb2f", module.exports)
-  }
-}
-
-/***/ }),
-/* 152 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(153)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(155)
-/* template */
-var __vue_template__ = __webpack_require__(156)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminFlow.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-1a9a602e", Component.options)
-  } else {
-    hotAPI.reload("data-v-1a9a602e", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 153 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(154);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("69f52a6a", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1a9a602e\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFlow.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-1a9a602e\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminFlow.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 154 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 155 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminFlow",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            allotment: ''
-        };
-    },
-
-    computed: {
-        currentFlowModel: {
-            get: function get() {
-                return this.$store.state.currentFlow;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentFlow', value: value });
-            }
-        },
-        flowNameModel: {
-            get: function get() {
-                return this.$store.state.currentFlow.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentFlow, { name: value });
-                this.$store.commit('setData', { path: 'currentFlow', value: value });
-            }
-        },
-        flowAllotmentModel: {
-            get: function get() {
-                var _this = this;
-
-                var allotment = this.$store.state.allotments.find(function (c) {
-                    return c.id == _this.$store.state.currentFlow.allotment_id;
-                }) || null;
-                return allotment;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentFlow, { allotment_id: value.id });
-                this.$store.commit('setData', { path: 'currentFlow', value: value });
-            }
-        }
-
-    },
-    methods: {
-        getAllotmentName: function getAllotmentName(id) {
-            var allotment = this.$store.state.allotments.find(function (c) {
-                return c.id == id;
-            }) || {};
-            return Object.keys(allotment).length !== 0 ? allotment.name : '';
-        },
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateFlow');
-        },
-        updateFlow: function updateFlow() {
-            this.$store.dispatch('editFlow');
-        },
-        createFlow: function createFlow() {
-            var params = {
-                'name': this.name,
-                'allotment_id': this.allotment.id
-            };
-            this.$store.dispatch('createFlow', params);
-        },
-        deleteFlow: function deleteFlow() {
-            this.$store.dispatch('removeFlow');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 156 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-flow" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("Потоки")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-flow__list", attrs: { "two-line": "" } },
-                [
-                  _vm._l(_vm.$store.state.flows, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentFlowModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.name))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [
-                                  _vm._v(
-                                    "Распределение: " +
-                                      _vm._s(
-                                        _vm.getAllotmentName(item.allotment_id)
-                                      )
-                                  )
-                                ]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры потока")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentFlow).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Название",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.flowNameModel,
-                                              callback: function($$v) {
-                                                _vm.flowNameModel = $$v
-                                              },
-                                              expression: "flowNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items:
-                                                _vm.$store.state.allotments,
-                                              "item-value": "id",
-                                              "item-text": "name",
-                                              label: "Распределение",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.flowAllotmentModel,
-                                              callback: function($$v) {
-                                                _vm.flowAllotmentModel = $$v
-                                              },
-                                              expression: "flowAllotmentModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateFlow }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteFlow }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите поток...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_flow" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новый поток")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: { label: "Название", required: "" },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-combobox", {
-                                attrs: {
-                                  items: _vm.$store.state.allotments,
-                                  "item-value": "id",
-                                  "item-text": "name",
-                                  label: "Распределение",
-                                  chips: ""
-                                },
-                                model: {
-                                  value: _vm.allotment,
-                                  callback: function($$v) {
-                                    _vm.allotment = $$v
-                                  },
-                                  expression: "allotment"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createFlow }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-1a9a602e", module.exports)
-  }
-}
-
-/***/ }),
-/* 157 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(158)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(160)
-/* template */
-var __vue_template__ = __webpack_require__(164)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminUser.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-dc7e976a", Component.options)
-  } else {
-    hotAPI.reload("data-v-dc7e976a", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 158 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(159);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("1d072fce", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc7e976a\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminUser.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-dc7e976a\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminUser.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 159 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 160 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminUser",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            building: ''
-        };
-    },
-
-    computed: {
-        currentUserModel: {
-            get: function get() {
-                return this.$store.state.currentUser;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentUser', value: value });
-            }
-        },
-        userWorkerIdModel: {
-            get: function get() {
-                var _this = this;
-
-                var worker = this.$store.state.workers.find(function (c) {
-                    return c.id == _this.$store.state.currentUser.worker_id;
-                }) || null;
-                return worker;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentUser, { worker_id: value.id });
-                this.$store.commit('setData', { path: 'currentUser', value: value });
-            }
-        },
-        userRolesModel: {
-            get: function get() {
-                var _this2 = this;
-
-                var roles = [];
-
-                var _loop = function _loop(role_index) {
-                    var role = _this2.$store.state.roles.find(function (c) {
-                        return c.id == _this2.$store.state.currentUser.roles[role_index];
-                    });
-                    if (role) roles.push(role);
-                };
-
-                for (var role_index in this.$store.state.currentUser.roles) {
-                    _loop(role_index);
-                }
-                return roles;
-            },
-            set: function set(value) {
-                var roles = [];
-                for (var role_index in value) {
-                    roles.push(value[role_index].id);
-                }
-                value = _extends({}, this.$store.state.currentUser, { roles: roles });
-                this.$store.commit('setData', { path: 'currentUser', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateUser');
-        },
-        updateUser: function updateUser() {
-            this.$store.dispatch('editUser');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 161 */,
-/* 162 */,
-/* 163 */,
-/* 164 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-user" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [
-                  _vm._v("Пользователи")
-                ])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-user__list", attrs: { "two-line": "" } },
-                [
-                  _vm._l(_vm.$store.state.users, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentUserModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.email))
-                              ]),
-                              _vm._v(" "),
-                              _c(
-                                "v-list-tile-sub-title",
-                                { staticClass: "text--primary" },
-                                [_vm._v("ФИО: " + _vm._s(item.name))]
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры пользователя")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentUser).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }, [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Email: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentUser.email
-                                        ) + "\n                                "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("p", [
-                                      _c("strong", [_vm._v("ФИО: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentUser.name
-                                        ) + "\n                                "
-                                      )
-                                    ])
-                                  ]),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items: _vm.$store.state.workers,
-                                              "item-value": "id",
-                                              "item-text": "fio",
-                                              label: "Преподаватель",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.userWorkerIdModel,
-                                              callback: function($$v) {
-                                                _vm.userWorkerIdModel = $$v
-                                              },
-                                              expression: "userWorkerIdModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items: _vm.$store.state.roles,
-                                              "item-value": "id",
-                                              "item-text": "public_name",
-                                              label: "Роли",
-                                              multiple: "",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.userRolesModel,
-                                              callback: function($$v) {
-                                                _vm.userRolesModel = $$v
-                                              },
-                                              expression: "userRolesModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateUser }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите пользователя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-dc7e976a", module.exports)
-  }
-}
-
-/***/ }),
-/* 165 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(166)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(168)
-/* template */
-var __vue_template__ = __webpack_require__(169)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminWorker.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-24e85f04", Component.options)
-  } else {
-    hotAPI.reload("data-v-24e85f04", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 166 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(167);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("bf1fd3f6", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-24e85f04\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminWorker.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-24e85f04\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminWorker.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 167 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 168 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminWorker",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            fio: '',
-            surname: '',
-            patronymic: ''
-        };
-    },
-
-    computed: {
-        currentWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentWorker;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerNameModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.name;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { name: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerSurnameModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.surname;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { surname: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerPatronymicModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.patronymic;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { patronymic: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerFioModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.fio;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { fio: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerNotActiveModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.not_active;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { not_active: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateWorker');
-        },
-        updateWorker: function updateWorker() {
-            this.$store.dispatch('editWorker');
-        },
-        createWorker: function createWorker() {
-            var params = {
-                'name': this.name,
-                'surname': this.surname,
-                'patronymic': this.patronymic,
-                'fio': this.fio
-            };
-            this.$store.dispatch('createWorker', params);
-        },
-        deleteWorker: function deleteWorker() {
-            this.$store.dispatch('removeWorker');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 169 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            { staticClass: "stl-worker" },
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                { staticClass: "stl-worker__list" },
-                [
-                  _vm._l(_vm.$store.state.workers, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentWorkerModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.fio))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры преподавателя")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Имя",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.workerNameModel,
-                                              callback: function($$v) {
-                                                _vm.workerNameModel = $$v
-                                              },
-                                              expression: "workerNameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "Фамилия",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.workerSurnameModel,
-                                              callback: function($$v) {
-                                                _vm.workerSurnameModel = $$v
-                                              },
-                                              expression: "workerSurnameModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: { label: "Отчество" },
-                                            model: {
-                                              value: _vm.workerPatronymicModel,
-                                              callback: function($$v) {
-                                                _vm.workerPatronymicModel = $$v
-                                              },
-                                              expression:
-                                                "workerPatronymicModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "ФИО",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.workerFioModel,
-                                              callback: function($$v) {
-                                                _vm.workerFioModel = $$v
-                                              },
-                                              expression: "workerFioModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c("v-checkbox", {
-                                            attrs: { label: "Архивный" },
-                                            model: {
-                                              value: _vm.workerNotActiveModel,
-                                              callback: function($$v) {
-                                                _vm.workerNotActiveModel = $$v
-                                              },
-                                              expression: "workerNotActiveModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateWorker }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "error",
-                                              on: { click: _vm.deleteWorker }
-                                            },
-                                            [_vm._v("Удалить")]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    { staticClass: "new_worker" },
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Новый преподаватель")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      _c(
-                        "v-card-text",
-                        [
-                          _c(
-                            "v-form",
-                            [
-                              _c("v-text-field", {
-                                attrs: { label: "Имя", required: "" },
-                                model: {
-                                  value: _vm.name,
-                                  callback: function($$v) {
-                                    _vm.name = $$v
-                                  },
-                                  expression: "name"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: { label: "Фамилия", required: "" },
-                                model: {
-                                  value: _vm.surname,
-                                  callback: function($$v) {
-                                    _vm.surname = $$v
-                                  },
-                                  expression: "surname"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: { label: "Отчество" },
-                                model: {
-                                  value: _vm.patronymic,
-                                  callback: function($$v) {
-                                    _vm.patronymic = $$v
-                                  },
-                                  expression: "patronymic"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c("v-text-field", {
-                                attrs: { label: "ФИО", required: "" },
-                                model: {
-                                  value: _vm.fio,
-                                  callback: function($$v) {
-                                    _vm.fio = $$v
-                                  },
-                                  expression: "fio"
-                                }
-                              }),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  staticClass: "success",
-                                  on: { click: _vm.createWorker }
-                                },
-                                [
-                                  _c("v-icon", { attrs: { left: "" } }, [
-                                    _vm._v("add")
-                                  ]),
-                                  _vm._v(
-                                    "\n                                Создать\n                            "
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      )
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-24e85f04", module.exports)
-  }
-}
-
-/***/ }),
-/* 170 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(171)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(173)
-/* template */
-var __vue_template__ = __webpack_require__(174)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminDegreesWorker.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-2e333b35", Component.options)
-  } else {
-    hotAPI.reload("data-v-2e333b35", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 171 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(172);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("42e40d2e", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-2e333b35\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDegreesWorker.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-2e333b35\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDegreesWorker.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 172 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 173 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminDegreesWorker",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            building: ''
-        };
-    },
-
-    computed: {
-        currentWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentWorker;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerStatusModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.status;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { status: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateDegreesWorker');
-        },
-        updateWorker: function updateWorker() {
-            this.$store.dispatch('editDegreesWorker');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 174 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            {},
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {},
-                [
-                  _vm._l(_vm.$store.state.workers, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentWorkerModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.fio))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры остепенённости")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }, [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("ФИО: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentWorker.fio
-                                        ) + "\n                                "
-                                      )
-                                    ])
-                                  ]),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-checkbox", {
-                                            attrs: {
-                                              label: "Есть научная степень"
-                                            },
-                                            model: {
-                                              value: _vm.workerStatusModel,
-                                              callback: function($$v) {
-                                                _vm.workerStatusModel = $$v
-                                              },
-                                              expression: "workerStatusModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateWorker }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("История изменений")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            _vm._l(
-                              _vm.$store.state.currentWorker.history,
-                              function(item, index) {
-                                return _c(
-                                  "div",
-                                  [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Дата: ")]),
-                                      _vm._v(
-                                        _vm._s(item.date_begin) +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Статус: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          item.status
-                                            ? "Остепенён"
-                                            : "Не остепенён"
-                                        ) + "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("v-divider")
-                                  ],
-                                  1
-                                )
-                              }
-                            )
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-2e333b35", module.exports)
-  }
-}
-
-/***/ }),
-/* 175 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(176)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(178)
-/* template */
-var __vue_template__ = __webpack_require__(179)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminPositionWorker.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-142c82f2", Component.options)
-  } else {
-    hotAPI.reload("data-v-142c82f2", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 176 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(177);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("5e3c9a56", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-142c82f2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPositionWorker.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-142c82f2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPositionWorker.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 177 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 178 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminPositionWorker",
-    components: {},
-    data: function data() {
-        return {
-            name: '',
-            building: ''
-        };
-    },
-
-    computed: {
-        currentWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentWorker;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerPositionModel: {
-            get: function get() {
-                var _this = this;
-
-                var position = this.$store.state.positions.find(function (c) {
-                    return c.id == _this.$store.state.currentWorker.position_id;
-                }) || null;
-                return position;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { position_id: value.id });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        }
-
-    },
-    methods: {
-        getPositionName: function getPositionName(id) {
-            var position = this.$store.state.positions.find(function (c) {
-                return c.id == id;
-            }) || {};
-            return Object.keys(position).length !== 0 ? position.full_name : '';
-        },
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updatePositionWorker');
-        },
-        updateWorker: function updateWorker() {
-            this.$store.dispatch('editPositionWorker');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 179 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            {},
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {},
-                [
-                  _vm._l(_vm.$store.state.workers, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentWorkerModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.fio))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры должности")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }, [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("ФИО: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentWorker.fio
-                                        ) + "\n                                "
-                                      )
-                                    ])
-                                  ]),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-combobox", {
-                                            attrs: {
-                                              items: _vm.$store.state.positions,
-                                              "item-value": "id",
-                                              "item-text": "full_name",
-                                              label: "Специальность",
-                                              chips: ""
-                                            },
-                                            model: {
-                                              value: _vm.workerPositionModel,
-                                              callback: function($$v) {
-                                                _vm.workerPositionModel = $$v
-                                              },
-                                              expression: "workerPositionModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateWorker }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("История изменений")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            _vm._l(
-                              _vm.$store.state.currentWorker.history,
-                              function(item, index) {
-                                return _c(
-                                  "div",
-                                  [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Дата: ")]),
-                                      _vm._v(
-                                        _vm._s(item.date_begin) +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Должность: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.getPositionName(item.position_id)
-                                        ) + "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("v-divider")
-                                  ],
-                                  1
-                                )
-                              }
-                            )
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-142c82f2", module.exports)
-  }
-}
-
-/***/ }),
-/* 180 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(181)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(183)
-/* template */
-var __vue_template__ = __webpack_require__(184)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminRateWorker.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-33952504", Component.options)
-  } else {
-    hotAPI.reload("data-v-33952504", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 181 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(182);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("a7090d28", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-33952504\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRateWorker.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-33952504\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRateWorker.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 182 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(1)(false);
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ }),
-/* 183 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminRateWorker",
-    components: {},
-    data: function data() {
-        return {};
-    },
-
-    computed: {
-        currentWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentWorker;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerHoursModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.hours;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { hours: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateRateWorker');
-        },
-        updateWorker: function updateWorker() {
-            this.$store.dispatch('editRateWorker');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 184 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            {},
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {},
-                [
-                  _vm._l(_vm.$store.state.workers, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentWorkerModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.fio))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры ставки")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }, [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("ФИО: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentWorker.fio
-                                        ) + "\n                                "
-                                      )
-                                    ])
-                                  ]),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              type: "number",
-                                              label: "Ставка (часов)",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.workerHoursModel,
-                                              callback: function($$v) {
-                                                _vm.workerHoursModel = $$v
-                                              },
-                                              expression: "workerHoursModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateWorker }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("История изменений")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            _vm._l(
-                              _vm.$store.state.currentWorker.history,
-                              function(item, index) {
-                                return _c(
-                                  "div",
-                                  [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Дата: ")]),
-                                      _vm._v(
-                                        _vm._s(item.date_begin) +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("p", [
-                                      _c("strong", [
-                                        _vm._v("Ставка (часов): ")
-                                      ]),
-                                      _vm._v(
-                                        _vm._s(item.hours) +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("v-divider")
-                                  ],
-                                  1
-                                )
-                              }
-                            )
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-33952504", module.exports)
-  }
-}
-
-/***/ }),
-/* 185 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(186)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(188)
-/* template */
-var __vue_template__ = __webpack_require__(189)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminStaffWorker.vue"
-
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-697485ae", Component.options)
-  } else {
-    hotAPI.reload("data-v-697485ae", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
-
-module.exports = Component.exports
-
-
-/***/ }),
-/* 186 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(187);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(2)("49dddc7e", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-697485ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminStaffWorker.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-697485ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminStaffWorker.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
+/* 186 */,
 /* 187 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(1)(false);
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(188);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("56cdf967", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue", function() {
+     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 188 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
 // module
-exports.push([module.i, "", ""]);
+exports.push([module.i, "\n.allotment_toolbox {\n  height: 50px;\n}\n", ""]);
 
 // exports
 
-
-/***/ }),
-/* 188 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminStaffWorker",
-    components: {},
-    data: function data() {
-        return {};
-    },
-
-    computed: {
-        currentWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentWorker;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerStatusModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.status;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { status: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateStaffWorker');
-        },
-        updateWorker: function updateWorker() {
-            this.$store.dispatch('editStaffWorker');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
 
 /***/ }),
 /* 189 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            {},
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {},
-                [
-                  _vm._l(_vm.$store.state.workers, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentWorkerModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.fio))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры штатности")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }, [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("ФИО: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentWorker.fio
-                                        ) + "\n                                "
-                                      )
-                                    ])
-                                  ]),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-checkbox", {
-                                            attrs: { label: "Не штатный" },
-                                            model: {
-                                              value: _vm.workerStatusModel,
-                                              callback: function($$v) {
-                                                _vm.workerStatusModel = $$v
-                                              },
-                                              expression: "workerStatusModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateWorker }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("История изменений")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            _vm._l(
-                              _vm.$store.state.currentWorker.history,
-                              function(item, index) {
-                                return _c(
-                                  "div",
-                                  [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Дата: ")]),
-                                      _vm._v(
-                                        _vm._s(item.date_begin) +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Штатный: ")]),
-                                      _vm._v(
-                                        _vm._s(item.status ? "нет" : "да") +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("v-divider")
-                                  ],
-                                  1
-                                )
-                              }
-                            )
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-697485ae", module.exports)
-  }
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(190);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("6cd576f8", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue", function() {
+     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
 }
 
 /***/ }),
 /* 190 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var disposed = false
-function injectStyle (ssrContext) {
-  if (disposed) return
-  __webpack_require__(191)
-}
-var normalizeComponent = __webpack_require__(3)
-/* script */
-var __vue_script__ = __webpack_require__(193)
-/* template */
-var __vue_template__ = __webpack_require__(194)
-/* template functional */
-var __vue_template_functional__ = false
-/* styles */
-var __vue_styles__ = injectStyle
-/* scopeId */
-var __vue_scopeId__ = null
-/* moduleIdentifier (server only) */
-var __vue_module_identifier__ = null
-var Component = normalizeComponent(
-  __vue_script__,
-  __vue_template__,
-  __vue_template_functional__,
-  __vue_styles__,
-  __vue_scopeId__,
-  __vue_module_identifier__
-)
-Component.options.__file = "resources/js/components/admin/stlPageAdminTrainedWorker.vue"
+exports = module.exports = __webpack_require__(0)(false);
+// imports
 
-/* hot reload */
-if (false) {(function () {
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), false)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-4a7d8cb5", Component.options)
-  } else {
-    hotAPI.reload("data-v-4a7d8cb5", Component.options)
-  }
-  module.hot.dispose(function (data) {
-    disposed = true
-  })
-})()}
 
-module.exports = Component.exports
+// module
+exports.push([module.i, "\n.page-hi__nav {\n  height: 50px;\n}\n.page-hi__column {\n  height: calc(100vh - 210px);\n  overflow-y: auto;\n}\n", ""]);
+
+// exports
 
 
 /***/ }),
@@ -66416,13 +67021,13 @@ var content = __webpack_require__(192);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
-var update = __webpack_require__(2)("1494c3b5", content, false, {});
+var update = __webpack_require__(1)("c9e364e8", content, false, {});
 // Hot Module Replacement
 if(false) {
  // When the styles change, update the <style> tags
  if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-4a7d8cb5\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTrainedWorker.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-4a7d8cb5\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTrainedWorker.vue");
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/sass-loader/lib/loader.js!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/sass-loader/lib/loader.js!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue");
      if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
      update(newContent);
    });
@@ -66435,410 +67040,15 @@ if(false) {
 /* 192 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(1)(false);
+exports = module.exports = __webpack_require__(0)(false);
 // imports
 
 
 // module
-exports.push([module.i, "", ""]);
+exports.push([module.i, "\n.page-admin__column {\n  height: calc(100vh - 110px);\n  overflow: auto;\n}\n", ""]);
 
 // exports
 
-
-/***/ }),
-/* 193 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-    name: "stlPageAdminTrainedWorker",
-    components: {},
-    data: function data() {
-        return {};
-    },
-
-    computed: {
-        currentWorkerModel: {
-            get: function get() {
-                return this.$store.state.currentWorker;
-            },
-            set: function set(value) {
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        },
-        workerStatusModel: {
-            get: function get() {
-                return this.$store.state.currentWorker.status;
-            },
-            set: function set(value) {
-                value = _extends({}, this.$store.state.currentWorker, { status: value });
-                this.$store.commit('setData', { path: 'currentWorker', value: value });
-            }
-        }
-
-    },
-    methods: {
-        init: function init() {
-            this.updateTable();
-        },
-        updateTable: function updateTable() {
-            this.$store.dispatch('updateTrainedWorker');
-        },
-        updateWorker: function updateWorker() {
-            this.$store.dispatch('editTrainedWorker');
-        }
-    },
-
-    beforeMount: function beforeMount() {
-        this.init();
-    }
-});
-
-/***/ }),
-/* 194 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var render = function() {
-  var _vm = this
-  var _h = _vm.$createElement
-  var _c = _vm._self._c || _h
-  return _c(
-    "v-layout",
-    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
-    [
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm6: "" } },
-        [
-          _c(
-            "v-card",
-            {},
-            [
-              _c("v-toolbar", { staticClass: "header white--text" }, [
-                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
-              ]),
-              _vm._v(" "),
-              _c(
-                "v-list",
-                {},
-                [
-                  _vm._l(_vm.$store.state.workers, function(item, index) {
-                    return [
-                      _c(
-                        "v-list-tile",
-                        {
-                          key: item.id,
-                          attrs: { ripple: "" },
-                          on: {
-                            click: function($event) {
-                              _vm.currentWorkerModel = item
-                            }
-                          }
-                        },
-                        [
-                          _c(
-                            "v-list-tile-content",
-                            [
-                              _c("v-list-tile-title", [
-                                _vm._v(_vm._s(item.fio))
-                              ])
-                            ],
-                            1
-                          )
-                        ],
-                        1
-                      ),
-                      _vm._v(" "),
-                      _c("v-divider")
-                    ]
-                  })
-                ],
-                2
-              )
-            ],
-            1
-          )
-        ],
-        1
-      ),
-      _vm._v(" "),
-      _c(
-        "v-flex",
-        { attrs: { xs12: "", sm5: "" } },
-        [
-          _c(
-            "v-layout",
-            { attrs: { row: "", wrap: "" } },
-            [
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("Параметры образования")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            [
-                              _c(
-                                "v-layout",
-                                { attrs: { row: "", wrap: "" } },
-                                [
-                                  _c("v-flex", { attrs: { xs12: "" } }, [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("ФИО: ")]),
-                                      _vm._v(
-                                        _vm._s(
-                                          _vm.$store.state.currentWorker.fio
-                                        ) + "\n                                "
-                                      )
-                                    ])
-                                  ]),
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-flex",
-                                    { attrs: { xs12: "" } },
-                                    [
-                                      _c(
-                                        "v-form",
-                                        [
-                                          _c("v-checkbox", {
-                                            attrs: {
-                                              label:
-                                                "Не имеет нужное образование"
-                                            },
-                                            model: {
-                                              value: _vm.workerStatusModel,
-                                              callback: function($$v) {
-                                                _vm.workerStatusModel = $$v
-                                              },
-                                              expression: "workerStatusModel"
-                                            }
-                                          }),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              staticClass: "primary",
-                                              on: { click: _vm.updateWorker }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                        Изменить\n                                    "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c("v-divider")
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              )
-                            ],
-                            1
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              ),
-              _vm._v(" "),
-              _c(
-                "v-flex",
-                { attrs: { xs12: "" } },
-                [
-                  _c(
-                    "v-card",
-                    {},
-                    [
-                      _c("v-toolbar", { staticClass: "header white--text" }, [
-                        _c("div", { staticClass: "subheading" }, [
-                          _vm._v("История изменений")
-                        ])
-                      ]),
-                      _vm._v(" "),
-                      Object.keys(_vm.$store.state.currentWorker).length !== 0
-                        ? _c(
-                            "v-card-text",
-                            _vm._l(
-                              _vm.$store.state.currentWorker.history,
-                              function(item, index) {
-                                return _c(
-                                  "div",
-                                  [
-                                    _c("p", [
-                                      _c("strong", [_vm._v("Дата: ")]),
-                                      _vm._v(
-                                        _vm._s(item.date_begin) +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("p", [
-                                      _c("strong", [
-                                        _vm._v("Имеет нужное образование: ")
-                                      ]),
-                                      _vm._v(
-                                        _vm._s(item.status ? "нет" : "да") +
-                                          "\n                            "
-                                      )
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("v-divider")
-                                  ],
-                                  1
-                                )
-                              }
-                            )
-                          )
-                        : _c("v-card-text", [
-                            _vm._v(
-                              "\n                        Выберите преподавателя...\n                    "
-                            )
-                          ])
-                    ],
-                    1
-                  )
-                ],
-                1
-              )
-            ],
-            1
-          )
-        ],
-        1
-      )
-    ],
-    1
-  )
-}
-var staticRenderFns = []
-render._withStripped = true
-module.exports = { render: render, staticRenderFns: staticRenderFns }
-if (false) {
-  module.hot.accept()
-  if (module.hot.data) {
-    require("vue-hot-reload-api")      .rerender("data-v-4a7d8cb5", module.exports)
-  }
-}
 
 /***/ })
 /******/ ]);

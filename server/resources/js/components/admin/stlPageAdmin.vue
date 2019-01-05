@@ -2,7 +2,7 @@
     <v-layout row justify-space-around fill-height>
 
         <v-flex xs12>
-            <v-card class="stl-admin">
+            <v-card class="stl-admin page-admin__column">
                 <v-toolbar class="header white--text">
                     <div class="subheading">Разделы</div>
                 </v-toolbar>
@@ -74,4 +74,11 @@
     }
 </script>
 
-<style />
+<style lang="scss">
+    .page-admin{
+        &__column{
+            height: calc(100vh - 110px);
+            overflow: auto;
+        }
+    }
+</style>

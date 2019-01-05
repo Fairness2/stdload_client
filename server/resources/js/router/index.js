@@ -39,6 +39,12 @@ const routes = [
         component: StlPageAllotments
     },
     {
+        name: 'startPage',
+        path: '/',
+        redirect: {name: 'pageAllotments'},
+        component: StlPageAllotments
+    },
+    {
         name: 'hiDiscipline',
         path: '/page/hi_discipline/:id',
         component: StlPageHiDiscipline

@@ -34,9 +34,60 @@
             </v-btn>
         </div>
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" title="Выгрузить в файл">
-                <v-icon>cloud_download</v-icon>
-            </v-btn>
+            <v-dialog v-model="showDownloadInFile" width="500">
+                <v-btn outline slot="activator" color="primary" title="Выгрузить в файл">
+                    <v-icon>cloud_download</v-icon>
+                </v-btn>
+
+                <v-card>
+                    <form method="post" action="/allotments/download_allotment" enctype="multipart/form-data">
+                        <v-card-title
+                                class="headline grey lighten-2"
+                                primary-title
+                        >
+                            Выберите файл
+                        </v-card-title>
+
+                        <v-card-text>
+
+                            <input type="hidden" name="_token" :value="$store.getters.csrf">
+                            <input type="hidden" name="allotment_id" :value="$store.state.currentAllotment.id" required>
+                            <input type="file" name="file" required>
+                            <input type="hidden" name="semester" :value="selectSemester" required>
+                            <v-select
+                                    color="primary"
+                                    :items="$store.state.semesters"
+                                    label="Семестр"
+                                    v-model="selectSemester"
+                            ></v-select>
+                            <input type="hidden" name="update_workers" :value="updateWorkers">
+                            <v-checkbox
+                                    v-model="updateWorkers"
+                                    label="Добавить недостающих преподавателей (максимум 10)"
+                            ></v-checkbox>
+
+                        </v-card-text>
+
+                        <v-card-actions>
+                            <v-btn
+                                    color="success"
+                                    flat
+                                    type="submit"
+                            >
+                                Загрузить
+                            </v-btn>
+
+                            <v-btn
+                                    color=""
+                                    flat
+                                    @click="showDownloadInFile = false"
+                            >
+                                Отмена
+                            </v-btn>
+                        </v-card-actions>
+                    </form>
+                </v-card>
+            </v-dialog>
         </div>
         <div class="allotment_toolbox__element">
 
@@ -116,6 +167,7 @@
         props:[],
         data: () => ({
             showLoadInFile: false,
+            showDownloadInFile: false,
             selectSemester: 3,
             updateWorkers: false,
         }),
@@ -169,4 +221,8 @@
     }
 </script>
 
-<style></style>
+<style lang="scss">
+.allotment_toolbox{
+    height: 50px;
+}
+</style>
