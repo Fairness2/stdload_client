@@ -528,11 +528,14 @@ class AdminController extends Controller
     public function getDegreesWorker(Request $request){
         $workers = DB::table('worker')->orderBy('fio')->get()->all();
         foreach ($workers as &$worker){
-            $status = DB::table('degrees_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->first();
-            if ($status)
-                $worker->status = $status->status;
+            $history = DB::table('degrees_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->all();
+            //$status = DB::table('degrees_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->first();
+            if (count($history) > 0)
+                $worker->status = $history[0]->status;
             else
                 $worker->status = null;
+            $worker->history = $history;
+
         }
         return ['status' => true, 'data' => $workers];
     }
@@ -550,11 +553,12 @@ class AdminController extends Controller
     public function getPositionWorker(Request $request){
         $workers = DB::table('worker')->orderBy('fio')->get()->all();
         foreach ($workers as &$worker){
-            $status = DB::table('position_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->first();
-            if ($status)
-                $worker->position_id = $status->position_id;
+            $history = DB::table('position_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->all();
+            if (count($history) > 0)
+                $worker->position_id = $history[0]->position_id;
             else
                 $worker->position_id = null;
+            $worker->history = $history;
         }
         return ['status' => true, 'data' => $workers];
     }
@@ -572,11 +576,12 @@ class AdminController extends Controller
     public function getRateWorker(Request $request){
         $workers = DB::table('worker')->orderBy('fio')->get()->all();
         foreach ($workers as &$worker){
-            $status = DB::table('rate_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->first();
-            if ($status)
-                $worker->hours = $status->hours;
+            $history = DB::table('rate_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->all();
+            if (count($history) > 0)
+                $worker->hours = $history[0]->hours;
             else
                 $worker->hours = null;
+            $worker->history = $history;
         }
         return ['status' => true, 'data' => $workers];
     }
@@ -594,11 +599,12 @@ class AdminController extends Controller
     public function getStaffWorker(Request $request){
         $workers = DB::table('worker')->orderBy('fio')->get()->all();
         foreach ($workers as &$worker){
-            $status = DB::table('staff_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->first();
-            if ($status)
-                $worker->status = $status->status;
+            $history = DB::table('staff_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->all();
+            if (count($history) > 0)
+                $worker->status = $history[0]->status;
             else
                 $worker->status = null;
+            $worker->history = $history;
         }
         return ['status' => true, 'data' => $workers];
     }
@@ -616,11 +622,12 @@ class AdminController extends Controller
     public function getTrainedWorker(Request $request){
         $workers = DB::table('worker')->orderBy('fio')->get()->all();
         foreach ($workers as &$worker){
-            $status = DB::table('trained_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->first();
-            if ($status)
-                $worker->status = $status->status;
+            $history = DB::table('trained_worker')->where('worker_id', $worker->id)->orderBy('date_begin', 'desc')->get()->all();
+            if (count($history) > 0)
+                $worker->status = $history[0]->status;
             else
                 $worker->status = null;
+            $worker->history = $history;
         }
         return ['status' => true, 'data' => $workers];
     }

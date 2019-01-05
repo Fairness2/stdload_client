@@ -36,7 +36,7 @@ const store = new Vuex.Store({
       loadElements: [],
       currentLoadElement: {},
       workers: [],
-      currentWorker: null,
+      currentWorker: {},
 
       threads:[],
       auditorys:[],
@@ -965,6 +965,7 @@ const store = new Vuex.Store({
 
       async updatePositionWorker({commit, dispatch}){
           commit('setLoader', true);
+          await dispatch('fetchPosition');
           await dispatch('fetchPositionWorker');
           commit('setLoader', false);
       },

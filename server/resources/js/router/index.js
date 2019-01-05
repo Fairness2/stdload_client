@@ -17,6 +17,11 @@ import StlPageAdminGroup from '../components/admin/stlPageAdminGroup';
 import StlPageAdminFlow from '../components/admin/stlPageAdminFlow';
 import StlPageAdminUser from '../components/admin/stlPageAdminUser';
 import StlPageAdminWorker from '../components/admin/stlPageAdminWorker';
+import StlPageAdminDegreesWorker from '../components/admin/stlPageAdminDegreesWorker';
+import StlPageAdminPositionWorker from '../components/admin/stlPageAdminPositionWorker';
+import StlPageAdminRateWorker from '../components/admin/stlPageAdminRateWorker';
+import StlPageAdminStaffWorker from '../components/admin/stlPageAdminStaffWorker';
+import StlPageAdminTrainedWorker from '../components/admin/stlPageAdminTrainedWorker';
 
 
 Vue.use(Router);
@@ -112,6 +117,31 @@ const routes = [
         name: 'admin_worker',
         path: '/admin/worker',
         component: StlPageAdminWorker,
+    },
+    {
+        name: 'admin_degrees_worker',
+        path: '/admin/degrees_worker',
+        component: StlPageAdminDegreesWorker,
+    },
+    {
+        name: 'admin_position_worker',
+        path: '/admin/position_worker',
+        component: StlPageAdminPositionWorker,
+    },
+    {
+        name: 'admin_rate_worker',
+        path: '/admin/rate_worker',
+        component: StlPageAdminRateWorker,
+    },
+    {
+        name: 'admin_staff_worker',
+        path: '/admin/staff_worker',
+        component: StlPageAdminStaffWorker,
+    },
+    {
+        name: 'admin_trained_worker',
+        path: '/admin/trained_worker',
+        component: StlPageAdminTrainedWorker,
     },
 
 ];

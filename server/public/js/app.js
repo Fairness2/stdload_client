@@ -13099,6 +13099,21 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_17__components_admin_stlPageAdminUser__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__ = __webpack_require__(165);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker__ = __webpack_require__(170);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker__ = __webpack_require__(175);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker__ = __webpack_require__(180);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker__ = __webpack_require__(185);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker__ = __webpack_require__(190);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker__);
+
+
+
+
+
 
 
 
@@ -13194,6 +13209,26 @@ var routes = [{
     name: 'admin_worker',
     path: '/admin/worker',
     component: __WEBPACK_IMPORTED_MODULE_18__components_admin_stlPageAdminWorker___default.a
+}, {
+    name: 'admin_degrees_worker',
+    path: '/admin/degrees_worker',
+    component: __WEBPACK_IMPORTED_MODULE_19__components_admin_stlPageAdminDegreesWorker___default.a
+}, {
+    name: 'admin_position_worker',
+    path: '/admin/position_worker',
+    component: __WEBPACK_IMPORTED_MODULE_20__components_admin_stlPageAdminPositionWorker___default.a
+}, {
+    name: 'admin_rate_worker',
+    path: '/admin/rate_worker',
+    component: __WEBPACK_IMPORTED_MODULE_21__components_admin_stlPageAdminRateWorker___default.a
+}, {
+    name: 'admin_staff_worker',
+    path: '/admin/staff_worker',
+    component: __WEBPACK_IMPORTED_MODULE_22__components_admin_stlPageAdminStaffWorker___default.a
+}, {
+    name: 'admin_trained_worker',
+    path: '/admin/trained_worker',
+    component: __WEBPACK_IMPORTED_MODULE_23__components_admin_stlPageAdminTrainedWorker___default.a
 }];
 
 /* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_1_vue_router__["a" /* default */]({
@@ -19272,7 +19307,7 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
         loadElements: [],
         currentLoadElement: {},
         workers: [],
-        currentWorker: null,
+        currentWorker: {},
 
         threads: [],
         auditorys: [],
@@ -23081,12 +23116,16 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
                             case 0:
                                 commit('setLoader', true);
                                 _context98.next = 3;
-                                return dispatch('fetchPositionWorker');
+                                return dispatch('fetchPosition');
 
                             case 3:
+                                _context98.next = 5;
+                                return dispatch('fetchPositionWorker');
+
+                            case 5:
                                 commit('setLoader', false);
 
-                            case 4:
+                            case 6:
                             case 'end':
                                 return _context98.stop();
                         }
@@ -64347,6 +64386,2457 @@ if (false) {
   module.hot.accept()
   if (module.hot.data) {
     require("vue-hot-reload-api")      .rerender("data-v-24e85f04", module.exports)
+  }
+}
+
+/***/ }),
+/* 170 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(171)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(173)
+/* template */
+var __vue_template__ = __webpack_require__(174)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminDegreesWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-2e333b35", Component.options)
+  } else {
+    hotAPI.reload("data-v-2e333b35", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 171 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(172);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("42e40d2e", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-2e333b35\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDegreesWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-2e333b35\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminDegreesWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 172 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 173 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminDegreesWorker",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerStatusModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.status;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { status: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateDegreesWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editDegreesWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 174 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            {},
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры остепенённости")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-checkbox", {
+                                            attrs: {
+                                              label: "Есть научная степень"
+                                            },
+                                            model: {
+                                              value: _vm.workerStatusModel,
+                                              callback: function($$v) {
+                                                _vm.workerStatusModel = $$v
+                                              },
+                                              expression: "workerStatusModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Статус: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          item.status
+                                            ? "Остепенён"
+                                            : "Не остепенён"
+                                        ) + "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-2e333b35", module.exports)
+  }
+}
+
+/***/ }),
+/* 175 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(176)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(178)
+/* template */
+var __vue_template__ = __webpack_require__(179)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminPositionWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-142c82f2", Component.options)
+  } else {
+    hotAPI.reload("data-v-142c82f2", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 176 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(177);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("5e3c9a56", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-142c82f2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPositionWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-142c82f2\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminPositionWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 177 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 178 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminPositionWorker",
+    components: {},
+    data: function data() {
+        return {
+            name: '',
+            building: ''
+        };
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerPositionModel: {
+            get: function get() {
+                var _this = this;
+
+                var position = this.$store.state.positions.find(function (c) {
+                    return c.id == _this.$store.state.currentWorker.position_id;
+                }) || null;
+                return position;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { position_id: value.id });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        getPositionName: function getPositionName(id) {
+            var position = this.$store.state.positions.find(function (c) {
+                return c.id == id;
+            }) || {};
+            return Object.keys(position).length !== 0 ? position.full_name : '';
+        },
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updatePositionWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editPositionWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 179 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            {},
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры должности")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-combobox", {
+                                            attrs: {
+                                              items: _vm.$store.state.positions,
+                                              "item-value": "id",
+                                              "item-text": "full_name",
+                                              label: "Специальность",
+                                              chips: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerPositionModel,
+                                              callback: function($$v) {
+                                                _vm.workerPositionModel = $$v
+                                              },
+                                              expression: "workerPositionModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Должность: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.getPositionName(item.position_id)
+                                        ) + "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-142c82f2", module.exports)
+  }
+}
+
+/***/ }),
+/* 180 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(181)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(183)
+/* template */
+var __vue_template__ = __webpack_require__(184)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminRateWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-33952504", Component.options)
+  } else {
+    hotAPI.reload("data-v-33952504", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 181 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(182);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("a7090d28", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-33952504\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRateWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-33952504\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminRateWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 182 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 183 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminRateWorker",
+    components: {},
+    data: function data() {
+        return {};
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerHoursModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.hours;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { hours: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateRateWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editRateWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 184 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            {},
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры ставки")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-text-field", {
+                                            attrs: {
+                                              type: "number",
+                                              label: "Ставка (часов)",
+                                              required: ""
+                                            },
+                                            model: {
+                                              value: _vm.workerHoursModel,
+                                              callback: function($$v) {
+                                                _vm.workerHoursModel = $$v
+                                              },
+                                              expression: "workerHoursModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [
+                                        _vm._v("Ставка (часов): ")
+                                      ]),
+                                      _vm._v(
+                                        _vm._s(item.hours) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-33952504", module.exports)
+  }
+}
+
+/***/ }),
+/* 185 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(186)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(188)
+/* template */
+var __vue_template__ = __webpack_require__(189)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminStaffWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-697485ae", Component.options)
+  } else {
+    hotAPI.reload("data-v-697485ae", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 186 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(187);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("49dddc7e", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-697485ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminStaffWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-697485ae\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminStaffWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 187 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 188 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminStaffWorker",
+    components: {},
+    data: function data() {
+        return {};
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerStatusModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.status;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { status: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateStaffWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editStaffWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 189 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            {},
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры штатности")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-checkbox", {
+                                            attrs: { label: "Не штатный" },
+                                            model: {
+                                              value: _vm.workerStatusModel,
+                                              callback: function($$v) {
+                                                _vm.workerStatusModel = $$v
+                                              },
+                                              expression: "workerStatusModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Штатный: ")]),
+                                      _vm._v(
+                                        _vm._s(item.status ? "нет" : "да") +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-697485ae", module.exports)
+  }
+}
+
+/***/ }),
+/* 190 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(191)
+}
+var normalizeComponent = __webpack_require__(3)
+/* script */
+var __vue_script__ = __webpack_require__(193)
+/* template */
+var __vue_template__ = __webpack_require__(194)
+/* template functional */
+var __vue_template_functional__ = false
+/* styles */
+var __vue_styles__ = injectStyle
+/* scopeId */
+var __vue_scopeId__ = null
+/* moduleIdentifier (server only) */
+var __vue_module_identifier__ = null
+var Component = normalizeComponent(
+  __vue_script__,
+  __vue_template__,
+  __vue_template_functional__,
+  __vue_styles__,
+  __vue_scopeId__,
+  __vue_module_identifier__
+)
+Component.options.__file = "resources/js/components/admin/stlPageAdminTrainedWorker.vue"
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-4a7d8cb5", Component.options)
+  } else {
+    hotAPI.reload("data-v-4a7d8cb5", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 191 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(192);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(2)("1494c3b5", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-4a7d8cb5\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTrainedWorker.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-4a7d8cb5\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdminTrainedWorker.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 192 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(1)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 193 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "stlPageAdminTrainedWorker",
+    components: {},
+    data: function data() {
+        return {};
+    },
+
+    computed: {
+        currentWorkerModel: {
+            get: function get() {
+                return this.$store.state.currentWorker;
+            },
+            set: function set(value) {
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        },
+        workerStatusModel: {
+            get: function get() {
+                return this.$store.state.currentWorker.status;
+            },
+            set: function set(value) {
+                value = _extends({}, this.$store.state.currentWorker, { status: value });
+                this.$store.commit('setData', { path: 'currentWorker', value: value });
+            }
+        }
+
+    },
+    methods: {
+        init: function init() {
+            this.updateTable();
+        },
+        updateTable: function updateTable() {
+            this.$store.dispatch('updateTrainedWorker');
+        },
+        updateWorker: function updateWorker() {
+            this.$store.dispatch('editTrainedWorker');
+        }
+    },
+
+    beforeMount: function beforeMount() {
+        this.init();
+    }
+});
+
+/***/ }),
+/* 194 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var render = function() {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "v-layout",
+    { attrs: { row: "", "justify-space-around": "", "fill-height": "" } },
+    [
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm6: "" } },
+        [
+          _c(
+            "v-card",
+            {},
+            [
+              _c("v-toolbar", { staticClass: "header white--text" }, [
+                _c("div", { staticClass: "subheading" }, [_vm._v("ППС")])
+              ]),
+              _vm._v(" "),
+              _c(
+                "v-list",
+                {},
+                [
+                  _vm._l(_vm.$store.state.workers, function(item, index) {
+                    return [
+                      _c(
+                        "v-list-tile",
+                        {
+                          key: item.id,
+                          attrs: { ripple: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.currentWorkerModel = item
+                            }
+                          }
+                        },
+                        [
+                          _c(
+                            "v-list-tile-content",
+                            [
+                              _c("v-list-tile-title", [
+                                _vm._v(_vm._s(item.fio))
+                              ])
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c("v-divider")
+                    ]
+                  })
+                ],
+                2
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "v-flex",
+        { attrs: { xs12: "", sm5: "" } },
+        [
+          _c(
+            "v-layout",
+            { attrs: { row: "", wrap: "" } },
+            [
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("Параметры образования")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            [
+                              _c(
+                                "v-layout",
+                                { attrs: { row: "", wrap: "" } },
+                                [
+                                  _c("v-flex", { attrs: { xs12: "" } }, [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("ФИО: ")]),
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.$store.state.currentWorker.fio
+                                        ) + "\n                                "
+                                      )
+                                    ])
+                                  ]),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-flex",
+                                    { attrs: { xs12: "" } },
+                                    [
+                                      _c(
+                                        "v-form",
+                                        [
+                                          _c("v-checkbox", {
+                                            attrs: {
+                                              label:
+                                                "Не имеет нужное образование"
+                                            },
+                                            model: {
+                                              value: _vm.workerStatusModel,
+                                              callback: function($$v) {
+                                                _vm.workerStatusModel = $$v
+                                              },
+                                              expression: "workerStatusModel"
+                                            }
+                                          }),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-btn",
+                                            {
+                                              staticClass: "primary",
+                                              on: { click: _vm.updateWorker }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                        Изменить\n                                    "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      ),
+                                      _vm._v(" "),
+                                      _c("v-divider")
+                                    ],
+                                    1
+                                  )
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-flex",
+                { attrs: { xs12: "" } },
+                [
+                  _c(
+                    "v-card",
+                    {},
+                    [
+                      _c("v-toolbar", { staticClass: "header white--text" }, [
+                        _c("div", { staticClass: "subheading" }, [
+                          _vm._v("История изменений")
+                        ])
+                      ]),
+                      _vm._v(" "),
+                      Object.keys(_vm.$store.state.currentWorker).length !== 0
+                        ? _c(
+                            "v-card-text",
+                            _vm._l(
+                              _vm.$store.state.currentWorker.history,
+                              function(item, index) {
+                                return _c(
+                                  "div",
+                                  [
+                                    _c("p", [
+                                      _c("strong", [_vm._v("Дата: ")]),
+                                      _vm._v(
+                                        _vm._s(item.date_begin) +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("p", [
+                                      _c("strong", [
+                                        _vm._v("Имеет нужное образование: ")
+                                      ]),
+                                      _vm._v(
+                                        _vm._s(item.status ? "нет" : "да") +
+                                          "\n                            "
+                                      )
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-divider")
+                                  ],
+                                  1
+                                )
+                              }
+                            )
+                          )
+                        : _c("v-card-text", [
+                            _vm._v(
+                              "\n                        Выберите преподавателя...\n                    "
+                            )
+                          ])
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      )
+    ],
+    1
+  )
+}
+var staticRenderFns = []
+render._withStripped = true
+module.exports = { render: render, staticRenderFns: staticRenderFns }
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+    require("vue-hot-reload-api")      .rerender("data-v-4a7d8cb5", module.exports)
   }
 }
 
