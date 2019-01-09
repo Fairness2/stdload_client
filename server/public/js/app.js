@@ -16263,12 +16263,12 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
             this.$store.dispatch('updateAllotments');
         },
         isDistributed: function isDistributed(dis_hours, all_hours) {
-            if (dis_hours < all_hours) {
-                return 'stl-allotments__dis-complite-not';
-            } else if (dis_hours == all_hours) {
-                return 'stl-allotments__dis-complite';
-            } else if (dis_hours > all_hours) {
-                return 'stl-allotments__dis-complite-error';
+            if (Number(dis_hours) < Number(all_hours)) {
+                return 'dis-complite-not';
+            } else if (Number(dis_hours) == Number(all_hours)) {
+                return 'dis-complite';
+            } else if (Number(dis_hours) > Number(all_hours)) {
+                return 'dis-complite-error';
             }
             return '';
         },
@@ -17371,11 +17371,11 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
     },
     methods: {
         isDistributed: function isDistributed(dis_hours, all_hours) {
-            if (dis_hours < all_hours) {
+            if (Number(dis_hours) < Number(all_hours)) {
                 return 'dis_complite_not';
-            } else if (dis_hours == all_hours) {
+            } else if (Number(dis_hours) == Number(all_hours)) {
                 return 'dis_complite';
-            } else if (dis_hours > all_hours) {
+            } else if (Number(dis_hours) > Number(all_hours)) {
                 return 'dis_complite_error';
             }
             return '';

@@ -10733,3 +10733,15 @@ a:hover {
   text-decoration: none !important;
 }
 
+.dis_complite_error {
+  background-color: #d39386;
+}
+
+.dis_complite {
+  background-color: #9dff7f;
+}
+
+.dis_complite_not {
+  background-color: #ffffff;
+}
+

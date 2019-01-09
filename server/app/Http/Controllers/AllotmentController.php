@@ -131,6 +131,11 @@ class AllotmentController extends Controller
             foreach ($arrGroup as &$item){
                 $item = trim($item);
             }
+            if (count($arrGroup) <= 2){
+                $arr = explode('-', $arrGroup[1]);
+                $arrGroup[1] = '' . $arr[0];
+                $arrGroup[2] = '-' . $arr[1] . '-' . $arr[2];
+            }
             $issetGroup = DB::table('group')->where('name', $arrGroup[1] . ' ' . $arrGroup[2])->get()->first();
             if ($issetGroup)
                 $groupId = $issetGroup->id;
@@ -456,7 +461,7 @@ class AllotmentController extends Controller
         //return redirect()->route('page_hi_discipline', ['id' => $allotmentId]);
 
         // Redirect output to a client’s web browser (Xlsx)
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        /*header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $allotment->name . '.xlsx"');
         header('Cache-Control: max-age=0');
         // If you're serving to IE 9, then the following may be needed
@@ -466,11 +471,14 @@ class AllotmentController extends Controller
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
         header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
-        header('Pragma: public'); // HTTP/1.0
+        header('Pragma: public'); // HTTP/1.0*/
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('php://output');
-        exit;
+        //$writer->save('php://output');
+        $writer->save($inputFileName);
+        //exit;
+        $headers = ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+        return response()->download($inputFileName, $allotment->name . '.xlsx', $headers)->deleteFileAfterSend(true);
     }
 
     private function updateWorkersToSheet($sheetData, $jobs, $allotmentId){

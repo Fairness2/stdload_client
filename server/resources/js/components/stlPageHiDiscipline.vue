@@ -504,13 +504,13 @@
         },
         methods:{
             isDistributed(dis_hours, all_hours){
-                if (dis_hours < all_hours) {
+                if (Number(dis_hours) < Number(all_hours)) {
                     return 'dis_complite_not';
                 }
-                else if (dis_hours == all_hours){
+                else if (Number(dis_hours) == Number(all_hours)){
                     return 'dis_complite';
                 }
-                else if (dis_hours > all_hours){
+                else if (Number(dis_hours) > Number(all_hours)){
                     return 'dis_complite_error';
                 }
                 return '';

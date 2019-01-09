@@ -258,14 +258,14 @@
             },
 
             isDistributed(dis_hours, all_hours){
-                if (dis_hours < all_hours) {
-                    return 'stl-allotments__dis-complite-not';
+                if (Number(dis_hours) < Number(all_hours)) {
+                    return 'dis-complite-not';
                 }
-                else if (dis_hours == all_hours){
-                    return 'stl-allotments__dis-complite';
+                else if (Number(dis_hours) == Number(all_hours)){
+                    return 'dis-complite';
                 }
-                else if (dis_hours > all_hours){
-                    return 'stl-allotments__dis-complite-error';
+                else if (Number(dis_hours) > Number(all_hours)){
+                    return 'dis-complite-error';
                 }
                 return '';
             },
