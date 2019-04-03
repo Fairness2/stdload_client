@@ -261,7 +261,7 @@
 
             openAllotment(){
                 this.setData({
-                    path: 'сurrentAllotment',
+                    path: 'currentAllotment',
                     data: this.allotments[this.selectedAllotment]
                 });
                 this.setData({

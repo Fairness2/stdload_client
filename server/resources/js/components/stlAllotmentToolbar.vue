@@ -57,7 +57,7 @@
                         <v-card-text>
 
                             <input type="hidden" name="_token" :value="$store.getters.csrf">
-                            <input type="hidden" name="allotment_id" :value="$store.state.сurrentAllotment.id" required>
+                            <input type="hidden" name="allotment_id" :value="$store.state.currentAllotment.id" required>
                             <input type="file" name="file" required>
                             <input type="hidden" name="semester" :value="selectSemester" required>
                             <v-select
@@ -102,7 +102,7 @@
             </v-btn>
         </div>
         <div class="outline">
-            <v-card-text><b class="text--primary">Распределение: {{$store.state.сurrentAllotment.name}}</b></v-card-text>
+            <v-card-text><b class="text--primary">Распределение: {{$store.state.currentAllotment.name}}</b></v-card-text>
         </div>
     </v-layout>
 </template>
@@ -141,13 +141,13 @@
                     if (this.$store.state.currentDimension != value) {
                         this.$store.commit('setData', {path: 'currentDimension', value});
                         if (value == 1){
-                            this.$route.push({name: 'hiDiscipline', params: {id: this.$store.state.сurrentAllotment.id}});
+                            this.$route.push({name: 'hiDiscipline', params: {id: this.$store.state.currentAllotment.id}});
                         }
                         else if (value == 2){
-                            this.$route.push({name: 'StlPageHiEmployee', params: {id: this.$store.state.сurrentAllotment.id}});
+                            this.$route.push({name: 'StlPageHiEmployee', params: {id: this.$store.state.currentAllotment.id}});
                         }
                         else if (value == 3){
-                            this.$route.push({name: 'StlPageHiGroup', params: {id: this.$store.state.сurrentAllotment.id}});
+                            this.$route.push({name: 'StlPageHiGroup', params: {id: this.$store.state.currentAllotment.id}});
                         }
                         //this.$store.dispatch('changeDimension');
                     }

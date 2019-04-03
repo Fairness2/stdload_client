@@ -125,14 +125,14 @@ class AllotmentController extends Controller
 
             $groupCell = trim($groupCell);
             $groupCell = preg_replace('/ {2,}/',' ',$groupCell);
-            $issetGroup = DB::table('group')->where('name', $groupCell)->get()->first();
+            $arrGroup = explode(' ', $groupCell);
+            foreach ($arrGroup as &$item){
+                $item = trim($item);
+            }
+            $issetGroup = DB::table('group')->where('name', $arrGroup[1] . ' ' . $arrGroup[2])->get()->first();
             if ($issetGroup)
                 $groupId = $issetGroup->id;
             else {
-                $arrGroup = explode(' ', $groupCell);
-                foreach ($arrGroup as &$item){
-                    $item = trim($item);
-                }
                 $issetFaculty = DB::table('faculty')->where('name', $arrGroup[0])->get()->first();
                 if ($issetFaculty)
                     $facultyId = $issetFaculty->id;
@@ -233,7 +233,7 @@ class AllotmentController extends Controller
                     if ($issetClassroom)
                         $classroomId = $issetClassroom->id;
                     else
-                        $classroomId = DB::table('classroom')->insertGetId(['name' => $buildingCell, 'building_id' => $buildingId]);
+                        $classroomId = DB::table('classroom')->insertGetId(['name' => $classroomCell, 'building_id' => $buildingId]);
                 }
             }
 
@@ -291,7 +291,7 @@ class AllotmentController extends Controller
             }
 
             $loadElementId = DB::table('load_element')->insertGetId([
-                'group' => $groupId,
+                'group_id' => $groupId,
                 'classroom_id' => $classroomId,
                 'discipline_id' => $disciplineId,
                 'flow_id' => $flowId,

@@ -26,7 +26,7 @@ const store = new Vuex.Store({
       currentDimension: 1,
 
       allotments: [],
-      сurrentAllotment: {},
+      currentAllotment: {},
       allotmentsCreateError: false,
 
       disciplines: [],
@@ -36,7 +36,7 @@ const store = new Vuex.Store({
       loadElements: [],
       currentLoadElement: {},
       workers: [],
-      currentWorker: {},
+      currentWorker: null,
 
       threads:[],
       auditorys:[],
@@ -46,11 +46,10 @@ const store = new Vuex.Store({
               text: 'Преподаватель',
               align: 'left',
               sortable: false,
-              value: 'name'
+              value: 'fio'
           },
-          { text: 'Должность', value: 'position' },
-          { text: 'Часов', value: 'hours' },
-          { text: 'Доля', value: 'part' }
+          { text: 'Группа', value: 'group' },
+          { text: 'Занятие', value: 'type_class' }
       ],
 
       peopleData:[],
@@ -85,13 +84,13 @@ const store = new Vuex.Store({
               list = response.data.status ? response.data.data : [];
 
           commit('setData', {path: 'allotments', value: list});
-          commit('setData', {path: 'сurrentAllotment', value: {}});
+          commit('setData', {path: 'currentAllotment', value: {}});
       },
 
       async fetchDisciplineDisciplines({commit, dispatch}){
 
           let params = {
-              'allotment_id': this.state.сurrentAllotment.id,
+              'allotment_id': this.state.currentAllotment.id,
               'semester': this.state.selectedSemester,
           };
 
@@ -105,7 +104,7 @@ const store = new Vuex.Store({
       async fetchDisciplineGroups({commit, dispatch}){
 
           let params = {
-              'allotment_id': this.state.сurrentAllotment.id,
+              'allotment_id': this.state.currentAllotment.id,
               'semester': this.state.selectedSemester,
               'discipline': this.state.currentDicipline.id,
           };
@@ -120,7 +119,7 @@ const store = new Vuex.Store({
       async fetchLoadElements({commit, dispatch}){
 
           let params = {
-              'allotment_id': this.state.сurrentAllotment.id,
+              'allotment_id': this.state.currentAllotment.id,
               'semester': this.state.selectedSemester,
               'discipline': this.state.currentDicipline.id,
               'group': this.state.currentGroup.id,
@@ -149,7 +148,7 @@ const store = new Vuex.Store({
 
       async editAllotment({commit, dispatch}){
           commit('setLoader', true);
-          const response = await Vue.axiosClient.client.post('/allotments/edit', this.state.сurrentAllotment);
+          const response = await Vue.axiosClient.client.post('/allotments/edit', this.state.currentAllotment);
           if (response.data.status)
               await dispatch('fetchAllotments');
           commit('setLoader', false);
@@ -158,7 +157,7 @@ const store = new Vuex.Store({
 
       async removeAllotment({commit, dispatch}){
           commit('setLoader', true);
-          let params = {'id': this.state.сurrentAllotment.id};
+          let params = {'id': this.state.currentAllotment.id};
           const response = await Vue.axiosClient.client.post('/allotments/remove', params);
           if (response.data.status)
               await dispatch('fetchAllotments');
@@ -173,6 +172,112 @@ const store = new Vuex.Store({
           await dispatch('fetchDisciplineDisciplines');
 
           commit('setLoader', false);
+      },
+
+      async updateHiDiscipline({commit, dispatch}){
+          commit('setLoader', true);
+          if (Object.keys(this.state.currentAllotment).length === 0){
+              await dispatch('fetchAllotment');
+          }
+          await dispatch('fetchWorkers');
+          await dispatch('fetchHiDisciplineDisciplines');
+          commit('setLoader', false);
+      },
+
+      async fetchAllotment({commit, dispatch}){
+          let allotmentId = this.state.route.params.id;
+          const response = await Vue.axiosClient.client.get('/allotments/get_allotment',  {
+                  params: {
+                      id: allotmentId
+                  }
+              }),
+              list = response.data.status ? response.data.data : {};
+
+          commit('setData', {path: 'currentAllotment', value: list});
+      },
+
+      async fetchWorkers({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/workers/get_workers'),
+              list = response.data.status ? response.data.data : {};
+
+          commit('setData', {path: 'workers', value: list});
+          commit('setData', {path: 'currentWorker', value: null});
+      },
+
+      async fetchHiDisciplineDisciplines({commit, dispatch}){
+          let params = {
+              'allotment': this.state.currentAllotment.id,
+              'semester': this.state.currentSemester,
+          };
+          const response = await Vue.axiosClient.client.get('/hi_discipline/get_disciplines', {params}),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'disciplines', value: list});
+          commit('setData', {path: 'currentDicipline', value: {}});
+      },
+
+      async updateHiDisciplineGroup({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchHiDisciplineGroups');
+          commit('setLoader', false);
+      },
+
+      async fetchHiDisciplineGroups({commit, dispatch}){
+          let params = {
+              'allotment': this.state.currentAllotment.id,
+              'semester': this.state.currentSemester,
+              'discipline': this.state.currentDicipline.id,
+          };
+          const response = await Vue.axiosClient.client.get('/hi_discipline/get_groups', {params}),
+              list = response.data.status ? response.data.data.groups : [],
+              listWorker = response.data.status ? response.data.data.distributionElements : [];
+
+          commit('setData', {path: 'groups', value: list});
+          commit('setData', {path: 'currentGroup', value: {}});
+          commit('setData', {path: 'peopleData', value: listWorker});
+      },
+
+      async updateHiDisciplineLoadElements({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchHiDisciplineLoadElements');
+          commit('setLoader', false);
+      },
+
+      async fetchHiDisciplineLoadElements({commit, dispatch}){
+          debugger
+          let params = {
+              'allotment': this.state.currentAllotment.id,
+              'semester': this.state.currentSemester,
+              'discipline': this.state.currentDicipline.id,
+              'group': this.state.currentGroup.id,
+          };
+          const response = await Vue.axiosClient.client.get('/hi_discipline/get_load_elements', {params}),
+              list = response.data.status ? response.data.data : [];
+
+          commit('setData', {path: 'loadElements', value: list});
+          commit('setData', {path: 'currentLoadElement', value: {}});
+      },
+
+      async updateHiDisciplineLoadElement({commit, dispatch}){
+          commit('setLoader', true);
+          await dispatch('fetchHiDisciplineLoadElement');
+          commit('setLoader', false);
+      },
+
+      async fetchHiDisciplineLoadElement({commit, dispatch}){
+          debugger
+          let params = {
+              'load_element': this.state.currentLoadElement.id,
+          };
+          const response = await Vue.axiosClient.client.get('/hi_discipline/get_load_elements', {params}),
+              list = response.data.status ? response.data.data : {};
+
+          let worker_id = null;
+          if (Object.keys(list !== 0)){
+              worker_id = list.worker_id;
+          }
+          commit('setData', {path: 'currentLoadElement', value: list});
+          commit('setData', {path: 'currentWorker', value: worker_id});
       },
   }
 

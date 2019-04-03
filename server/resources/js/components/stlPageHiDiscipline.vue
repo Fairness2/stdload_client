@@ -81,7 +81,7 @@
                                 <v-list-tile-content>
                                     <v-list-tile-title>{{item.name}}</v-list-tile-title>
                                     <v-list-tile-sub-title>Часов распределено: {{ item.dis_hours }}/{{ item.all_hours }}</v-list-tile-sub-title>
-                                    <v-list-tile-sub-title v-if="item.worker ? true : false">Преподаватель: {{item.worker}}</v-list-tile-sub-title>
+                                    <v-list-tile-sub-title v-if="item.worker ? true : false">Преподаватель: {{item.worker_fio}}</v-list-tile-sub-title>
                                 </v-list-tile-content>
 
                             </v-list-tile>
@@ -257,10 +257,9 @@
                                 v-show="isGroupSetings || isDisciplineSetings"
                         >
                             <template slot="items" slot-scope="props">
-                                <td>{{ props.item.name }}</td>
-                                <td>{{ props.item.position }}</td>
-                                <td class="text-xs-right">{{ props.item.hours }}</td>
-                                <td class="text-xs-right">{{ props.item.part }}</td>
+                                <td>{{ props.item.fio }}</td>
+                                <td class="text-xs-right">{{ props.item.group }}</td>
+                                <td class="text-xs-right">{{ props.item.type_class }}</td>
                             </template>
                             <template slot="no-data">
                                     Нет назначенных преподавателей
@@ -449,6 +448,8 @@
 
                 this.selectedWorkerModel = {};
 
+                this.$store.dispatch('updateHiDisciplineGroup');
+
             },
             selectGroup(item){
                 this.currentGroupModel = item;
@@ -466,6 +467,8 @@
                 });
 
                 this.selectedWorkerModel = {};
+
+                this.$store.dispatch('updateHiDisciplineLoadElements');
             },
             selectJob(item){
                 this.currentLoadElementModel = item;
@@ -488,6 +491,8 @@
                 }
 
                 this.selectedWorkerModel = {};
+
+                this.$store.dispatch('updateHiDisciplineLoadElement');
             },
 
             clickNavMenu(page){
@@ -518,12 +523,15 @@
                 this.selectedWorkerModel = {};
             },
             init(){
-                this.updateTable();
+                this.updateHiDiscipline();
+            },
+            updateHiDiscipline(){
+                this.$store.dispatch('updateHiDiscipline');
             },
         },
 
         beforeMount() {
-            //this.init();
+            this.init();
         }
 
     }

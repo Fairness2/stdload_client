@@ -31,4 +31,7 @@ Route::post('/allotments/load_allotment', 'AllotmentController@parseFile')->name
 
 Route::get('/workers/get_workers', 'WorkersController@getWorkers')->name('get_workers')->middleware('auth');
 
-Route::get('/hi_discipline/get_discipline', 'HiDisciplineController@getDiscipline')->name('get_allotment')->middleware('auth');
+Route::get('/hi_discipline/get_disciplines', 'HiDisciplineController@getDisciplines')->middleware('auth');
+Route::get('/hi_discipline/get_groups', 'HiDisciplineController@getGroups')->middleware('auth');
+Route::get('/hi_discipline/get_load_elements', 'HiDisciplineController@getLoadElements')->middleware('auth');
+Route::get('/hi_discipline/get_load_element', 'HiDisciplineController@getLoadElement')->middleware('auth');

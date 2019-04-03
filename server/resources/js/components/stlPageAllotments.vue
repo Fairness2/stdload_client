@@ -37,10 +37,10 @@
                             <div class="subheading">Параметры распределения</div>
                         </v-toolbar>
 
-                        <v-card-text v-if="Object.keys($store.state.сurrentAllotment).length !== 0">
+                        <v-card-text v-if="Object.keys($store.state.currentAllotment).length !== 0">
                             <v-layout row wrap>
                                 <v-flex xs12>
-                                    <router-link :to="{name: 'hiDiscipline', params: {id: $store.state.сurrentAllotment.id}}">
+                                    <router-link :to="{name: 'hiDiscipline', params: {id: $store.state.currentAllotment.id}}">
                                         <v-btn class="success">Открыть</v-btn>
                                     </router-link>
                                     <v-btn class="error" @click="deleteAllotment">Удалить</v-btn>
@@ -87,15 +87,15 @@
                                 </v-flex>
 
                                 <v-flex xs12 class="body-1">
-                                    Распределно часов: {{$store.state.сurrentAllotment.dis_hours}}
+                                    Распределно часов: {{$store.state.currentAllotment.dis_hours}}
                                 </v-flex>
                                 <v-flex xs12 class="body-1">
-                                    Всего часов часов: {{$store.state.сurrentAllotment.all_hours}}
+                                    Всего часов часов: {{$store.state.currentAllotment.all_hours}}
                                 </v-flex>
-                                <v-flex xs12 class="body-1" v-bind:class="isDistributed($store.state.сurrentAllotment.dis_hours, $store.state.сurrentAllotment.all_hours)">
-                                    Осталось распределить: {{$store.state.сurrentAllotment.all_hours - $store.state.сurrentAllotment.dis_hours}}
+                                <v-flex xs12 class="body-1" v-bind:class="isDistributed($store.state.currentAllotment.dis_hours, $store.state.currentAllotment.all_hours)">
+                                    Осталось распределить: {{$store.state.currentAllotment.all_hours - $store.state.currentAllotment.dis_hours}}
                                 </v-flex>
-                                <v-flex v-show="$store.state.сurrentAllotment.is_main" xs12 class="body-1">
+                                <v-flex v-show="$store.state.currentAllotment.is_main" xs12 class="body-1">
                                     Основное распределение
                                 </v-flex>
                             </v-layout>
@@ -188,51 +188,51 @@
         computed:{
             currentAllotmentModel: {
                 get() {
-                    return this.$store.state.сurrentAllotment;
+                    return this.$store.state.currentAllotment;
                 },
 
                 set(value) {
-                    this.$store.commit('setData', {path: 'сurrentAllotment', value});
+                    this.$store.commit('setData', {path: 'currentAllotment', value});
                 }
             },
             allotmentNameModel: {
                 get() {
-                    return this.$store.state.сurrentAllotment.name;
+                    return this.$store.state.currentAllotment.name;
                 },
 
                 set(value) {
-                    value = {...this.$store.state.сurrentAllotment, ...{name: value}};
-                    this.$store.commit('setData', {path: 'сurrentAllotment', value});
+                    value = {...this.$store.state.currentAllotment, ...{name: value}};
+                    this.$store.commit('setData', {path: 'currentAllotment', value});
                 }
             },
             allotmentYearBeginModel: {
                 get() {
-                    return this.$store.state.сurrentAllotment.year_begin;
+                    return this.$store.state.currentAllotment.year_begin;
                 },
 
                 set(value) {
-                    value = {...this.$store.state.сurrentAllotment, ...{year_begin: value}};
-                    this.$store.commit('setData', {path: 'сurrentAllotment', value});
+                    value = {...this.$store.state.currentAllotment, ...{year_begin: value}};
+                    this.$store.commit('setData', {path: 'currentAllotment', value});
                 }
             },
             allotmentYearEndModel: {
                 get() {
-                    return this.$store.state.сurrentAllotment.year_end;
+                    return this.$store.state.currentAllotment.year_end;
                 },
 
                 set(value) {
-                    value = {...this.$store.state.сurrentAllotment, ...{year_end: value}};
-                    this.$store.commit('setData', {path: 'сurrentAllotment', value});
+                    value = {...this.$store.state.currentAllotment, ...{year_end: value}};
+                    this.$store.commit('setData', {path: 'currentAllotment', value});
                 }
             },
             allotmentIsMainModel: {
                 get() {
-                    return this.$store.state.сurrentAllotment.is_main;
+                    return this.$store.state.currentAllotment.is_main;
                 },
 
                 set(value) {
-                    value = {...this.$store.state.сurrentAllotment, ...{is_main: value}};
-                    this.$store.commit('setData', {path: 'сurrentAllotment', value});
+                    value = {...this.$store.state.currentAllotment, ...{is_main: value}};
+                    this.$store.commit('setData', {path: 'currentAllotment', value});
                 }
             },
 

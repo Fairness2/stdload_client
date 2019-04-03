@@ -47,7 +47,7 @@
             </v-btn>
         </div>
         <div class="outline">
-            <v-card-text><b class="text--primary">Распределение: {{сurrentAllotment.name}}</b></v-card-text>
+            <v-card-text><b class="text--primary">Распределение: {{currentAllotment.name}}</b></v-card-text>
         </div>
     </v-layout>
 </template>
@@ -90,7 +90,7 @@
         }),
         computed:{
             ...mapState([
-                'сurrentAllotment',
+                'currentAllotment',
                 'currentPage',
                 'currentSemester'
             ])

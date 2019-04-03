@@ -12,6 +12,7 @@ import Vue from 'vue';
 //import App from './App';
 import router from './router';
 import store from './store/index.js';
+import { sync } from 'vuex-router-sync'
 import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.min.css';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
@@ -39,6 +40,10 @@ import stlLoader from './components/stlLoader';
 import stlPageHome from  './components/stlPageHome';
 
 Vue.config.productionTip = false;
+
+// Синхронизируем чтобы состояние маршрута было доступно как часть хранилища
+sync(store, router);
+
 const app = new Vue({
     el: '#app',
     components: { stlLoader, stlPageHome },

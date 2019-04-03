@@ -11,7 +11,7 @@ const store = new Vuex.Store({
       },
       isPageLoaderShow: false, //TODO true
       currentPage: null,
-      сurrentAllotment: null,
+      currentAllotment: null,
       currentSemester: 3
   },
 
