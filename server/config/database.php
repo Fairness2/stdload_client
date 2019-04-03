@@ -39,7 +39,7 @@ return [
             'port' => env('DB_PORT', '5432'),
             'database' => 'std_load',
             'username' => 'postgres',
-            'password' => 'postgres',
+            'password' => 'admin',
             'charset' => 'utf8',
             'schema' => 'public',
         ],
