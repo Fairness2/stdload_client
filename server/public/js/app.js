@@ -16417,7 +16417,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -16817,7 +16817,7 @@ if (false) {
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(189)
+  __webpack_require__(28)
 }
 var normalizeComponent = __webpack_require__(2)
 /* script */
@@ -16862,8 +16862,46 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 28 */,
-/* 29 */,
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(29);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("6cd576f8", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue", function() {
+     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.page-hi__nav {\n  height: 50px;\n}\n.page-hi__column {\n  height: calc(100vh - 210px);\n  overflow-y: auto;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
 /* 30 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -18379,7 +18417,7 @@ if (hadRuntime) {
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(187)
+  __webpack_require__(34)
 }
 var normalizeComponent = __webpack_require__(2)
 /* script */
@@ -18424,8 +18462,46 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 34 */,
-/* 35 */,
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(35);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("56cdf967", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue", function() {
+     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.allotment_toolbox {\n  height: 50px;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
 /* 36 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -20188,7 +20264,7 @@ if (false) {
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(191)
+  __webpack_require__(40)
 }
 var normalizeComponent = __webpack_require__(2)
 /* script */
@@ -20233,8 +20309,46 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 40 */,
-/* 41 */,
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(41);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(1)("c9e364e8", content, false, {});
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/sass-loader/lib/loader.js!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/sass-loader/lib/loader.js!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "\n.page-admin__column {\n  height: calc(100vh - 110px);\n  overflow: auto;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
 /* 42 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -20736,7 +20850,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -21300,7 +21414,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -21871,7 +21985,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -22441,7 +22555,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -23007,7 +23121,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -23575,7 +23689,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -24171,7 +24285,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -24781,7 +24895,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -25428,7 +25542,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -26228,7 +26342,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -27078,7 +27192,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -27780,7 +27894,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -28278,7 +28392,7 @@ var render = function() {
         [
           _c(
             "v-card",
-            { staticClass: "stl-user stl-page__column-card" },
+            { staticClass: "stl-page__column-card" },
             [
               _c("v-toolbar", { staticClass: "header white--text" }, [
                 _c("div", { staticClass: "subheading" }, [
@@ -28338,7 +28452,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -28882,7 +28996,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -29455,7 +29569,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -29959,7 +30073,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column-card", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -30449,7 +30563,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -30936,7 +31050,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -31417,7 +31531,7 @@ var render = function() {
       _vm._v(" "),
       _c(
         "v-flex",
-        { staticClass: "stl-page__column", attrs: { xs12: "", sm5: "" } },
+        { attrs: { xs12: "", sm5: "" } },
         [
           _c(
             "v-layout",
@@ -66928,127 +67042,6 @@ if (false) {
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 186 */,
-/* 187 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(188);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(1)("56cdf967", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue", function() {
-     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0ea4de87\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlAllotmentToolbar.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 188 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(0)(false);
-// imports
-
-
-// module
-exports.push([module.i, "\n.allotment_toolbox {\n  height: 50px;\n}\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 189 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(190);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(1)("6cd576f8", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue", function() {
-     var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-229f7760\",\"scoped\":false,\"hasInlineConfig\":true}!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageHiDiscipline.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 190 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(0)(false);
-// imports
-
-
-// module
-exports.push([module.i, "\n.page-hi__nav {\n  height: 50px;\n}\n.page-hi__column {\n  height: calc(100vh - 210px);\n  overflow-y: auto;\n}\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 191 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(192);
-if(typeof content === 'string') content = [[module.i, content, '']];
-if(content.locals) module.exports = content.locals;
-// add the styles to the DOM
-var update = __webpack_require__(1)("c9e364e8", content, false, {});
-// Hot Module Replacement
-if(false) {
- // When the styles change, update the <style> tags
- if(!content.locals) {
-   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/sass-loader/lib/loader.js!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue", function() {
-     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-0f6b25e0\",\"scoped\":false,\"hasInlineConfig\":true}!../../../../node_modules/sass-loader/lib/loader.js!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./stlPageAdmin.vue");
-     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-     update(newContent);
-   });
- }
- // When the module is disposed, remove the <style> tags
- module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 192 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(0)(false);
-// imports
-
-
-// module
-exports.push([module.i, "\n.page-admin__column {\n  height: calc(100vh - 110px);\n  overflow: auto;\n}\n", ""]);
-
-// exports
-
 
 /***/ })
 /******/ ]);

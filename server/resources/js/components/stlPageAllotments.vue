@@ -29,7 +29,7 @@
             </v-card>
         </v-flex>
 
-        <v-flex xs12 sm5 class="stl-page__column">
+        <v-flex xs12 sm5 class="">
             <v-layout row wrap>
                 <v-flex xs12>
                     <v-card class="">
