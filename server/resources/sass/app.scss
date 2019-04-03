@@ -1,6 +1,6 @@
 
 // Fonts
-@import url('https://fonts.googleapis.com/css?family=Nunito');
+//@import url('https://fonts.googleapis.com/css?family=Nunito');
 
 // Variables
 //@import 'variables';
@@ -13,10 +13,10 @@
 .stl{
   position: relative;
   width: 100%;
-  min-height: 100%;
+  min-height: calc(100vh - 100px);
 
-  padding-top: 120px;
-  padding-bottom: 100px;
+  padding-top: 100px;
+  //padding-bottom: 100px;
 
   &__logo {
     flex: 0 0 auto;
@@ -52,6 +52,13 @@
     margin: 0 auto;
     padding: 0 20px;
   }
+
+  &__main{
+    height: calc(100vh - 110px);
+    &-container{
+      height:inherit;
+    }
+  }
 }
 
 .stl-header{
@@ -74,8 +81,11 @@
   display: flex;
   align-items: center;
 
-  color: currentColor;
+  //color: currentColor;
   text-decoration: none;
+  &:hover{
+    text-decoration: none;
+  }
 
   &__icon {
     flex: 0 0 auto;
@@ -95,9 +105,9 @@
     margin: 0;
     margin-right: 20px;
 
-    font-size: 16px;
+    font-size: 14px;
+    color: white;
     line-height: 20px;
-    color: currentColor;
     text-transform: uppercase;
 
     @media screen and (max-width: $break_sm) {
@@ -123,6 +133,10 @@
 
 .stl-user {
   text-align: center;
+  color: #ffffff;
+  a{
+    color: #ffffff !important;
+  }
 
   &__trigger {
     padding: 10px;
@@ -133,7 +147,7 @@
   &__name {
     font-size: 15px;
     line-height: 20px;
-    color: #2a3e4c;
+    //color: #2a3e4c;
 
     white-space: nowrap;
     overflow: hidden;
@@ -211,6 +225,46 @@
       background-color: #d3d8db;
     }
   }
+}
+
+.stl-page{
+
+  &__content{
+
+  }
+
+  &__main{
+
+  }
+
+  &__column{
+    height: calc(100vh - 110px);
+    overflow-y: auto;
+    &-card{
+      height: calc(100vh - 110px);
+      overflow-y: auto;
+    }
+  }
+
+}
+
+a{
+  text-decoration: none !important;
+  &:hover{
+    text-decoration: none !important;
+  }
+}
+
+.dis_complite_error{
+  background-color: #d39386;
+}
+
+.dis_complite{
+  background-color: #9dff7f;
+}
+
+.dis_complite_not{
+  background-color: #ffffff;
 }
 
 

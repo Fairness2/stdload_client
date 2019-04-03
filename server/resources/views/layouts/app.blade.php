@@ -11,8 +11,9 @@
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div id="app" class="stl">
+    <div id="app" >
         <v-app>
+            <div class="stl">
         <div class="stl-header">
             <div class="stl__header-container">
                 <div class="stl__logo">
@@ -23,8 +24,8 @@
                 <div class="stl__user">
                     <div class="stl-user">
                     @guest
-                        <v-btn flat small title="Вход"><a class="nav-link" href="{{ route('login') }}">Вход</a></v-btn>
-                        <v-btn flat small title="Регистрация"><a class="nav-link" href="{{ route('register') }}">Регистрация</a></v-btn>
+                        <v-btn outline color="white" small title="Вход"><a class="nav-link" href="{{ route('login') }}">Вход</a></v-btn>
+                        <v-btn outline color="white" small title="Регистрация"><a class="nav-link" href="{{ route('register') }}">Регистрация</a></v-btn>
                     @else
 
                         <div class="stl-user__trigger" name="user-trigger">
@@ -45,19 +46,20 @@
                                         <div class="stl-user__link-text">Сообщения</div>
                                     </a>
                                 </li>
-
+                                @if(\App\Extensions\Helpers::checkRoleUser(Auth::user()->id, 'admin'))
                                 <li class="stl-user__item">
-                                    <a href="" class="stl-user__link">
-                                        <div class="stl-user__link-text">Справочники</div>
+                                    <a href="{{ route('admin') }}" class="stl-user__link">
+                                        <div class="stl-user__link-text">Администрирование</div>
                                     </a>
                                 </li>
-
+                                @endif
+                                @if(\App\Extensions\Helpers::checkRoleUser(Auth::user()->id, 'distribution'))
                                 <li class="stl-user__item">
                                     <a href="{{ route('home') }}" class="stl-user__link">
                                         <div class="stl-user__link-text">Распределения</div>
                                     </a>
                                 </li>
-
+                                @endif
                                 <li class="stl-user__item">
                                     <a href="" class="stl-user__link">
                                         <div class="stl-user__link-text">Мой профиль</div>
@@ -91,6 +93,7 @@
             </div>
 
             <stl-loader v-show="$store.state.isLoad" />
+            </div>
         </v-app>
     </div>
 </body>

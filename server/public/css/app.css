@@ -1,4 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Nunito);/*!
+/*!
  * Bootstrap v4.1.3 (https://getbootstrap.com/)
  * Copyright 2011-2018 The Bootstrap Authors
  * Copyright 2011-2018 Twitter, Inc.
@@ -10488,9 +10488,8 @@ a.text-dark:focus {
 .stl {
   position: relative;
   width: 100%;
-  min-height: 100%;
-  padding-top: 120px;
-  padding-bottom: 100px;
+  min-height: calc(100vh - 100px);
+  padding-top: 100px;
 }
 
 .stl__logo {
@@ -10536,6 +10535,14 @@ a.text-dark:focus {
   padding: 0 20px;
 }
 
+.stl__main {
+  height: calc(100vh - 110px);
+}
+
+.stl__main-container {
+  height: inherit;
+}
+
 .stl-header {
   background-color: #1976D2;
   color: #ffffff;
@@ -10556,7 +10563,10 @@ a.text-dark:focus {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
-  color: currentColor;
+  text-decoration: none;
+}
+
+.stl-logo:hover {
   text-decoration: none;
 }
 
@@ -10577,9 +10587,9 @@ a.text-dark:focus {
           flex: 0 0 auto;
   margin: 0;
   margin-right: 20px;
-  font-size: 16px;
+  font-size: 14px;
+  color: white;
   line-height: 20px;
-  color: currentColor;
   text-transform: uppercase;
 }
 
@@ -10607,6 +10617,11 @@ a.text-dark:focus {
 
 .stl-user {
   text-align: center;
+  color: #ffffff;
+}
+
+.stl-user a {
+  color: #ffffff !important;
 }
 
 .stl-user__trigger {
@@ -10617,7 +10632,6 @@ a.text-dark:focus {
 .stl-user__name {
   font-size: 15px;
   line-height: 20px;
-  color: #2a3e4c;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -10699,5 +10713,35 @@ a.text-dark:focus {
 
 .stl-user__link:hover {
   background-color: #d3d8db;
+}
+
+.stl-page__column {
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+
+.stl-page__column-card {
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+
+a {
+  text-decoration: none !important;
+}
+
+a:hover {
+  text-decoration: none !important;
+}
+
+.dis_complite_error {
+  background-color: #d39386;
+}
+
+.dis_complite {
+  background-color: #9dff7f;
+}
+
+.dis_complite_not {
+  background-color: #ffffff;
 }
 

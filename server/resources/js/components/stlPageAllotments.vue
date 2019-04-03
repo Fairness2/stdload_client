@@ -2,7 +2,7 @@
     <v-layout row justify-space-around fill-height>
 
         <v-flex xs12 sm6>
-            <v-card class="stl-allotments">
+            <v-card class="stl-allotments stl-page__column-card">
                 <v-toolbar class="header white--text">
                     <div class="subheading">Распределения</div>
                 </v-toolbar>
@@ -29,7 +29,7 @@
             </v-card>
         </v-flex>
 
-        <v-flex xs12 sm5>
+        <v-flex xs12 sm5 class="stl-page__column">
             <v-layout row wrap>
                 <v-flex xs12>
                     <v-card class="">
@@ -258,14 +258,14 @@
             },
 
             isDistributed(dis_hours, all_hours){
-                if (dis_hours < all_hours) {
-                    return 'stl-allotments__dis-complite-not';
+                if (Number(dis_hours) < Number(all_hours)) {
+                    return 'dis-complite-not';
                 }
-                else if (dis_hours == all_hours){
-                    return 'stl-allotments__dis-complite';
+                else if (Number(dis_hours) == Number(all_hours)){
+                    return 'dis-complite';
                 }
-                else if (dis_hours > all_hours){
-                    return 'stl-allotments__dis-complite-error';
+                else if (Number(dis_hours) > Number(all_hours)){
+                    return 'dis-complite-error';
                 }
                 return '';
             },
