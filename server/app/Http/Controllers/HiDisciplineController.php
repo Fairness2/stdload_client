@@ -12,7 +12,7 @@ class HiDisciplineController extends Controller
         $allotment = $request->get('allotment', null);
         $semester = $request->get('semester', null);
         if (!$allotment || !$semester)
-            return ['status' => false];
+            ['status' => false];
 
         $disciplinesQuery = DB::table('load_element')
             ->where('allotment_id', $allotment)
@@ -54,7 +54,7 @@ class HiDisciplineController extends Controller
         $semester = $request->get('semester', null);
         $discipline = $request->get('discipline', null);
         if (!$allotment || !$semester || !$discipline)
-            return ['status' => false];
+            ['status' => false];
 
         $groupsQuery = DB::table('load_element')
             ->where([['allotment_id', $allotment], ['discipline_id', $discipline]])
@@ -110,7 +110,7 @@ class HiDisciplineController extends Controller
         $discipline = $request->get('discipline', null);
         $group = $request->get('group', null);
         if (!$allotment || !$semester || !$discipline || !$group)
-            return ['status' => false];
+            ['status' => false];
 
         $loadElementsQuery = DB::table('load_element')
             ->where([['allotment_id', $allotment], ['discipline_id', $discipline], ['group_id', $group]])
@@ -134,11 +134,6 @@ class HiDisciplineController extends Controller
                 $loadElement->worker_fio = $worker->fio;
                 $loadElement->worker_id = $worker->id;
             }
-            else{
-                $loadElement->dis_hours = 0;
-                $loadElement->worker_fio = null;
-                $loadElement->worker_id = null;
-            }
         }
 
         return ['status' => true, 'data' => $loadElements];
@@ -147,76 +142,18 @@ class HiDisciplineController extends Controller
     public function getLoadElement(Request $request){
         $loadElement = $request->get('load_element', null);
         if (!$loadElement)
-            return ['status' => false];
+            ['status' => false];
 
         $dbLoadElement = DB::table('load_element')->where('id', $loadElement)->get()->first();
-
-        $name = DB::table('type_class')->select('full_name')->where('id', $dbLoadElement->type_class_id)->get()->first();
-        $dbLoadElement->name = $name->full_name;
-
         $worker = DB::table('distribution_element')
             ->leftJoin('worker', 'distribution_element.worker_id', '=', 'worker.id')
             ->select('worker_id AS id', 'worker.fio AS fio')
             ->where('load_element_id', $loadElement)->get()->first();
-        $dbLoadElement->all_hours = $dbLoadElement->hours_planed;
         if ($worker) {
-            $dbLoadElement->dis_hours = $dbLoadElement->all_hours;
             $dbLoadElement->worker_fio = $worker->fio;
             $dbLoadElement->worker_id = $worker->id;
         }
-        else{
-            $dbLoadElement->dis_hours = 0;
-            $dbLoadElement->worker_fio = null;
-            $dbLoadElement->worker_id = null;
-        }
-        return ['status' => true, 'data' => $dbLoadElement];
-    }
-
-    public function setWorkerGroup(Request $request){
-        $group = $request->get('group', null);
-        $allotment = $request->get('allotment', null);
-        $discipline = $request->get('discipline', null);
-        $worker = $request->get('worker', null);
-
-        if ($group === null || $discipline === null || $allotment === null || $worker === null)
-            return ['status' => false];
-
-        $loadElements = DB::table('load_element')->select('id')->where([['discipline_id', $discipline], ['group_id', $group], ['allotment_id', $allotment]])->get()->all();
-
-        foreach ($loadElements as $loadElement){
-            $issetDisElement = DB::table('distribution_element')->where('load_element_id', $loadElement->id)->get()->first();
-            if ($issetDisElement){
-                DB::table('distribution_element')->where('id', $issetDisElement->id)->update(['worker_id' => $worker]);
-            }
-            else{
-                DB::table('distribution_element')->insert(['load_element_id' => $loadElement->id, 'worker_id' => $worker]);
-            }
-        }
-
-        return ['status' => true];
-    }
-
-    public function setWorkerDiscipline(Request $request){
-        $allotment = $request->get('allotment', null);
-        $discipline = $request->get('discipline', null);
-        $worker = $request->get('worker', null);
-
-        if ($discipline === null || $allotment === null || $worker === null)
-            return ['status' => false];
-
-        $loadElements = DB::table('load_element')->select('id')->where([['discipline_id', $discipline], ['allotment_id', $allotment]])->get()->all();
-
-        foreach ($loadElements as $loadElement){
-            $issetDisElement = DB::table('distribution_element')->where('load_element_id', $loadElement->id)->get()->first();
-            if ($issetDisElement){
-                DB::table('distribution_element')->where('id', $issetDisElement->id)->update(['worker_id' => $worker]);
-            }
-            else{
-                DB::table('distribution_element')->insert(['load_element_id' => $loadElement->id, 'worker_id' => $worker]);
-            }
-        }
-
-        return ['status' => true];
+        ['status' => true, 'data' => $dbLoadElement];
     }
 
 }
