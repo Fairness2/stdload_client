@@ -18507,6 +18507,55 @@ exports.push([module.i, "\n.allotment_toolbox {\n  height: 50px;\n}\n", ""]);
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
+
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -18677,8 +18726,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return {
             showLoadInFile: false,
             showDownloadInFile: false,
+            showAutomaticDistribution: false,
             selectSemester: 3,
-            updateWorkers: false
+            updateWorkers: false,
+
+            coefWeight: {
+                'old': 1,
+                'worker': 1,
+                'kaf': 1
+            },
+            methods: [{ text: 'Метод ветвей и границ', value: 1 }, { text: 'Двойственный симплекс метод', value: 2 }, { text: 'Метод внутреней точки', value: 3 }],
+            selectMethod: 1
         };
     },
     computed: {
@@ -18715,7 +18773,42 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
     watch: {},
 
-    methods: {},
+    methods: {
+        automaticDistribution: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee() {
+                var params, status;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                params = {
+                                    'method': this.selectMethod,
+                                    'weight_old': this.coefWeight.old,
+                                    'weight_worker': this.coefWeight.worker,
+                                    'weight_kaf': this.coefWeight.kaf,
+                                    'allotment': this.$store.state.currentAllotment.id
+                                };
+                                _context.next = 3;
+                                return this.$store.dispatch('automaticDistribution', params);
+
+                            case 3:
+                                status = _context.sent;
+
+                            case 4:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function automaticDistribution() {
+                return _ref.apply(this, arguments);
+            }
+
+            return automaticDistribution;
+        }()
+    },
 
     beforeMount: function beforeMount() {}
 });
@@ -18814,15 +18907,161 @@ var render = function() {
         { staticClass: "allotment_toolbox__element" },
         [
           _c(
-            "v-btn",
+            "v-dialog",
             {
-              attrs: {
-                outline: "",
-                color: "primary",
-                title: "Поставить на автоматическое распределение"
+              attrs: { width: "500" },
+              model: {
+                value: _vm.showAutomaticDistribution,
+                callback: function($$v) {
+                  _vm.showAutomaticDistribution = $$v
+                },
+                expression: "showAutomaticDistribution"
               }
             },
-            [_c("v-icon", [_vm._v("play_circle_outline")])],
+            [
+              _c(
+                "v-btn",
+                {
+                  attrs: {
+                    slot: "activator",
+                    outline: "",
+                    color: "primary",
+                    title: "Поставить на автоматическое распределение"
+                  },
+                  slot: "activator"
+                },
+                [_c("v-icon", [_vm._v("play_circle_outline")])],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-card",
+                [
+                  _c(
+                    "v-card-title",
+                    {
+                      staticClass: "headline grey lighten-2",
+                      attrs: { "primary-title": "" }
+                    },
+                    [
+                      _vm._v(
+                        "\n                    Настройки автоматического распределения\n                "
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-card-text",
+                    [
+                      _c("v-text-field", {
+                        attrs: {
+                          max: "1",
+                          min: "0",
+                          type: "number",
+                          label: "Вес коэффициента наследственности"
+                        },
+                        model: {
+                          value: _vm.coefWeight.old,
+                          callback: function($$v) {
+                            _vm.$set(_vm.coefWeight, "old", $$v)
+                          },
+                          expression: "coefWeight.old"
+                        }
+                      }),
+                      _vm._v(" "),
+                      _c("v-text-field", {
+                        attrs: {
+                          max: "1",
+                          min: "0",
+                          type: "number",
+                          label: "Вес коэффициента предпочтения преподавателей"
+                        },
+                        model: {
+                          value: _vm.coefWeight.worker,
+                          callback: function($$v) {
+                            _vm.$set(_vm.coefWeight, "worker", $$v)
+                          },
+                          expression: "coefWeight.worker"
+                        }
+                      }),
+                      _vm._v(" "),
+                      _c("v-text-field", {
+                        attrs: {
+                          max: "1",
+                          min: "0",
+                          type: "number",
+                          label: "Вес коэффициента предпочтения кафедры"
+                        },
+                        model: {
+                          value: _vm.coefWeight.kaf,
+                          callback: function($$v) {
+                            _vm.$set(_vm.coefWeight, "kaf", $$v)
+                          },
+                          expression: "coefWeight.kaf"
+                        }
+                      }),
+                      _vm._v(" "),
+                      _c("v-select", {
+                        attrs: {
+                          color: "primary",
+                          items: _vm.methods,
+                          label: "Метод"
+                        },
+                        model: {
+                          value: _vm.selectMethod,
+                          callback: function($$v) {
+                            _vm.selectMethod = $$v
+                          },
+                          expression: "selectMethod"
+                        }
+                      })
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-card-actions",
+                    [
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "success", flat: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.automaticDistribution()
+                            }
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Загрузить\n                    "
+                          )
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "", flat: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.showAutomaticDistribution = false
+                            }
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Отмена\n                    "
+                          )
+                        ]
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
             1
           )
         ],
@@ -19180,14 +19419,8 @@ var render = function() {
         [
           _c(
             "v-btn",
-            {
-              attrs: {
-                outline: "",
-                color: "primary",
-                title: "Сделать основным"
-              }
-            },
-            [_c("v-icon", [_vm._v("cloud_done")])],
+            { attrs: { outline: "", color: "primary", title: "Отчёты" } },
+            [_c("v-icon", [_vm._v("assignment")])],
             1
           )
         ],
@@ -35973,6 +36206,40 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             }
 
             return fetchTrainedWorker;
+        }(),
+        automaticDistribution: function () {
+            var _ref221 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee110(_ref220, params) {
+                var commit = _ref220.commit,
+                    dispatch = _ref220.dispatch;
+                var response, res;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee110$(_context110) {
+                    while (1) {
+                        switch (_context110.prev = _context110.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context110.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/allotments/automatic', { params: params });
+
+                            case 3:
+                                response = _context110.sent;
+                                res = response.data.status ? true : false;
+
+                                commit('setLoader', false);
+                                return _context110.abrupt('return', res);
+
+                            case 7:
+                            case 'end':
+                                return _context110.stop();
+                        }
+                    }
+                }, _callee110, this);
+            }));
+
+            function automaticDistribution(_x125, _x126) {
+                return _ref221.apply(this, arguments);
+            }
+
+            return automaticDistribution;
         }()
     }
 

@@ -117,4 +117,53 @@ class AutomaticDistributionController extends Controller
 
         return ['status' => true];
     }
+
+    public function checkAllotment(Request $request){
+        $allotmentId = $request->get('allotment');
+
+        $elements = DB::table('distribution_element')
+            ->leftJoin('load_element', 'distribution_element.load_element_id', '=', 'load_element.id')
+            ->leftJoin('group', 'load_element.specialty_id', '=', 'group.id')
+            ->where('load_element.allotment_id', $allotmentId)
+            ->select('load_element.discipline_id AS discipline_id', 'load_element.type_class_id AS type_class_id', 'distribution_element.worker_id AS worker_id', 'group.specialty_id AS specialty_id')
+            ->get()->all();
+
+        $stepUp = env('AUTOMATIC_STEP', 0.2);
+
+        foreach ($elements as $element){
+            $coefficients = DB::table('coefficients')->where([
+                ['discipline_id', $element->discipline_id],
+                ['type_class_id', $element->type_class_id],
+                ['speciality_id', $element->specialty_id]])
+                ->get()->all();
+
+            $stepDown = $stepUp / count($coefficients);
+
+            $issetCoef = false;
+            foreach ($coefficients as $coefficient){
+                if ($coefficient->worker_id == $element->worker_id){
+                    $coefValue = $coefficient->coefficient + $stepUp;
+                    if ($coefValue > 1) $coefValue = 1;
+                    $issetCoef = true;
+                }
+                else{
+                    $coefValue = $coefficient->coefficient - $stepDown;
+                    if ($coefValue < 0) $coefValue = 0;
+                }
+                DB::table('coefficients')->where('id', $coefficient->id)->update(['coefficient' => $coefValue]);
+            }
+            if (!$issetCoef){
+                DB::table('coefficients')
+                    ->insert([
+                        'worker_id' => $element->worker_id,
+                        'discipline_id' => $element->discipline_id,
+                        'type_class_id' => $element->type_class_id,
+                        'speciality_id' => $element->specialty_id,
+                        'coefficient' => $stepUp
+                ]);
+            }
+        }
+
+        return ['status' => true];
+    }
 }

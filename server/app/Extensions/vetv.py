@@ -10,25 +10,29 @@ A = args_json['A']
 b = args_json['b']
 Aeq = args_json['Aeq']
 beq = args_json['beq']
+num_x = len(c)
 
 prob = LpProblem("St Load", LpMinimize)
-x = LpVariable.dicts('x', range(297), 0, 1, cat='Integer')
+x = LpVariable.dicts('x', range(num_x), 0, 1, cat='Integer')
 
-prob += lpSum([c[i] * x[i] for i in range(297)])
+prob += lpSum([c[i] * x[i] for i in range(num_x)])
 
 for i in range(len(b)):
-    prob += lpSum([A[i][j] * x[j] for j in range(297)]) <= b[i]
+    prob += lpSum([A[i][j] * x[j] for j in range(num_x)]) <= b[i]
 
 for i in range(len(beq)):
-    prob += lpSum([Aeq[i][j] * x[j] for j in range(297)]) == beq[i]
+    prob += lpSum([Aeq[i][j] * x[j] for j in range(num_x)]) == beq[i]
 
-print(prob)
+# print(prob)
 start_time = time.time()
 status = prob.solve()
-print("--- %s seconds ---" % (time.time() - start_time))
-print(LpStatus[status])
-print(value(prob.objective))
+# print("--- %s seconds ---" % (time.time() - start_time))
+# print(LpStatus[status])
+# print(value(prob.objective))
 
-for i in range(297):
-    print("x_" + str(i) + ' = ' + str(value(x[i])))
+res = []
+for i in range(num_x):
+    res.append(x[i])
+    # print("x_" + str(i) + ' = ' + str(value(x[i])))
 
+print(json.dumps(res))

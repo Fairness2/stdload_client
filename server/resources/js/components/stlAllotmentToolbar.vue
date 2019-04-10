@@ -29,9 +29,52 @@
         </div>
         <v-spacer/>
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" title="Поставить на автоматическое распределение">
-                <v-icon>play_circle_outline</v-icon>
-            </v-btn>
+            <v-dialog v-model="showAutomaticDistribution" width="500">
+                <v-btn outline slot="activator" color="primary" title="Поставить на автоматическое распределение">
+                    <v-icon>play_circle_outline</v-icon>
+                </v-btn>
+
+                <v-card>
+                    <v-card-title
+                            class="headline grey lighten-2"
+                            primary-title
+                    >
+                        Настройки автоматического распределения
+                    </v-card-title>
+
+                    <v-card-text>
+
+                        <v-text-field max="1" min="0" type="number" v-model="coefWeight.old" label="Вес коэффициента наследственности" />
+                        <v-text-field max="1" min="0" type="number" v-model="coefWeight.worker" label="Вес коэффициента предпочтения преподавателей" />
+                        <v-text-field max="1" min="0" type="number" v-model="coefWeight.kaf" label="Вес коэффициента предпочтения кафедры" />
+                        <v-select
+                                color="primary"
+                                :items="methods"
+                                label="Метод"
+                                v-model="selectMethod"
+                        ></v-select>
+
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-btn @click="automaticDistribution()"
+                                color="success"
+                                flat
+                        >
+                            Загрузить
+                        </v-btn>
+
+                        <v-btn
+                                color=""
+                                flat
+                                @click="showAutomaticDistribution = false"
+                        >
+                            Отмена
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+
+            </v-dialog>
         </div>
         <div class="allotment_toolbox__element">
             <v-dialog v-model="showDownloadInFile" width="500">
@@ -148,8 +191,8 @@
             </v-dialog>
         </div>
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" title="Сделать основным">
-                <v-icon>cloud_done</v-icon>
+            <v-btn outline color="primary" title="Отчёты">
+                <v-icon>assignment</v-icon>
             </v-btn>
         </div>
         <div class="outline">
@@ -168,8 +211,21 @@
         data: () => ({
             showLoadInFile: false,
             showDownloadInFile: false,
+            showAutomaticDistribution: false,
             selectSemester: 3,
             updateWorkers: false,
+
+            coefWeight: {
+                'old': 1,
+                'worker': 1,
+                'kaf': 1
+            },
+            methods: [
+                { text: 'Метод ветвей и границ', value: 1 },
+                { text: 'Двойственный симплекс метод', value: 2 },
+                { text: 'Метод внутреней точки', value: 3 },
+            ],
+            selectMethod: 1,
         }),
         computed:{
             currentSemesterModel: {
@@ -212,7 +268,19 @@
         },
 
         methods:{
+            async automaticDistribution(){
+                let params = {
+                    'method': this.selectMethod,
+                    'weight_old': this.coefWeight.old,
+                    'weight_worker': this.coefWeight.worker,
+                    'weight_kaf': this.coefWeight.kaf,
+                    'allotment': this.$store.state.currentAllotment.id
+                };
+                let status = await this.$store.dispatch('automaticDistribution', params);
 
+
+
+            }
         },
 
         beforeMount (){

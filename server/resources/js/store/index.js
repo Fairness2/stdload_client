@@ -1047,6 +1047,13 @@ const store = new Vuex.Store({
           commit('setData', {path: 'workers', value: list});
           commit('setData', {path: 'currentWorker', value: {}});
       },
+      async automaticDistribution({commit, dispatch}, params){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.get('/allotments/automatic', {params}),
+            res = response.data.status ? true : false;
+          commit('setLoader', false);
+          return res;
+      },
   }
 
 });

@@ -27,6 +27,7 @@ Route::post('/allotments/remove', 'AllotmentController@removeAllotment')->name('
 Route::get('/allotments/get_allotment', 'AllotmentController@getAllotment')->name('get_allotment')->middleware('auth');
 Route::post('/allotments/load_allotment', 'AllotmentController@parseFile')->name('load_allotment')->middleware('auth', 'needRole:distribution');
 Route::post('/allotments/download_allotment', 'AllotmentController@downloadFile')->name('download_allotment')->middleware('auth', 'needRole:distribution');
+Route::get('/allotments/automatic', 'AutomaticDistributionController@distribution')->name('automatic_distribution')->middleware('auth', 'needRole:distribution');
 
 Route::get('/workers/get_workers', 'WorkersController@getWorkers')->name('get_workers')->middleware('auth');
 
