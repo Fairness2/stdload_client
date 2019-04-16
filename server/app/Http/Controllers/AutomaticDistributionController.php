@@ -26,7 +26,9 @@ class AutomaticDistributionController extends Controller
 
         $F = [];
         $a1 = [];
+        $elementsIds = [];
         foreach ($loadElements as $loadElement){
+            $elementsIds[] = $loadElement->id;
             $group = DB::table('group')->where('id', $loadElement->group_id)->get()->first();
             if (!$group)
                 continue;
@@ -82,7 +84,9 @@ class AutomaticDistributionController extends Controller
             $b[] = $worker->hours;
         }
         for ($i = 0; $i < count($workers); $i++){
-            $A[] = array_unshift($A[$i], array_pop($A[$i]));
+            $newAi = $A[$i];
+            array_unshift($newAi, array_pop($newAi));//TODO
+            $A[] = $newAi;
         }
 
         $Aeq = [];
@@ -101,19 +105,32 @@ class AutomaticDistributionController extends Controller
             $beq[] = $loadElements[$i]->hours_planed;
         }
 
-        if (strpos($_SERVER['SCRIPT_FILENAME'], '\\') === false) {
-            $root = substr($_SERVER['SCRIPT_FILENAME'], 0, strrpos($_SERVER['SCRIPT_FILENAME'], '/')) . '/';
-        } else {
-            $root = str_replace('/', '\\', $_SERVER['SCRIPT_FILENAME']);
-            $root = substr($root, 0, strrpos($root, '\\')) . '\\';
-        }
+        $root = str_replace('public', '', $_SERVER['DOCUMENT_ROOT']);
 
         //$pythonPatch = 'C:\Users\geve9\AppData\Local\Programs\Python\Python37-32\python.exe'; //Для винды, изменять под себя!!!
         $networkPredictScript = 'E: && cd ' . $root . 'app/Extensions && ' . 'python' . ' vetv.py';
         $data = json_encode(['F' => $F, 'A' => $A, 'b' => $b, 'Aeq' => $Aeq, 'beq' => $beq]);
         $script = $networkPredictScript . ' "' . htmlspecialchars(trim($data)) . '"';
         exec($script, $out);
-
+        if (count($out) > 0){
+            $autoAllotment = json_decode(end($out), true);
+            if (gettype($autoAllotment) === 'array'){
+                DB::table('distribution_element')->whereIn('load_element_id', $elementsIds)->delete();
+                $i = 0;
+                foreach ($loadElements as $loadElement){
+                    foreach ($workers as $worker){
+                        if ($autoAllotment[$i] == 1){
+                            DB::table('distribution_element')->insert(['load_element_id' => $loadElement->id, 'worker_id' => $worker->id]);
+                        }
+                        $i++;
+                    }
+                }
+            }
+            else
+                return ['status' => false];
+        }
+        else
+            return ['status' => false];
 
         return ['status' => true];
     }
@@ -123,7 +140,7 @@ class AutomaticDistributionController extends Controller
 
         $elements = DB::table('distribution_element')
             ->leftJoin('load_element', 'distribution_element.load_element_id', '=', 'load_element.id')
-            ->leftJoin('group', 'load_element.specialty_id', '=', 'group.id')
+            ->leftJoin('group', 'load_element.group_id', '=', 'group.id')
             ->where('load_element.allotment_id', $allotmentId)
             ->select('load_element.discipline_id AS discipline_id', 'load_element.type_class_id AS type_class_id', 'distribution_element.worker_id AS worker_id', 'group.specialty_id AS specialty_id')
             ->get()->all();
@@ -134,10 +151,11 @@ class AutomaticDistributionController extends Controller
             $coefficients = DB::table('coefficients')->where([
                 ['discipline_id', $element->discipline_id],
                 ['type_class_id', $element->type_class_id],
-                ['speciality_id', $element->specialty_id]])
+                ['speciality_id', $element->specialty_id]],
+                ['type', 1])
                 ->get()->all();
 
-            $stepDown = $stepUp / count($coefficients);
+            $stepDown = $stepUp / (count($coefficients) + 1);
 
             $issetCoef = false;
             foreach ($coefficients as $coefficient){
@@ -159,7 +177,8 @@ class AutomaticDistributionController extends Controller
                         'discipline_id' => $element->discipline_id,
                         'type_class_id' => $element->type_class_id,
                         'speciality_id' => $element->specialty_id,
-                        'coefficient' => $stepUp
+                        'coefficient' => $stepUp,
+                        'type' => 1
                 ]);
             }
         }

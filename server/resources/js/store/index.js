@@ -1054,6 +1054,13 @@ const store = new Vuex.Store({
           commit('setLoader', false);
           return res;
       },
+      async checkAllotment({commit, dispatch}, params){
+          commit('setLoader', true);
+          const response = await Vue.axiosClient.client.get('/allotments/check', {params}),
+              res = response.data.status ? true : false;
+          commit('setLoader', false);
+          return res;
+      },
   }
 
 });

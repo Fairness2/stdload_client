@@ -54,6 +54,14 @@
                                 v-model="selectMethod"
                         ></v-select>
 
+                        <v-alert
+                                :value="isNotSuccessDistribution === true"
+                                type="warning"
+                                transition="scale-transition"
+                                outline
+                        >
+                            Распределить автоматически не удалось
+                        </v-alert>
                     </v-card-text>
 
                     <v-card-actions>
@@ -61,13 +69,66 @@
                                 color="success"
                                 flat
                         >
-                            Загрузить
+                            Распределить
                         </v-btn>
 
                         <v-btn
                                 color=""
                                 flat
                                 @click="showAutomaticDistribution = false"
+                        >
+                            Отмена
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+
+            </v-dialog>
+        </div>
+        <div class="allotment_toolbox__element">
+            <v-dialog v-model="showCheckAllotment" width="500">
+                <v-btn outline slot="activator" color="primary" title="Учесть в коэффициентах наследственности">
+                    <v-icon>check_circle_outline</v-icon>
+                </v-btn>
+
+                <v-card>
+                    <v-card-title
+                            class="headline grey lighten-2"
+                            primary-title
+                    >
+                        Учесть в коэффициентах наследственности
+                    </v-card-title>
+
+                    <v-card-text>
+                        <v-alert
+                                :value="isSuccessCheckAllotment === true"
+                                type="success"
+                                transition="scale-transition"
+                                outline
+                        >
+                            Распределение учтено.
+                        </v-alert>
+                        <v-alert
+                                :value="isSuccessCheckAllotment === false"
+                                type="warning"
+                                transition="scale-transition"
+                                outline
+                        >
+                            Распределение учесть не удалось.
+                        </v-alert>
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-btn @click="checkAllotment()"
+                               color="success"
+                               flat
+                        >
+                            Учесть
+                        </v-btn>
+
+                        <v-btn
+                                color=""
+                                flat
+                                @click="showCheckAllotment = false"
                         >
                             Отмена
                         </v-btn>
@@ -226,6 +287,10 @@
                 { text: 'Метод внутреней точки', value: 3 },
             ],
             selectMethod: 1,
+            isNotSuccessDistribution: false,
+            isSuccessCheck: false,
+            showCheckAllotment: false,
+            isSuccessCheckAllotment: null
         }),
         computed:{
             currentSemesterModel: {
@@ -277,9 +342,32 @@
                     'allotment': this.$store.state.currentAllotment.id
                 };
                 let status = await this.$store.dispatch('automaticDistribution', params);
-
-
-
+                if (status){
+                    if (this.$store.state.currentDimension == 1){
+                        this.$route.push({name: 'hiDiscipline', params: {id: this.$store.state.currentAllotment.id}});
+                    }
+                    else if (this.$store.state.currentDimension == 2){
+                        this.$route.push({name: 'StlPageHiEmployee', params: {id: this.$store.state.currentAllotment.id}});
+                    }
+                    else if (this.$store.state.currentDimension == 3){
+                        this.$route.push({name: 'StlPageHiGroup', params: {id: this.$store.state.currentAllotment.id}});
+                    }
+                }
+                else{
+                    this.isNotSuccessDistribution = true;
+                }
+            },
+            async checkAllotment(){
+                let params = {
+                    'allotment': this.$store.state.currentAllotment.id
+                };
+                let status = await this.$store.dispatch('checkAllotment', params);
+                if (status){
+                    this.isSuccessCheckAllotment = true;
+                }
+                else{
+                    this.isSuccessCheckAllotment = false;
+                }
             }
         },
 

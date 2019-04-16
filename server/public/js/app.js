@@ -11789,6 +11789,13 @@ module.exports = g;
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
+module.exports = __webpack_require__(31);
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
@@ -11887,10 +11894,10 @@ utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
 
 module.exports = defaults;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)))
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -12077,13 +12084,6 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(31);
 
 
 /***/ }),
@@ -13062,7 +13062,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(7)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5), __webpack_require__(8)))
 
 /***/ }),
 /* 19 */
@@ -16907,7 +16907,7 @@ exports.push([module.i, "\n.page-hi__nav {\n  height: 50px;\n}\n.page-hi__column
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__ = __webpack_require__(33);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__stlAllotmentToolbar__);
@@ -18507,12 +18507,73 @@ exports.push([module.i, "\n.allotment_toolbox {\n  height: 50px;\n}\n", ""]);
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
 
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -18736,7 +18797,11 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
                 'kaf': 1
             },
             methods: [{ text: 'Метод ветвей и границ', value: 1 }, { text: 'Двойственный симплекс метод', value: 2 }, { text: 'Метод внутреней точки', value: 3 }],
-            selectMethod: 1
+            selectMethod: 1,
+            isNotSuccessDistribution: false,
+            isSuccessCheck: false,
+            showCheckAllotment: false,
+            isSuccessCheckAllotment: null
         };
     },
     computed: {
@@ -18794,7 +18859,19 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
                             case 3:
                                 status = _context.sent;
 
-                            case 4:
+                                if (status) {
+                                    if (this.$store.state.currentDimension == 1) {
+                                        this.$route.push({ name: 'hiDiscipline', params: { id: this.$store.state.currentAllotment.id } });
+                                    } else if (this.$store.state.currentDimension == 2) {
+                                        this.$route.push({ name: 'StlPageHiEmployee', params: { id: this.$store.state.currentAllotment.id } });
+                                    } else if (this.$store.state.currentDimension == 3) {
+                                        this.$route.push({ name: 'StlPageHiGroup', params: { id: this.$store.state.currentAllotment.id } });
+                                    }
+                                } else {
+                                    this.isNotSuccessDistribution = true;
+                                }
+
+                            case 5:
                             case 'end':
                                 return _context.stop();
                         }
@@ -18807,6 +18884,42 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
             }
 
             return automaticDistribution;
+        }(),
+        checkAllotment: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee2() {
+                var params, status;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                params = {
+                                    'allotment': this.$store.state.currentAllotment.id
+                                };
+                                _context2.next = 3;
+                                return this.$store.dispatch('checkAllotment', params);
+
+                            case 3:
+                                status = _context2.sent;
+
+                                if (status) {
+                                    this.isSuccessCheckAllotment = true;
+                                } else {
+                                    this.isSuccessCheckAllotment = false;
+                                }
+
+                            case 5:
+                            case 'end':
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function checkAllotment() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return checkAllotment;
         }()
     },
 
@@ -19014,7 +19127,24 @@ var render = function() {
                           },
                           expression: "selectMethod"
                         }
-                      })
+                      }),
+                      _vm._v(" "),
+                      _c(
+                        "v-alert",
+                        {
+                          attrs: {
+                            value: _vm.isNotSuccessDistribution === true,
+                            type: "warning",
+                            transition: "scale-transition",
+                            outline: ""
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Распределить автоматически не удалось\n                    "
+                          )
+                        ]
+                      )
                     ],
                     1
                   ),
@@ -19034,7 +19164,7 @@ var render = function() {
                         },
                         [
                           _vm._v(
-                            "\n                        Загрузить\n                    "
+                            "\n                        Распределить\n                    "
                           )
                         ]
                       ),
@@ -19046,6 +19176,143 @@ var render = function() {
                           on: {
                             click: function($event) {
                               _vm.showAutomaticDistribution = false
+                            }
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Отмена\n                    "
+                          )
+                        ]
+                      )
+                    ],
+                    1
+                  )
+                ],
+                1
+              )
+            ],
+            1
+          )
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        { staticClass: "allotment_toolbox__element" },
+        [
+          _c(
+            "v-dialog",
+            {
+              attrs: { width: "500" },
+              model: {
+                value: _vm.showCheckAllotment,
+                callback: function($$v) {
+                  _vm.showCheckAllotment = $$v
+                },
+                expression: "showCheckAllotment"
+              }
+            },
+            [
+              _c(
+                "v-btn",
+                {
+                  attrs: {
+                    slot: "activator",
+                    outline: "",
+                    color: "primary",
+                    title: "Учесть в коэффициентах наследственности"
+                  },
+                  slot: "activator"
+                },
+                [_c("v-icon", [_vm._v("check_circle_outline")])],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "v-card",
+                [
+                  _c(
+                    "v-card-title",
+                    {
+                      staticClass: "headline grey lighten-2",
+                      attrs: { "primary-title": "" }
+                    },
+                    [
+                      _vm._v(
+                        "\n                    Учесть в коэффициентах наследственности\n                "
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-card-text",
+                    [
+                      _c(
+                        "v-alert",
+                        {
+                          attrs: {
+                            value: _vm.isSuccessCheckAllotment === true,
+                            type: "success",
+                            transition: "scale-transition",
+                            outline: ""
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Распределение учтено.\n                    "
+                          )
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "v-alert",
+                        {
+                          attrs: {
+                            value: _vm.isSuccessCheckAllotment === false,
+                            type: "warning",
+                            transition: "scale-transition",
+                            outline: ""
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Распределение учесть не удалось.\n                    "
+                          )
+                        ]
+                      )
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-card-actions",
+                    [
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "success", flat: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.checkAllotment()
+                            }
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                        Учесть\n                    "
+                          )
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "", flat: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.showCheckAllotment = false
                             }
                           }
                         },
@@ -31946,7 +32213,7 @@ if (false) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_vue__);
@@ -36240,6 +36507,40 @@ var store = new __WEBPACK_IMPORTED_MODULE_2_vuex__["a" /* default */].Store({
             }
 
             return automaticDistribution;
+        }(),
+        checkAllotment: function () {
+            var _ref223 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee111(_ref222, params) {
+                var commit = _ref222.commit,
+                    dispatch = _ref222.dispatch;
+                var response, res;
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee111$(_context111) {
+                    while (1) {
+                        switch (_context111.prev = _context111.next) {
+                            case 0:
+                                commit('setLoader', true);
+                                _context111.next = 3;
+                                return __WEBPACK_IMPORTED_MODULE_1_vue___default.a.axiosClient.client.get('/allotments/check', { params: params });
+
+                            case 3:
+                                response = _context111.sent;
+                                res = response.data.status ? true : false;
+
+                                commit('setLoader', false);
+                                return _context111.abrupt('return', res);
+
+                            case 7:
+                            case 'end':
+                                return _context111.stop();
+                        }
+                    }
+                }, _callee111, this);
+            }));
+
+            function checkAllotment(_x127, _x128) {
+                return _ref223.apply(this, arguments);
+            }
+
+            return checkAllotment;
         }()
     }
 
@@ -60813,7 +61114,7 @@ module.exports = __webpack_require__(156);
 var utils = __webpack_require__(3);
 var bind = __webpack_require__(10);
 var Axios = __webpack_require__(158);
-var defaults = __webpack_require__(6);
+var defaults = __webpack_require__(7);
 
 /**
  * Create an instance of Axios
@@ -60896,7 +61197,7 @@ function isSlowBuffer (obj) {
 "use strict";
 
 
-var defaults = __webpack_require__(6);
+var defaults = __webpack_require__(7);
 var utils = __webpack_require__(3);
 var InterceptorManager = __webpack_require__(167);
 var dispatchRequest = __webpack_require__(168);
@@ -61435,7 +61736,7 @@ module.exports = InterceptorManager;
 var utils = __webpack_require__(3);
 var transformData = __webpack_require__(169);
 var isCancel = __webpack_require__(13);
-var defaults = __webpack_require__(6);
+var defaults = __webpack_require__(7);
 var isAbsoluteURL = __webpack_require__(170);
 var combineURLs = __webpack_require__(171);
 
