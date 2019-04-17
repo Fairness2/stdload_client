@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
@@ -640,6 +641,42 @@ class AdminController extends Controller
 
         $res = DB::table('trained_worker')->insert(['worker_id' => $id, 'status' => $status, 'date_begin' => date('Y-m-d')]);
         return ['status' => (boolean)$res];
+    }
+
+    public function clearCoefOld(Request $request){
+        DB::table('coefficients')->where('type', 1)->delete();
+        return ['status' => true];
+    }
+
+    public function setCoefKaf(Request $request){
+        $workerId = $request->get('worker_id', null);
+        $disciplineId = $request->get('discipline_id', null);
+        $typeClassId = $request->get('type_class_id', null);
+        $specialityId = $request->get('speciality_id', null);
+        $coefficient = $request->get('coefficient', null);
+        $validator = Validator::make([
+            'worker_id' => $workerId,
+            'discipline_id' => $disciplineId,
+            'type_class_id' => $typeClassId,
+            'speciality_id' => $specialityId,
+            'coefficient' => $coefficient,
+        ],[
+            'worker_id' => 'required|integer',
+            'discipline_id' => 'required|integer',
+            'type_class_id' => 'required|integer',
+            'speciality_id' => 'required|integer',
+            'coefficient' => 'required|numeric',
+        ]);
+
+        if ($validator->fails())
+            return ['status' => false, 'errors' => 'Не верные параметры'];
+
+        $coef = DB::table('coefficients')->where([['worker_id', $workerId], ['discipline_id', $disciplineId], ['type_class_id', $typeClassId], ['speciality_id', $specialityId], ['type', 3]])->get()->first();
+        if ($coef)
+            DB::table('coefficients')->where('id', $coef->id)->update(['coefficient' => $coefficient]);
+        else
+            DB::table('coefficients')->insert(['worker_id' => $workerId, 'discipline_id' => $disciplineId, 'type_class_id' => $typeClassId, 'speciality_id' => $specialityId, 'type' => 3, 'coefficient' => $coefficient]);
+        return ['status' => true];
     }
 
 }
