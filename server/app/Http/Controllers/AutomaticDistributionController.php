@@ -32,7 +32,7 @@ class AutomaticDistributionController extends Controller
             $group = DB::table('group')->where('id', $loadElement->group_id)->get()->first();
             if (!$group)
                 continue;
-            $a1[] = $loadElement->hours_planed;
+            $a1[] = (float)$loadElement->hours_planed;
             $first = false;
             foreach ($workers as $worker){
                 if ($first)
@@ -74,14 +74,14 @@ class AutomaticDistributionController extends Controller
                 else
                     $coefKaf = $coefKafObj->coefficient;
 
-                $F[] = ($loadElement->hours_planed * (($weightOld * $coefOld + $weightWorker * $coefWorker + $weightKaf * $coefKaf) / ($weightOld + $weightWorker + $weightKaf))) * -1;
+                $F[] = (float)($loadElement->hours_planed * (($weightOld * $coefOld + $weightWorker * $coefWorker + $weightKaf * $coefKaf) / ($weightOld + $weightWorker + $weightKaf))) * -1;
             }
         }
 
         $A = [$a1];
         $b = [];
         foreach ($workers as $worker){
-            $b[] = $worker->hours;
+            $b[] = (float)$worker->hours;
         }
         for ($i = 0; $i < count($workers); $i++){
             $newAi = $A[$i];
@@ -93,16 +93,18 @@ class AutomaticDistributionController extends Controller
         $beq = [];
 
         for ($i = 0; $i < count($loadElements); $i++) {
+            $AeqLine = [];
             foreach ($loadElements as $loadElement) {
                 foreach ($workers as $worker) {
                     if ($loadElements[$i] == $loadElement) {
-                        $Aeq[] = $loadElement->hours_planed;
+                        $AeqLine[] = (float)$loadElement->hours_planed;
                     } else {
-                        $Aeq[] = 0;
+                        $AeqLine[] = 0;
                     }
                 }
             }
-            $beq[] = $loadElements[$i]->hours_planed;
+            $Aeq[] = $AeqLine;
+            $beq[] = (float)$loadElements[$i]->hours_planed;
         }
 
         $root = str_replace('public', '', $_SERVER['DOCUMENT_ROOT']);
@@ -110,8 +112,9 @@ class AutomaticDistributionController extends Controller
         //$pythonPatch = 'C:\Users\geve9\AppData\Local\Programs\Python\Python37-32\python.exe'; //Для винды, изменять под себя!!!
         $networkPredictScript = 'E: && cd ' . $root . 'app/Extensions && ' . 'python' . ' vetv.py';
         $data = json_encode(['F' => $F, 'A' => $A, 'b' => $b, 'Aeq' => $Aeq, 'beq' => $beq]);
-        $script = $networkPredictScript . ' "' . htmlspecialchars(trim($data)) . '"';
-        exec($script, $out);
+        file_put_contents($root . 'app/Extensions/data.txt', $data);
+        //$script = $networkPredictScript . ' "' . htmlspecialchars(trim($data)) . '"';
+        exec($networkPredictScript, $out);
         if (count($out) > 0){
             $autoAllotment = json_decode(end($out), true);
             if (gettype($autoAllotment) === 'array'){

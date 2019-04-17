@@ -2,14 +2,22 @@ from pulp import *
 import time
 import json
 
-args = sys.argv[1]
-print(args)
-args_json = json.load(args)
+# print('distribution')
+f = open('data.txt')
+args = f.read()
+# print(args)
+args_json = json.loads(args)
+# print(args_json)
 c = args_json['F']
+# print(c)
 A = args_json['A']
+# print(A)
 b = args_json['b']
+# print(b)
 Aeq = args_json['Aeq']
+# print(Aeq)
 beq = args_json['beq']
+# print(beq)
 num_x = len(c)
 
 prob = LpProblem("St Load", LpMinimize)
@@ -32,7 +40,7 @@ status = prob.solve()
 
 res = []
 for i in range(num_x):
-    res.append(x[i])
+    res.append(value(x[i]))
     # print("x_" + str(i) + ' = ' + str(value(x[i])))
 
 print(json.dumps(res))
