@@ -65,6 +65,7 @@ Route::get('/admin/position_worker', 'PageController@index')->middleware('auth',
 Route::get('/admin/rate_worker', 'PageController@index')->middleware('auth', 'needRole:admin');
 Route::get('/admin/staff_worker', 'PageController@index')->middleware('auth', 'needRole:admin');
 Route::get('/admin/trained_worker', 'PageController@index')->middleware('auth', 'needRole:admin');
+Route::get('/admin/coef', 'PageController@index')->middleware('auth', 'needRole:admin');
 
 Route::get('/admin/roles/get', 'AdminController@getRoles')->middleware('auth', 'needRole:admin');
 Route::post('/admin/roles/create', 'AdminController@createRole')->middleware('auth', 'needRole:admin');
@@ -148,3 +149,12 @@ Route::post('/admin/staff_worker/edit', 'AdminController@editStaffWorker')->midd
 
 Route::get('/admin/trained_worker/get', 'AdminController@getTrainedWorker')->middleware('auth', 'needRole:admin');
 Route::post('/admin/trained_worker/edit', 'AdminController@editTrainedWorker')->middleware('auth', 'needRole:admin');
+
+Route::post('/admin/coef/clear_old', 'AdminController@clearCoefOld')->middleware('auth', 'needRole:admin');
+Route::post('/admin/coef/edit', 'AdminController@setCoef')->middleware('auth', 'needRole:admin');
+
+Route::get('/info/get_workers', 'PageController@getWorkers')->middleware('auth');
+Route::get('/info/get_disciplines', 'PageController@getDisciplines')->middleware('auth');
+Route::get('/info/get_types_class', 'PageController@getTypesClass')->middleware('auth');
+Route::get('/info/get_specialities', 'PageController@getSpecialities')->middleware('auth');
+Route::get('/info/get_coef', 'PageController@getCoef')->middleware('auth');

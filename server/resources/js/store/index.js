@@ -237,6 +237,7 @@ const store = new Vuex.Store({
 
           commit('setData', {path: 'workers', value: list});
           commit('setData', {path: 'currentWorker', value: null});
+          return list;
       },
 
       async fetchThreads({commit, dispatch}){
@@ -1060,6 +1061,55 @@ const store = new Vuex.Store({
               res = response.data.status ? true : false;
           commit('setLoader', false);
           return res;
+      },
+
+      async getWorkers({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/info/get_workers'),
+              list = response.data.status ? response.data.data : [];
+
+          return list;
+      },
+
+      async getDisciplines({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/info/get_disciplines'),
+              list = response.data.status ? response.data.data : [];
+
+          return list;
+      },
+
+      async getTypesClass({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/info/get_types_class'),
+              list = response.data.status ? response.data.data : [];
+
+          return list;
+      },
+
+      async getSpecialities({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/info/get_specialities'),
+              list = response.data.status ? response.data.data : [];
+
+          return list;
+      },
+
+      async getCoef({commit, dispatch}){
+          const response = await Vue.axiosClient.client.get('/info/get_coef'),
+              list = response.data.status ? response.data.data : [];
+
+          return list;
+      },
+
+      async clearOldCoef({commit, dispatch}){
+          const response = await Vue.axiosClient.client.post('/admin/coef/clear_old'),
+              list = response.data.status ? response.data.status : false;
+
+          return list;
+      },
+
+      async updateCoef({commit, dispatch}, params){
+          const response = await Vue.axiosClient.client.post('/admin/coef/edit', params),
+              list = response.data.status ? response.data.status : false;
+
+          return list;
       },
   }
 

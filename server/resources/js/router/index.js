@@ -22,7 +22,7 @@ import StlPageAdminPositionWorker from '../components/admin/stlPageAdminPosition
 import StlPageAdminRateWorker from '../components/admin/stlPageAdminRateWorker';
 import StlPageAdminStaffWorker from '../components/admin/stlPageAdminStaffWorker';
 import StlPageAdminTrainedWorker from '../components/admin/stlPageAdminTrainedWorker';
-
+import StlPageAdminCoef from '../components/admin/stlPageAdminCoef';
 
 Vue.use(Router);
 
@@ -148,6 +148,11 @@ const routes = [
         name: 'admin_trained_worker',
         path: '/admin/trained_worker',
         component: StlPageAdminTrainedWorker,
+    },
+    {
+        name: 'admin_coef',
+        path: '/admin/coef',
+        component: StlPageAdminCoef,
     },
 
 ];

@@ -648,24 +648,27 @@ class AdminController extends Controller
         return ['status' => true];
     }
 
-    public function setCoefKaf(Request $request){
+    public function setCoef(Request $request){
         $workerId = $request->get('worker_id', null);
         $disciplineId = $request->get('discipline_id', null);
         $typeClassId = $request->get('type_class_id', null);
         $specialityId = $request->get('speciality_id', null);
         $coefficient = $request->get('coefficient', null);
+        $type = $request->get('type', null);
         $validator = Validator::make([
             'worker_id' => $workerId,
             'discipline_id' => $disciplineId,
             'type_class_id' => $typeClassId,
             'speciality_id' => $specialityId,
             'coefficient' => $coefficient,
+            'type' => $type,
         ],[
             'worker_id' => 'required|integer',
             'discipline_id' => 'required|integer',
             'type_class_id' => 'required|integer',
             'speciality_id' => 'required|integer',
             'coefficient' => 'required|numeric',
+            'type' => 'required|integer|between:1,3',
         ]);
 
         if ($validator->fails())

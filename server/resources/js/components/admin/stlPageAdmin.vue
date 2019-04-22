@@ -57,6 +57,7 @@
                     {'name': 'Ставка преподавателей', 'path': '/admin/rate_worker'},
                     {'name': 'Штатность преподавателей', 'path': '/admin/staff_worker'},
                     {'name': 'Базовое образование преподавателей', 'path': '/admin/trained_worker'},
+                    {'name': 'Коэффициенты автоматического распределения', 'path': '/admin/coef'},
                 ],
             }
         },
