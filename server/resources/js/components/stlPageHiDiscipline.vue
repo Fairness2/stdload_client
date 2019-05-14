@@ -651,6 +651,7 @@
     .page-hi{
 
         &__nav{
+            margin-top: 30px;
             height: 50px;
         }
 
