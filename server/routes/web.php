@@ -158,3 +158,5 @@ Route::get('/info/get_disciplines', 'PageController@getDisciplines')->middleware
 Route::get('/info/get_types_class', 'PageController@getTypesClass')->middleware('auth');
 Route::get('/info/get_specialities', 'PageController@getSpecialities')->middleware('auth');
 Route::get('/info/get_coef', 'PageController@getCoef')->middleware('auth');
+
+Route::get('/reports/department', 'ReportsController@getDepartmentReport')->middleware('auth');
