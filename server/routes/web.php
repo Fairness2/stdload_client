@@ -160,3 +160,4 @@ Route::get('/info/get_specialities', 'PageController@getSpecialities')->middlewa
 Route::get('/info/get_coef', 'PageController@getCoef')->middleware('auth');
 
 Route::get('/reports/department', 'ReportsController@getDepartmentReport')->middleware('auth');
+Route::get('/reports/individual', 'ReportsController@individualReport')->middleware('auth');

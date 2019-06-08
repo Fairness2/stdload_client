@@ -76,5 +76,14 @@ class Helpers
             ->insert(['query' => $query->sql, 'bindings' => json_encode($query->bindings)]);*/
     }
 
+    public static function getRoot(){
+        if (strpos($_SERVER['SCRIPT_FILENAME'], '\\') === false) {
+            $root = substr($_SERVER['SCRIPT_FILENAME'], 0, strrpos($_SERVER['SCRIPT_FILENAME'], 'public/'));
+        } else {
+            $root = str_replace('/', '\\', $_SERVER['SCRIPT_FILENAME']);
+            $root = substr($root, 0, strrpos($root, 'public\\'));
+        }
+        return $root;
+    }
 
 }
