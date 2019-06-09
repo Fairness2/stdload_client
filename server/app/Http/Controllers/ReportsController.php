@@ -67,10 +67,10 @@ class ReportsController extends Controller
         $groupType = $request->get('group_type', 'full-time');
 
         $validator = Validator::make(['allotment_id' => $allotmentId, 'worker_id' => $workerId, 'group_type' => $groupType],[
-           'allotment_id' => ['required', 'integer', Rule::exists('allotment')->where(function ($query){
+           'allotment_id' => ['required', 'integer', Rule::exists('allotment','id')->where(function ($query){
                $query->where('is_remove', '<>', true);
            })],
-            'worker_id' => ['required', 'integer', Rule::exists('worker')->where(function ($query){
+            'worker_id' => ['required', 'integer', Rule::exists('worker','id')->where(function ($query){
                 $query->where('not_active', '<>', true);
             })],
             'group_type' => ['required', Rule::in(['full-time', 'extramural'])]
@@ -124,6 +124,36 @@ class ReportsController extends Controller
             ['Наименование дисциплины', 'Факультет, группа', 'Вид занятия', 'Нагрузка', 'Ассистент/Преподаватель']
         ];
         $sheet->fromArray($head, null, 'A1');
+        $sheet->getColumnDimension('A')->setWidth(63.57);
+        $sheet->getColumnDimension('B')->setWidth(17.43);
+        $sheet->getColumnDimension('C')->setWidth(16.29);
+        $sheet->getColumnDimension('D')->setWidth(8.29);
+        $sheet->getColumnDimension('E')->setWidth(25);
+        $sheet->getStyleByColumnAndRow(1, 1, 5, 2)->applyFromArray([
+            'alignment'=>[
+                'wrapText' => true,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ],
+            'borders' =>[
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ]
+            ],
+            'font'=>[
+                'bold' => true,
+                //'size' => 14
+            ],
+        ]);
+        $sheet->getStyleByColumnAndRow(2,1,2,1)->applyFromArray([
+            'font'=>[
+                'bold' => false
+            ],
+        ]);
 
         $workerLoads = array_filter($autumnLoads, function ($item) use ($workerId) {
             return $item->worker_id == $workerId;
@@ -138,6 +168,36 @@ class ReportsController extends Controller
             ['Наименование дисциплины', 'Факультет, группа', 'Вид занятия', 'Нагрузка', 'Ассистент/Преподаватель']
         ];
         $sheet->fromArray($head, null, 'A1');
+        $sheet->getColumnDimension('A')->setWidth(63.57);
+        $sheet->getColumnDimension('B')->setWidth(17.43);
+        $sheet->getColumnDimension('C')->setWidth(16.29);
+        $sheet->getColumnDimension('D')->setWidth(8.29);
+        $sheet->getColumnDimension('E')->setWidth(25);
+        $sheet->getStyleByColumnAndRow(1, 1, 5, 2)->applyFromArray([
+            'alignment'=>[
+                'wrapText' => true,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ],
+            'borders' =>[
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ]
+            ],
+            'font'=>[
+                'bold' => true,
+                //'size' => 14
+            ],
+        ]);
+        $sheet->getStyleByColumnAndRow(2,1,2,1)->applyFromArray([
+            'font'=>[
+                'bold' => false
+            ],
+        ]);
 
         $workerLoads = array_filter($springLoads, function ($item) use ($workerId) {
             return $item->worker_id == $workerId;
@@ -167,9 +227,7 @@ class ReportsController extends Controller
                 $faculty = $workerLoad->faculty_name;
                 $group = $workerLoad->group_name;
             }
-            if ($workerLoad->group_id != $group){
-                $sheet->mergeCellsByColumnAndRow(2, $firstGroupCell, 2, $i - 1);
-                $sheet->setCellValueByColumnAndRow(2, $i - 2, $faculty . ' ' . $discipline);
+            if ($workerLoad->group_name != $group || $workerLoad->discipline_name != $discipline){
 
                 $anotherLoads = array_filter($loads, function ($item) use ($workerId, $group, $discipline) {
                     return $item->worker_id != $workerId && $item->discipline_name == $discipline && $item->group_name == $group;
@@ -178,18 +236,22 @@ class ReportsController extends Controller
                 foreach ($anotherLoads as $anotherLoad){
                     $sheet->setCellValueByColumnAndRow(3, $i, $anotherLoad->type_class_name);
                     $sheet->setCellValueByColumnAndRow(4, $i, $anotherLoad->hours);
-                    $sheet->setCellValueByColumnAndRow(5, $i, $anotherLoad->worker_fio);
+                    $sheet->setCellValueByColumnAndRow(5, $i, $anotherLoad->worker_fio ? $anotherLoad->worker_fio : 'Не назначен');
                     $i++;
                 }
 
+                $sheet->mergeCellsByColumnAndRow(2, $firstGroupCell, 2, $i - 1);
+                $sheet->setCellValueByColumnAndRow(2, $firstGroupCell, $faculty . ' ' . $group);
+
+                $firstGroupCell = $i;
                 $faculty = $workerLoad->faculty_name;
-                $group = $workerLoad->group_id;
+                $group = $workerLoad->group_name;
             }
-            if ($workerLoad->discipline_id != $discipline){
+            if ($workerLoad->discipline_name != $discipline){
                 $sheet->mergeCellsByColumnAndRow(1, $firstDisciplineCell, 1, $i - 1);
-                $sheet->setCellValueByColumnAndRow(1, $i - 1, $discipline);
+                $sheet->setCellValueByColumnAndRow(1, $firstDisciplineCell, $discipline);
                 $firstDisciplineCell = $i;
-                $discipline = $workerLoad->discipline_id;
+                $discipline = $workerLoad->discipline_name;
             }
 
             $sheet->setCellValueByColumnAndRow(3, $i, $workerLoad->type_class_name);
@@ -199,13 +261,66 @@ class ReportsController extends Controller
             $i++;
         }
 
+        $anotherLoads = array_filter($loads, function ($item) use ($workerId, $group, $discipline) {
+            return $item->worker_id != $workerId && $item->discipline_name == $discipline && $item->group_name == $group;
+        });
+
+        foreach ($anotherLoads as $anotherLoad){
+            $sheet->setCellValueByColumnAndRow(3, $i, $anotherLoad->type_class_name);
+            $sheet->setCellValueByColumnAndRow(4, $i, $anotherLoad->hours);
+            $sheet->setCellValueByColumnAndRow(5, $i, $anotherLoad->worker_fio ? $anotherLoad->worker_fio : 'Не назначен');
+            $i++;
+        }
+
+        $sheet->mergeCellsByColumnAndRow(2, $firstGroupCell, 2, $i - 1);
+        $sheet->setCellValueByColumnAndRow(2, $firstGroupCell, $faculty . ' ' . $group);
+
+        $sheet->mergeCellsByColumnAndRow(1, $firstDisciplineCell, 1, $i - 1);
+        $sheet->setCellValueByColumnAndRow(1, $firstDisciplineCell, $discipline);
+
         $sheet->setCellValueByColumnAndRow(3, $i, 'Всего за семестр:');
         $sheet->setCellValueByColumnAndRow(4, $i, $hours);
-
+        $sheet->getStyleByColumnAndRow(3,$i,4,$i)->applyFromArray([
+            'font'=>[
+                'bold' => true
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'argb' => 'FFF03D',
+                ],
+            ]
+        ]);
         if (isset($hoursAll)){
+            $i++;
             $sheet->setCellValueByColumnAndRow(3, $i, 'Всего за год:');
             $sheet->setCellValueByColumnAndRow(4, $i, $hoursAll + $hours);
+            $sheet->getStyleByColumnAndRow(3,$i,4,$i)->applyFromArray([
+                'font'=>[
+                    'bold' => true
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'argb' => 'FFF03D',
+                    ],
+                ]
+            ]);
         }
+
+        $sheet->getStyleByColumnAndRow(1, 3, 5, $i)->applyFromArray([
+            'alignment'=>[
+                'wrapText' => true,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ],
+            'borders' =>[
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ]
+            ]
+        ]);
+
 
         return $hours;
     }

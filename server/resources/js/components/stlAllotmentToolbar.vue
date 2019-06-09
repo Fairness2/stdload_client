@@ -252,9 +252,58 @@
             </v-dialog>
         </div>
         <div class="allotment_toolbox__element">
-            <v-btn outline color="primary" title="Отчёты">
-                <v-icon>assignment</v-icon>
-            </v-btn>
+
+            <v-dialog v-model="showReports" width="500">
+                <v-btn slot="activator"  outline color="primary" title="Отчёты">
+                    <v-icon>assignment</v-icon>
+                </v-btn>
+
+                <v-card>
+                    <v-card-title
+                            class="headline grey lighten-2"
+                            primary-title
+                    >
+                        Выберите отчёт
+                    </v-card-title>
+
+                    <v-card-text>
+                        <div>
+                            <v-select
+                                    v-model="selectedWorker"
+                                    :items="$store.state.workers"
+                                    item-value="id"
+                                    item-text="fio"
+                                    label="Преподаватель"
+                            ></v-select>
+                            <v-checkbox
+                                    label="Заочные"
+                                    v-model="selectedExtramural"
+                            ></v-checkbox>
+                            <v-btn
+                                    :disabled="selectedWorker == null"
+                                    color=""
+                                    flat
+                                    @click="getIndividualReport"
+                            >
+                                Индивидуальная нагрузка
+                            </v-btn>
+                        </div>
+
+
+                    </v-card-text>
+
+                    <v-card-actions>
+                        <v-btn
+                                color=""
+                                flat
+                                @click="showReports = false"
+                        >
+                            Отмена
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+
+            </v-dialog>
         </div>
         <div class="outline">
             <v-card-text><b class="text--primary">Распределение: {{$store.state.currentAllotment.name}}</b></v-card-text>
@@ -273,6 +322,7 @@
             showLoadInFile: false,
             showDownloadInFile: false,
             showAutomaticDistribution: false,
+            showReports: false,
             selectSemester: 3,
             updateWorkers: false,
 
@@ -290,7 +340,10 @@
             isNotSuccessDistribution: false,
             isSuccessCheck: false,
             showCheckAllotment: false,
-            isSuccessCheckAllotment: null
+            isSuccessCheckAllotment: null,
+
+            selectedWorker: null,
+            selectedExtramural: false,
         }),
         computed:{
             currentSemesterModel: {
@@ -368,6 +421,9 @@
                 else{
                     this.isSuccessCheckAllotment = false;
                 }
+            },
+            getIndividualReport(){
+                window.open(`/reports/individual?allotment=${this.$store.state.currentAllotment.id}&worker=${this.selectedWorker}&group_type=${this.selectedExtramural ? encodeURIComponent('extramural') : encodeURIComponent('full-time')}`)
             }
         },
 
