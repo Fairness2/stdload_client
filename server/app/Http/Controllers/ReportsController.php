@@ -79,6 +79,10 @@ class ReportsController extends Controller
             abort(404);
 
         $worker = DB::table('worker')->where('id', $workerId)->get()->first();
+        $position = DB::table('position_worker')
+            ->leftJoin('position', 'position_worker.position_id', '=', 'position.id')
+            ->where('position_worker.worker_id', $workerId)->orderBy('date_begin', 'desc')
+            ->select('position.name AS name')->get()->first();
 
         $filterGroup = $groupType === 'full-time' ? ['group.is_full_time', true ] : ['group.is_full_time', '<>', true];
         $loads = DB::table('load_element')
@@ -120,7 +124,7 @@ class ReportsController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Осенний семестр');
         $head = [
-            [$worker->fio, 'Осенний семестр'],
+            [$position->name . ' ' . $worker->fio, 'Осенний семестр'],
             ['Наименование дисциплины', 'Факультет, группа', 'Вид занятия', 'Нагрузка', 'Ассистент/Преподаватель']
         ];
         $sheet->fromArray($head, null, 'A1');
@@ -164,7 +168,7 @@ class ReportsController extends Controller
         $sheet = $spreadsheet->createSheet();
         $sheet->setTitle('Весенний семестр');
         $head = [
-            [$worker->fio, 'Осенний семестр'],
+            [$position->name . ' ' . $worker->fio, 'Осенний семестр'],
             ['Наименование дисциплины', 'Факультет, группа', 'Вид занятия', 'Нагрузка', 'Ассистент/Преподаватель']
         ];
         $sheet->fromArray($head, null, 'A1');
@@ -208,7 +212,8 @@ class ReportsController extends Controller
         $fileName = Helpers::getRoot() . 'public/' . md5(microtime() . rand(100000, 999999));
 
         $writer->save($fileName);
-        return response()->download($fileName, 'Индивидуальная нагрузка преподавателя' . $worker->fio . '.xlsx')->deleteFileAfterSend(true);
+        $saveName = 'Индивидуальная нагрузка преподавателя ' .  $worker->fio . ' по ' . ($groupType === 'full-time' ? 'очным' : 'заочным') . ' группам' . '.xlsx';
+        return response()->download($fileName, $saveName)->deleteFileAfterSend(true);
     }
 
     private function writeIndividualLoads($sheet, $workerId, $workerLoads, $loads, $hoursAll = null){
@@ -261,22 +266,24 @@ class ReportsController extends Controller
             $i++;
         }
 
-        $anotherLoads = array_filter($loads, function ($item) use ($workerId, $group, $discipline) {
-            return $item->worker_id != $workerId && $item->discipline_name == $discipline && $item->group_name == $group;
-        });
+        if (count($workerLoads)) {
+            $anotherLoads = array_filter($loads, function ($item) use ($workerId, $group, $discipline) {
+                return $item->worker_id != $workerId && $item->discipline_name == $discipline && $item->group_name == $group;
+            });
 
-        foreach ($anotherLoads as $anotherLoad){
-            $sheet->setCellValueByColumnAndRow(3, $i, $anotherLoad->type_class_name);
-            $sheet->setCellValueByColumnAndRow(4, $i, $anotherLoad->hours);
-            $sheet->setCellValueByColumnAndRow(5, $i, $anotherLoad->worker_fio ? $anotherLoad->worker_fio : 'Не назначен');
-            $i++;
+            foreach ($anotherLoads as $anotherLoad) {
+                $sheet->setCellValueByColumnAndRow(3, $i, $anotherLoad->type_class_name);
+                $sheet->setCellValueByColumnAndRow(4, $i, $anotherLoad->hours);
+                $sheet->setCellValueByColumnAndRow(5, $i, $anotherLoad->worker_fio ? $anotherLoad->worker_fio : 'Не назначен');
+                $i++;
+            }
+
+            $sheet->mergeCellsByColumnAndRow(2, $firstGroupCell, 2, $i - 1);
+            $sheet->setCellValueByColumnAndRow(2, $firstGroupCell, $faculty . ' ' . $group);
+
+            $sheet->mergeCellsByColumnAndRow(1, $firstDisciplineCell, 1, $i - 1);
+            $sheet->setCellValueByColumnAndRow(1, $firstDisciplineCell, $discipline);
         }
-
-        $sheet->mergeCellsByColumnAndRow(2, $firstGroupCell, 2, $i - 1);
-        $sheet->setCellValueByColumnAndRow(2, $firstGroupCell, $faculty . ' ' . $group);
-
-        $sheet->mergeCellsByColumnAndRow(1, $firstDisciplineCell, 1, $i - 1);
-        $sheet->setCellValueByColumnAndRow(1, $firstDisciplineCell, $discipline);
 
         $sheet->setCellValueByColumnAndRow(3, $i, 'Всего за семестр:');
         $sheet->setCellValueByColumnAndRow(4, $i, $hours);
